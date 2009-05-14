@@ -20,6 +20,7 @@ class Logger{
     public:
         enum EVENT_T{
             EVENT,
+            WARN,
             ERR,
         };
 
@@ -35,6 +36,8 @@ class Logger{
             switch(type){
                 case EVENT:
                     return "Event: ";
+                case WARN:
+                    return "Warning: ";
                 case ERR:
                     return "Error: ";
                 default:
@@ -48,7 +51,8 @@ class Logger{
         std::ofstream   outfile;
 };
 
-#define LOG_EVENT(str)  logger->LogEvent(str, Logger::EVENT);
-#define LOG_ERROR(str)  logger->LogEvent(str, Logger::ERR);
+#define LOG_EVENT(str)      logger->LogEvent(str, Logger::EVENT);
+#define LOG_WARNING(str)    logger->LogEvent(str, Logger::WARN);
+#define LOG_ERROR(str)      logger->LogEvent(str, Logger::ERR);
 
 #endif

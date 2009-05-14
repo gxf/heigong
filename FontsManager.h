@@ -3,12 +3,13 @@
 #define FONTS_MANAGER_H
 
 #include <vector>
+#include <cstring>
 
 #include <ft2build.h>  
 #include FT_FREETYPE_H 
 
-
 class Logger;
+class Position;
 
 class FontsManager{
     public:
@@ -16,20 +17,49 @@ class FontsManager{
         ~FontsManager();
 
     public:
-        typedef unsigned int Handle;    // Porting notice: 32bit only
+        class FontEntry{
+        public:
+            const char* path;
+            FT_Face     face;
+        public:
+            FontEntry(const char* p, FT_Face f):
+                path(p), face(f)
+            {}
+            FontEntry(const FontEntry & fe){
+                path = fe.path;
+                face = fe.face;
+            }
+            bool operator==(FontEntry & fe){
+                if (std::strcmp(fe.path, path) == 0)
+                    return true;
+                return false;
+            }
+        };
 
     public:
-        Handle OpenFont(const char* path);
-        bool DelFont(Handle hFont);
+        // Interfaces
+        bool OpenFont(const char* path);
+        bool DelFont(FT_Face face);
 
         bool SetFontParam(){return true;}
-//        bool Set
-        FT_GlyphSlot GetGlyph(FT_ULong c, Handle hFont);
+
+        void GetBitmap(FT_ULong c, FT_Bitmap** bitmap, 
+                       Position* topLeft, Position* advance);
 
     private:
-        FT_Library library; /* handle to library */  
-        std::vector<FT_Face *> faces;       /* handle to face object */ 
+        void Init();
+        FT_Face FindFont(const char* path);
 
+    private:
+        static const char* dftFontPath;
+
+    private:
+        FT_Library library;             /* handle to library */  
+        std::vector<FontEntry> fonts;     /* handle to face object */ 
+
+        FT_Face curFont;
+
+    private:
         Logger* logger;
 };
 

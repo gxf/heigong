@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "Logger.h"
 #include "RenderMan.h"
 #include "FontsManager.h"
@@ -22,21 +23,25 @@ May12th::~May12th(){
 
 bool May12th::RenderString(const char* str){
     const char* ch = str;
-
     if (NULL == ch)
         return true;
 
+    render.Clear();
     while('\0' != *ch){
         char buf[100];
         sprintf(buf, "Current char: %c", *ch);
         LOG_EVENT(buf);
 
-        FT_Bitmap* bitmap = fonts.GetBitmap((FT_ULong)*ch);
+        FT_Bitmap* bitmap;
+        Position topLeft, advance;
+        fonts.GetBitmap((FT_ULong)*ch, &bitmap, &topLeft, &advance);
         Position pos = 
-            layout.GetProperPos(LayoutManager::GT_CHAR, bitmap->width,bitmap->rows);
+            layout.GetProperPos(LayoutManager::GT_CHAR, topLeft.x, topLeft.y);
         render.RenderBitMap(pos.x, pos.y, bitmap->width, bitmap->rows, bitmap->buffer);
         ch++;
     }
+    render.Flush();
+
     return true;
 }
 

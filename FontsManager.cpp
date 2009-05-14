@@ -1,30 +1,38 @@
-#include "FontsManager.h"
+#include "Common.h"
 #include "Logger.h"
+#include "FontsManager.h"
+
+const char* FontsManager::dftFontPath = "/usr/share/fonts/truetype/freefont/FreeSans.ttf";
 
 FontsManager::FontsManager(Logger* log):
+    curFont(NULL),
     logger(log)
 {
     int error = FT_Init_FreeType(&library); 
-    if (!error){
+    if (error){
         LOG_ERROR("Failed to init font library.");
     }
     else{
         LOG_EVENT("Font library initialization succeeds.");
+        Init();
     }
 }
 
 FontsManager::~FontsManager(){
-    std::vector<FT_Face *>::iterator itr = faces.begin();
-    while(itr != faces.end()){
-        delete *itr;
-        ++itr;
-    }
 }
 
-FontsManager::Handle FontsManager::OpenFont(const char* path){
-    FT_Face* pFace = new FT_Face;
+void FontsManager::Init(){
+    OpenFont(dftFontPath);
+}
 
-    int error = FT_New_Face(library, path, 0, pFace ); 
+bool FontsManager::OpenFont(const char* path){
+    if ((curFont = FindFont(path)) != NULL){
+        return true;
+    }
+
+    FT_Face face;
+
+    int error = FT_New_Face(library, path, 0, &face ); 
     switch(error){
         case 0:
             char buf[200];
@@ -33,23 +41,28 @@ FontsManager::Handle FontsManager::OpenFont(const char* path){
             break;
         case FT_Err_Unknown_File_Format:
             LOG_ERROR("Unknow file format to open.");
-            return (Handle)0;
+            return false;
         default:
             LOG_ERROR("Open new font face fails.");
-            return (Handle)0;
+            return false;
     }
-    faces.push_back(pFace);
+    fonts.push_back(FontEntry(path, face));
+    curFont = face;
 
-    return reinterpret_cast<Handle>(pFace);
+    error = FT_Set_Char_Size(face, 50 * 64, 0, 96, 0 ); 
+    if (error){
+        LOG_ERROR("Fail to set char size.");
+    }
+
+    return true;
 }
 
-bool FontsManager::DelFont(Handle hFont){
-    std::vector<FT_Face *>::iterator itr = faces.begin();
+bool FontsManager::DelFont(FT_Face face){
+    std::vector<FontEntry>::iterator itr = fonts.begin();
 
-    while(itr != faces.end()){
-        if (*itr == reinterpret_cast<FT_Face *>(hFont)){
-            delete *itr;
-            faces.erase(itr);
+    while(itr != fonts.end()){
+        if (itr->face == face){
+            fonts.erase(itr);
             LOG_EVENT("Font is deleted");
             return true;
         }
@@ -60,23 +73,62 @@ bool FontsManager::DelFont(Handle hFont){
     return false;
 }
 
-FT_GlyphSlot FontsManager::GetGlyph(FT_ULong ch, Handle hFont){
-    FT_UInt glyph_index;
-    FT_Face* pFace = reinterpret_cast<FT_Face*>(hFont);
-
-    glyph_index = FT_Get_Char_Index(*pFace, ch); 
-
-    /* load glyph image into the slot (erase previous one) */  
-    int error = FT_Load_Glyph(*pFace, glyph_index, FT_LOAD_DEFAULT); 
-    if (error){
-        LOG_WARNING("Fail to load glyph image");
-    }
-
-    /* convert to an anti-aliased bitmap */  
-    error = FT_Render_Glyph((*pFace)->glyph, FT_RENDER_MODE_NORMAL); 
+void FontsManager::GetBitmap(FT_ULong ch, FT_Bitmap** bitmap, Position* topLeft, Position* advance){
+//    int error = FT_Load_Char(curFont, ch, FT_LOAD_MONOCHROME); 
+    int error = FT_Load_Char(curFont, ch, FT_LOAD_RENDER); 
     if (error){
         LOG_WARNING("Fail to convert glyph image to anti-aliased bitmap.");
     }
-    return (*pFace)->glyph;
+
+    switch(curFont->glyph->bitmap.pixel_mode){
+        case FT_PIXEL_MODE_MONO:
+            // A monochrome bitmap, using 1 bit per pixel.
+            LOG_WARNING("Pixel Mode MONO. Not supported.");
+            break;
+        case FT_PIXEL_MODE_GRAY:
+            // An 8-bit bitmap, generally used to represent anti-aliased glyph images. 
+            // Each pixel is stored in one byte. 
+            break;
+        case FT_PIXEL_MODE_GRAY2:
+            // A 2-bit per pixel bitmap
+            LOG_WARNING("Pixel Mode GRAY 2 bits per pixel. Not supported.");
+            break;
+        case FT_PIXEL_MODE_GRAY4:
+            // A 4-bit per pixel bitmap
+            LOG_WARNING("Pixel Mode GRAY 4 bits per pixel. Not supported.");
+            break;
+        case FT_PIXEL_MODE_LCD:
+            // An 8-bit bitmap, representing RGB or BGR decimated glyph images 
+            // used for display on LCD displays;
+            LOG_WARNING("Pixel Mode LCD. Not supported.");
+            break;
+        case FT_PIXEL_MODE_LCD_V:
+            // An 8-bit bitmap, representing RGB or BGR decimated glyph images 
+            // used for display on rotated LCD displays. 
+            LOG_WARNING("Pixel Mode LCD_V. Not supported.");
+            break;
+        default:
+            LOG_ERROR("Unsupported pixel format.");
+            exit(0);
+    }
+    char buf[100];
+    sprintf(buf, "Bitmap pitch: %d", curFont->glyph->bitmap.pitch);
+    LOG_EVENT(buf);
+
+    *bitmap = &(curFont->glyph->bitmap);
+    topLeft->x = curFont->glyph->bitmap_left;
+    topLeft->y = curFont->glyph->bitmap_top;
+    advance->x = curFont->glyph->advance.x;
+    advance->y = curFont->glyph->advance.y;
 }
 
+FT_Face FontsManager::FindFont(const char* path){
+    std::vector<FontEntry>::iterator itr = fonts.begin();
+
+    while(itr != fonts.end()){
+        if (strcmp(path, itr->path) == 0){
+            return itr->face;
+        }
+    }
+    return NULL;
+}

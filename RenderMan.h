@@ -9,18 +9,21 @@ class Color;
 
 class RenderMan{
     public:
-        RenderMan(Logger* log);
+        RenderMan(Logger* log, int w, int h, int bpp = 16);
         ~RenderMan();
 
     public:
         void Init();
 
-        bool RenderPoint(int x, int y, int size, const Color& col);
-        bool RenderLine(int x, int y, int width, int length, const Color& col);
+        bool RenderPoint(int x, int y, int size, Color& col);
+        bool RenderLine(int x, int y, int width, int length, Color& col);
         bool RenderLine2(int start_x, int start_y, int end_x, int end_y, 
-                         int width, const Color& col);
-        bool RenderRectangle(int x, int y, int width, int length, const Color& col);
+                         int width, Color & col);
+        bool RenderRectangle(int x, int y, int width, int length, Color & col);
+        bool RenderBitMap(int x, int y, int width, int length, void* ptr);
+        bool RenderPixMap(int x, int y, int width, int length, void* ptr);
 
+        void Clear();
         void Flush();
 
         void Quit();
@@ -32,6 +35,11 @@ class RenderMan{
         const SDL_VideoInfo*    videoInfo; // holds some info about our display
         SDL_Surface *           surface;   // SDL surface
 
+        int screen_width;
+        int screen_height;
+        int screen_bpp;
+
+    private:
         Logger* logger;
 };
 

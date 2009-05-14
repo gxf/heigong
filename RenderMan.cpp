@@ -1,18 +1,15 @@
 
 #include <cstdio>
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include <GL/glew.h>
 
 #include "RenderMan.h"
+#include "Color.h"
 #include "Logger.h"
 
 using namespace std;
 
-#define SCREEN_WIDTH  640
-#define SCREEN_HEIGHT 480
-#define SCREEN_BPP     16
-
-RenderMan::RenderMan(Logger* log):
+RenderMan::RenderMan(Logger* log, int w, int h, int bpp):
+    screen_width(w), screen_height(h), screen_bpp(bpp),
     logger(log)
 {
 }
@@ -53,7 +50,7 @@ void RenderMan::Init(){
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     /* get a SDL surface */
-    surface = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, videoFlags);
+    surface = SDL_SetVideoMode(screen_width, screen_height, screen_bpp, videoFlags);
 
     /* Verify there is a surface */
     if (!surface){
@@ -66,52 +63,118 @@ void RenderMan::Init(){
 
 void RenderMan::InitGL()     // Create Some Everyday Functions
 { 
+    LOG_EVENT("Initializing GL.");
+    GLenum err = glewInit();
+    if (GLEW_OK != err)
+    {
+        LOG_ERROR("GLew init fails.");
+        Quit();
+        exit(0);
+    }
+    char buf[100];
+    sprintf(buf, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    LOG_EVENT(buf);
+
     glShadeModel(GL_SMOOTH);                // Enable Smooth Shading
     glClearColor(0.0f, 0.0f, 0.0f, 0.5f);   // Black Background 
-    glClearDepth(1.0f);                     // Depth Buffer Setup 
-    glEnable(GL_DEPTH_TEST);                // Enables Depth Testing 
-    glDepthFunc(GL_LEQUAL);                 // The Type Of Depth Testing To Do 
-    glEnable ( GL_COLOR_MATERIAL ); 
+//    glClearDepth(1.0f);                     // Depth Buffer Setup 
+//    glEnable(GL_DEPTH_TEST);                // Enables Depth Testing 
+//   glDepthFunc(GL_LEQUAL);                 // The Type Of Depth Testing To Do 
+//    glEnable ( GL_COLOR_MATERIAL ); 
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+ //   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glFlush();
 }
 
 void RenderMan::Quit(){
+    LOG_EVENT("Render terminated.");
+
     SDL_Quit();
-    exit(0);
+//    exit(0);
 }
 
-bool RenderMan::RenderPoint(int x, int y, int size, const Color& col){
+void RenderMan::Clear(){
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+bool RenderMan::RenderPoint(int x, int y, int size, Color & col){
     char buf[100];
     sprintf(buf, "render point to (%d , %d), size %d", x, y, size);
-
     LOG_EVENT(buf);
-    
+
+    char point[size * size];
+    memset(point, 0xffffffff, sizeof(point));
+
+    glColor3b(col.R, col.G, col.B);
+//    glWindowPos2i(x, y);
+    glWindowPos2i(0.5, 0.5);
+    glBitmap(size, size, 0, 0, size, 0, (GLubyte*)point);
+    glFinish();
+
+    return true;
 }
 
-bool RenderMan::RenderLine(int x, int y, int width, int length, const Color& col){
+bool RenderMan::RenderLine(int x, int y, int width, int length, Color & col){
     char buf[100];
     sprintf(buf, "render line to (%d , %d), width: %d, length: %d", x, y, width, length);
-
     LOG_EVENT(buf);
+
+    char line[width * length];
+    memset(line, 0xffffffff, sizeof(line));
+
+    glColor3b(col.R, col.G, col.B);
+//    glWindowPos2i(x, y);
+    glWindowPos2i(0.5, 0.5);
+    glBitmap(width, length, 0, 0, width, 0, (GLubyte*)line);
+    glFinish();
+
+    return true;
 }
 
 bool RenderMan::RenderLine2(int start_x, int start_y, int end_x, int end_y, 
-                            int width, const Color& col)
+                            int width, Color & col)
 {
     char buf[100];
     sprintf(buf, "render line from (%d, %d) to (%d , %d), width: %d", start_x, start_y, end_x, end_y, width);
 
     LOG_EVENT(buf);
+    return true;
 }
 
-bool RenderMan::RenderRectangle(int x, int y, int width, int length, const Color& col){
+bool RenderMan::RenderRectangle(int x, int y, int width, int length, Color & col){
     char buf[100];
     sprintf(buf, "render rectangle with left-top @ (%d , %d), width: %d, length: %d", x, y, width, length);
 
     LOG_EVENT(buf);
+    return true;
+}
+
+bool RenderMan::RenderBitMap(int x, int y, int width, int height, void* bitmap){
+    char buf[100];
+    sprintf(buf, "render bitmap with left-top @ (%d , %d), width: %d, height: %d", x, y, width, height);
+
+    LOG_EVENT(buf);
+
+    glWindowPos2i(x, y);
+    glBitmap(width, height, 0, 0, width, 0, (GLubyte*)bitmap);
+    glFinish();
+    return true;
+}
+
+bool RenderMan::RenderPixMap(int x, int y, int width, int length, void* pixmap){
+    char buf[100];
+    sprintf(buf, "render pixmap with left-top @ (%d , %d), width: %d, length: %d", x, y, width, length);
+
+    LOG_EVENT(buf);
+    return true;
 }
 
 void RenderMan::Flush(){
     LOG_EVENT("Flush to buffer");
     glFlush();
+    SDL_GL_SwapBuffers();
 }
+
