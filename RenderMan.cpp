@@ -4,6 +4,7 @@
 
 #include "RenderMan.h"
 #include "Color.h"
+#include "Common.h"
 #include "Logger.h"
 
 using namespace std;
@@ -109,8 +110,7 @@ bool RenderMan::RenderPoint(int x, int y, int size, Color & col){
     memset(point, 0xffffffff, sizeof(point));
 
     glColor3b(col.R, col.G, col.B);
-//    glWindowPos2i(x, y);
-    glWindowPos2i(0.5, 0.5);
+    glWindowPos2i(x, y);
     glBitmap(size, size, 0, 0, size, 0, (GLubyte*)point);
     glFinish();
 
@@ -126,8 +126,7 @@ bool RenderMan::RenderLine(int x, int y, int width, int length, Color & col){
     memset(line, 0xffffffff, sizeof(line));
 
     glColor3b(col.R, col.G, col.B);
-//    glWindowPos2i(x, y);
-    glWindowPos2i(0.5, 0.5);
+    glWindowPos2i(x, y);
     glBitmap(width, length, 0, 0, width, 0, (GLubyte*)line);
     glFinish();
 
@@ -164,11 +163,20 @@ bool RenderMan::RenderBitMap(int x, int y, int width, int height, void* bitmap){
     return true;
 }
 
-bool RenderMan::RenderPixMap(int x, int y, int width, int length, void* pixmap){
-    char buf[100];
-    sprintf(buf, "render pixmap with left-top @ (%d , %d), width: %d, length: %d", x, y, width, length);
+bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap){
+//    char buf[100];
+//    sprintf(buf, "render graymap with left-top @ (%d , %d), width: %d, height: %d", x, y, width, height);
+//    LOG_EVENT(buf);
 
-    LOG_EVENT(buf);
+    glWindowPos2i(x, SCREEN_HEIGHT - y);
+    glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
+    return true;
+}
+
+bool RenderMan::RenderPixMap(int x, int y, int width, int height, void* pixmap){
+    char buf[100];
+    sprintf(buf, "render pixmap with left-top @ (%d , %d), width: %d, height: %d", x, y, width, height);
+
     return true;
 }
 

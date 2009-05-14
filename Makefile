@@ -16,16 +16,19 @@ VPATH=
 
 all: $(TARGETS) 
 
-hgMaster: hgMaster.o MayTwelfth.o RenderMan.o FontsManager.o LayoutManager.o
+hgMaster: hgMaster.o MayTwelfth.o RenderMan.o FontsManager.o LayoutManager.o FontsCache.o
 	$(LD) $(LDFLAGS) $(LIB_PATH) $(LIBS) $^ -o $@
 
-hgMaster.o: hgMaster.cpp Logger.h Color.h RenderMan.h MayTwelfth.h Common.h
+hgMaster.o: hgMaster.cpp Logger.h Color.h RenderMan.h MayTwelfth.h Common.h FontsCache.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
 
 RenderMan.o: RenderMan.cpp Logger.h Color.h RenderMan.h Common.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
 
 FontsManager.o: FontsManager.cpp Logger.h FontsManager.h Common.h
+	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
+
+FontsCache.o: FontsCache.cpp FontsCache.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
 
 LayoutManager.o: LayoutManager.cpp Logger.h FontsManager.h LayoutManager.h Common.h

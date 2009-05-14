@@ -5,6 +5,7 @@ class Logger;
 class FontsManager;
 class LayoutManager;
 class RenderMan;
+class FontsCache;
 
 class May12th{
     public:
@@ -17,6 +18,7 @@ class May12th{
 
     public:
 //        bool RenderWord(){return true;}
+        void MainLoop();
 
     private:
         Logger*         logger;
@@ -25,6 +27,8 @@ class May12th{
         FontsManager    fonts;
         LayoutManager   layout;
         RenderMan       render;
+        FontsCache      fontsCache;
+
     private:
         const static int screen_width;
         const static int screen_height;

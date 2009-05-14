@@ -41,7 +41,7 @@ class FontsManager{
         bool OpenFont(const char* path);
         bool DelFont(FT_Face face);
 
-        bool SetFontParam(){return true;}
+        bool SetFontSize(int pt);
 
         void GetBitmap(FT_ULong c, FT_Bitmap** bitmap, 
                        Position* topLeft, Position* advance);
@@ -58,6 +58,8 @@ class FontsManager{
         std::vector<FontEntry> fonts;     /* handle to face object */ 
 
         FT_Face curFont;
+
+        int     dpi;
 
     private:
         Logger* logger;

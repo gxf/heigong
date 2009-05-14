@@ -5,7 +5,7 @@
 const char* FontsManager::dftFontPath = "/usr/share/fonts/truetype/freefont/FreeSans.ttf";
 
 FontsManager::FontsManager(Logger* log):
-    curFont(NULL),
+    curFont(NULL), dpi(96),
     logger(log)
 {
     int error = FT_Init_FreeType(&library); 
@@ -49,13 +49,21 @@ bool FontsManager::OpenFont(const char* path){
     fonts.push_back(FontEntry(path, face));
     curFont = face;
 
-    error = FT_Set_Char_Size(face, 50 * 64, 0, 96, 0 ); 
-    if (error){
-        LOG_ERROR("Fail to set char size.");
-    }
-
+    SetFontSize(25);
     return true;
 }
+
+bool FontsManager::SetFontSize(int pt){
+    if (curFont == NULL)
+        return false;
+    int error = FT_Set_Char_Size(curFont, pt * 64, 0, dpi, 0 ); 
+    if (error){
+        LOG_ERROR("Fail to set char size.");
+        return false;
+    }
+    return true;
+}
+
 
 bool FontsManager::DelFont(FT_Face face){
     std::vector<FontEntry>::iterator itr = fonts.begin();
@@ -74,7 +82,7 @@ bool FontsManager::DelFont(FT_Face face){
 }
 
 void FontsManager::GetBitmap(FT_ULong ch, FT_Bitmap** bitmap, Position* topLeft, Position* advance){
-//    int error = FT_Load_Char(curFont, ch, FT_LOAD_MONOCHROME); 
+
     int error = FT_Load_Char(curFont, ch, FT_LOAD_RENDER); 
     if (error){
         LOG_WARNING("Fail to convert glyph image to anti-aliased bitmap.");
@@ -111,15 +119,12 @@ void FontsManager::GetBitmap(FT_ULong ch, FT_Bitmap** bitmap, Position* topLeft,
             LOG_ERROR("Unsupported pixel format.");
             exit(0);
     }
-    char buf[100];
-    sprintf(buf, "Bitmap pitch: %d", curFont->glyph->bitmap.pitch);
-    LOG_EVENT(buf);
 
-    *bitmap = &(curFont->glyph->bitmap);
-    topLeft->x = curFont->glyph->bitmap_left;
-    topLeft->y = curFont->glyph->bitmap_top;
-    advance->x = curFont->glyph->advance.x;
-    advance->y = curFont->glyph->advance.y;
+    *bitmap     = &(curFont->glyph->bitmap);
+    topLeft->x  = curFont->glyph->bitmap_left;
+    topLeft->y  = curFont->glyph->bitmap_top;
+    advance->x  = curFont->glyph->advance.x;
+    advance->y  = curFont->glyph->advance.y;
 }
 
 FT_Face FontsManager::FindFont(const char* path){

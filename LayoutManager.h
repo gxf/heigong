@@ -13,7 +13,6 @@ class LayoutManager{
         ~LayoutManager();
 
     public:
-    public:
         enum GLYTH_TYPE{
             GT_CHAR,
             GT_BITMAP,
@@ -21,6 +20,9 @@ class LayoutManager{
 
         // Interfaces
         const Position GetProperPos(GLYTH_TYPE tp, int width, int height);
+
+        void NewLine();
+        void NewPage();
 
     public:
         inline const int GetWidth(){
@@ -38,6 +40,7 @@ class LayoutManager{
         inline void SetHeight(const int ht){
             p_height = ht;
         }
+
     private:
         void GetCharPos(Position & pos, int width, int height);
             
@@ -52,7 +55,8 @@ class LayoutManager{
         int g_line_spacing; // Global line spacing
         int g_word_spacing; // Global word spacing
 
-        Position curPos; // Current raster position
+        Position curPos;    // Current raster position
+        int curMaxHeight;   // Max height in one line
 
     private:
         Logger*     logger;

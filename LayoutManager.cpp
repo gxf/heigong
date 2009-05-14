@@ -9,7 +9,8 @@ LayoutManager::LayoutManager(int w, int h, int mv, int mh,
     p_width(w), p_height(h), 
     v_m_width(mv), h_m_width(mh), 
     g_line_spacing(ls),g_word_spacing(ws),
-    curPos(mv, mh), logger(log)
+    curPos(mv, mh), curMaxHeight(0),
+    logger(log)
 {
 }
 
@@ -34,31 +35,45 @@ const Position LayoutManager::GetProperPos(GLYTH_TYPE tp, int width, int height)
 }
 
 void LayoutManager::GetCharPos(Position & pos, int width, int height){
+    curMaxHeight = (curMaxHeight > height) ? curMaxHeight : height;
     if (curPos.x + g_word_spacing + width >= p_width - h_m_width){
         // Current line is over for use
-        if (curPos.y + g_line_spacing + height >= p_height - v_m_width){
+        if (curPos.y + g_line_spacing + curMaxHeight >= p_height - v_m_width){
             // & current page is over for use
             // Return invalid position
             curPos.x = v_m_width;
             curPos.y = h_m_width;
             pos.x = -1;
             pos.y = -1;
+            return;
         }
         else{
             // Return position of new line head
             curPos.x = h_m_width;
-            curPos.y += g_line_spacing + height;
+            curPos.y += g_line_spacing + curMaxHeight;
             pos = curPos;
             curPos.x += width + g_word_spacing;
+            curMaxHeight = height;
         }
     }
-    else{
+    else
+    {
         // Current line still have space, return curPos
         pos = curPos;
-        pos.x += width + g_line_spacing;
+        curPos.x += width + g_word_spacing;
     }
+    pos.y += curMaxHeight;
 }
 
 void LayoutManager::GetImagePos(Position & pos, int width, int height){
 }
 
+void LayoutManager::NewLine(){
+    curPos.x = h_m_width;
+    curPos.y += curMaxHeight + g_line_spacing;
+}
+
+void LayoutManager::NewPage(){
+    curPos.x = v_m_width;
+    curPos.y = h_m_width;
+}
