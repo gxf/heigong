@@ -19,30 +19,26 @@ class LayoutManager{
         };
 
         // Interfaces
-        const Position GetProperPos(GLYTH_TYPE tp, int width, int height);
+        const Position GetProperPos(GLYTH_TYPE tp, int width, int height, int bearingY);
 
         void NewLine();
         void NewPage();
 
     public:
-        inline const int GetWidth(){
-            return p_width;
-        }
+        inline const int GetWidth(){ return p_width; }
+        inline void SetWidth(const int wd){ p_width = wd; }
 
-        inline const int GetHeight(){
-            return p_height;
-        }
+        inline const int GetHeight(){ return p_height; }
+        inline void SetHeight(const int ht){ p_height = ht; }
 
-        inline void SetWidth(const int wd){
-            p_width = wd;
-        }
+        inline const int GetLineSpacing(){ return g_line_spacing; }
+        inline void SetLineSpacing(const int ls){ g_line_spacing = ls; }
 
-        inline void SetHeight(const int ht){
-            p_height = ht;
-        }
+        inline const int GetWordSpacing(){ return g_word_spacing; }
+        inline void SetWordSpacing(const int ws){ g_word_spacing = ws; }
 
     private:
-        void GetCharPos(Position & pos, int width, int height);
+        void GetCharPos(Position & pos, int width, int height, int bearingY);
             
         void GetImagePos(Position & pos, int width, int height);
 
@@ -57,6 +53,7 @@ class LayoutManager{
 
         Position curPos;    // Current raster position
         int curMaxHeight;   // Max height in one line
+        int curBaseline;    // Current baseline position (y-axis)
 
     private:
         Logger*     logger;

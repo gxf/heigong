@@ -43,7 +43,7 @@ class FontsManager{
 
         bool SetFontSize(int pt);
 
-        void GetBitmap(FT_ULong c, FT_Bitmap** bitmap, 
+        void GetBitmap(FT_ULong c, FT_Bitmap** bitmap, FT_Glyph_Metrics** metrics, 
                        Position* topLeft, Position* advance);
 
     private:

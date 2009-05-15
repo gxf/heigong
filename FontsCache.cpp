@@ -14,11 +14,12 @@ void FontsCache::AdjustBitmap(int width, int height, void* bitmap){
     // point differently. 
     // (GL - bottom-left; freetype - top-left);
 
+    height--;
     int i;
     unsigned char tmprow[width];
     unsigned char* p = (unsigned char*)bitmap;
 
-    for (i = 0; i <= (height - 1) / 2; i++){
+    for (i = 0; i < height - i; i++){
         std::memcpy(tmprow, p + i * width, width);
         std::memcpy(p + i * width, p + (height - i) * width, width);
         std::memcpy(p + (height - i) * width, tmprow, width);

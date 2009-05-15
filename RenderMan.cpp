@@ -164,9 +164,11 @@ bool RenderMan::RenderBitMap(int x, int y, int width, int height, void* bitmap){
 }
 
 bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap){
-//    char buf[100];
-//    sprintf(buf, "render graymap with left-top @ (%d , %d), width: %d, height: %d", x, y, width, height);
-//    LOG_EVENT(buf);
+    /*
+    char buf[100];
+    sprintf(buf, "render graymap with left-bottom @ (%d , %d), width: %d, height: %d", x, y, width, height);
+    LOG_EVENT(buf);
+    */
 
     glWindowPos2i(x, SCREEN_HEIGHT - y);
     glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
@@ -181,7 +183,7 @@ bool RenderMan::RenderPixMap(int x, int y, int width, int height, void* pixmap){
 }
 
 void RenderMan::Flush(){
-    LOG_EVENT("Flush to buffer");
+//    LOG_EVENT("Flush to buffer");
     glFlush();
     SDL_GL_SwapBuffers();
 }
