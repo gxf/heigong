@@ -1,6 +1,7 @@
 
 CC=g++
-CFLAGS=-g -Wall
+CFLAGS=-g -Wall -O3
+#CFLAGS=-g -Wall -O0
 LD=g++
 LDFLAGS=
 #INC=
@@ -28,7 +29,7 @@ all: $(TARGETS)
 hgMaster: $(OBJECTS)
 	$(LD) $(LDFLAGS) $(LIB_PATH) $(LIBS) $^ -o $@
 
-hgMaster.o: hgMaster.cpp Logger.h Color.h RenderMan.h MayTwelfth.h Common.h FontsCache.h
+hgMaster.o: hgMaster.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h LayoutManager.h DocParser.h Common.h Glyph.h Line.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
 
 RenderMan.o: RenderMan.cpp Logger.h Color.h RenderMan.h Common.h
@@ -43,7 +44,7 @@ FontsCache.o: FontsCache.cpp FontsCache.h
 LayoutManager.o: LayoutManager.cpp Logger.h FontsManager.h LayoutManager.h Common.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
 
-MayTwelfth.o: MayTwelfth.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h LayoutManager.h Common.h
+MayTwelfth.o: MayTwelfth.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h LayoutManager.h DocParser.h Common.h Glyph.h Line.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
 
 DocParser.o: DocParser.cpp DocParser.h Logger.h

@@ -1,10 +1,3 @@
-#include "Common.h"
-#include "Logger.h"
-#include "RenderMan.h"
-#include "FontsManager.h"
-#include "FontsCache.h"
-#include "LayoutManager.h"
-#include "DocParser.h"
 #include "MayTwelfth.h"
 #include <cstdlib>
 #include <cstring>
@@ -31,7 +24,9 @@ May12th::~May12th(){
 void May12th::PerCharDisplay(){
     render.Clear();
     layout.NewPage();
-    fonts.SetFontSize(14);
+    line.Clear();
+    layout.SetLineSpacing(12/4);
+    fonts.SetFontSize(12);
 
     char cur;
     docParse >> cur;
@@ -44,34 +39,63 @@ void May12th::PerCharDisplay(){
         if ('\n' == cur){
             layout.NewLine();
         }
-        else {
-            RenderChar(cur);
+        else if(false == RenderChar(cur)){
+            render.Flush();
+            docParse.ReOpenFile();
+            layout.Reset();
+            return;
         }
         if (!(docParse >> cur))
             break;
     }
+    line.Flush(&render, &fontsCache, layout.GetLastBaseLine());
+    line.Clear();
     render.Flush();
+    docParse.ReOpenFile();
 }
 
 bool May12th::RenderChar(const char ch){
     if (EOF == ch)
         return false;
 
+    Position     pos(0, 0);
     FT_GlyphSlot glyphSlot;
-    fonts.GetGlyphSlot((FT_ULong)ch, &glyphSlot);
 
-    Position pos = 
-            layout.GetProperPos(LayoutManager::GT_CHAR, (glyphSlot->advance.x) >> 6, glyphSlot->bitmap.rows, (glyphSlot->metrics.horiBearingY) >> 6);
+    fonts.GetGlyphSlot((FT_ULong)ch, &glyphSlot);
+    int baseline = (glyphSlot->metrics.horiBearingY) >> 6;
+    Char* pch = 
+        fontsCache.GenChar(pos, baseline, 
+                           glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
+                           glyphSlot->bitmap.buffer);
+    LAYOUT_RET ret = 
+        layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
+                          glyphSlot->bitmap.rows, baseline);
+    pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
+    pch->SetPos(pos);
+    switch(ret){
+        case LO_OK:
+            line.AddGlyph(pch);
+            break;
+        case LO_NEW_LINE:
+            line.Flush(&render, &fontsCache, layout.GetLastBaseLine());
+            line.Clear();
+            line.AddGlyph(pch);
+            break;
+        case LO_NEW_PAGE:
+            line.Flush(&render, &fontsCache, layout.GetLastBaseLine());
+//            line.Clear();
+//            line.AddGlyph(pch);
+            return false;
+        default:
+            LOG_ERROR("Unsupported Layout return.");
+            break;
+    }
 
 //  sprintf(buf, "Got pos form LayoutManager @ (%d, %d)", pos.x, pos.y);
 //  LOG_EVENT(buf);
 
-    char p[glyphSlot->bitmap.pitch * glyphSlot->bitmap.rows];
-    std::memcpy(p, glyphSlot->bitmap.buffer, glyphSlot->bitmap.pitch * glyphSlot->bitmap.rows);
-    fontsCache.AdjustBitmap(glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, p);
-
-    pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
-    render.RenderGrayMap(pos.x, pos.y, glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, p);
+//    pch -> Draw(&render);
+//    fontsCache.DelChar(pch);
     return true;
 }
 
@@ -83,15 +107,14 @@ bool May12th::RenderWord(const char* str, int size){
 }
 
 bool May12th::RenderString(const char* str){
-    const char* ch = str;
+/*    const char* ch = str;
     if (NULL == ch)
         return true;
 
     while('\0' != *ch){
-/*        char buf[100];
+        char buf[100];
         sprintf(buf, "Current char: %c", *ch);
         LOG_EVENT(buf);
-        */
 
         FT_GlyphSlot glyphSlot;
         fonts.GetGlyphSlot((FT_ULong)*ch, &glyphSlot);
@@ -110,7 +133,7 @@ bool May12th::RenderString(const char* str){
         render.RenderGrayMap(pos.x, pos.y, glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, p);
         ch++;
     }
-    return true;
+*/    return true;
 }
 
 void May12th::MainLoop(){

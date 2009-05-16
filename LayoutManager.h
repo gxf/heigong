@@ -6,6 +6,12 @@
 class Logger;
 class FontsManager;
 
+enum LAYOUT_RET{
+    LO_OK,
+    LO_NEW_LINE,
+    LO_NEW_PAGE,
+};
+
 class LayoutManager{
     public:
         LayoutManager(int w, int h, int m_v, int m_h, Logger* log,
@@ -37,9 +43,13 @@ class LayoutManager{
         inline const int GetWordSpacing(){ return g_word_spacing; }
         inline void SetWordSpacing(const int ws){ g_word_spacing = ws; }
 
-    private:
-        void GetCharPos(Position & pos, int width, int height, int bearingY);
+        inline int GetCurBaseLine(){ return curBaseline; }
+        inline int GetLastBaseLine(){ return lastBaseline; }
+
+    public:
+        LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
             
+        void Reset();
         void GetImagePos(Position & pos, int width, int height);
 
     private:
@@ -53,7 +63,9 @@ class LayoutManager{
 
         Position curPos;    // Current raster position
         int curMaxHeight;   // Max height in one line
+        int lastMaxHeight;  // Max height in last line
         int curBaseline;    // Current baseline position (y-axis)
+        int lastBaseline;   // Baseline of last line
 
     private:
         Logger*     logger;

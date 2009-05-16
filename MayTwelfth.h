@@ -1,12 +1,16 @@
 #ifndef MAY_TWELFTH_H
 #define MAY_TWELFTH_H
 
-class Logger;
-class FontsManager;
-class LayoutManager;
-class RenderMan;
-class FontsCache;
-class DocParser;
+#include "Common.h"
+#include "Logger.h"
+#include "RenderMan.h"
+#include "FontsManager.h"
+#include "FontsCache.h"
+#include "LayoutManager.h"
+#include "DocParser.h"
+#include "MayTwelfth.h"
+#include "Glyph.h"
+#include "Line.h"
 
 class May12th{
     public:
@@ -34,6 +38,7 @@ class May12th{
         RenderMan       render;
         FontsCache      fontsCache;
         DocParser       docParse;
+        Line            line;
 
     private:
         const static int screen_width;

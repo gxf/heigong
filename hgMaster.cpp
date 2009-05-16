@@ -1,12 +1,7 @@
-#include "Color.h"
-#include "Logger.h"
-#include "RenderMan.h"
-#include "LayoutManager.h"
-#include "FontsManager.h"
-#include "FontsCache.h"
-#include "DocParser.h"
 #include "MayTwelfth.h"
 #include <cstdlib>
+#include <cstring>
+#include <iostream>
 
 int main(int argc, char** argv)
 {

@@ -13,6 +13,7 @@ class DocParser{
     public:
         bool OpenFile(const char* filename);
         void CloseFile();
+        bool ReOpenFile();
 
         DocParser & operator>>(char & ch);
         DocParser & operator>>(Glyph & glyph);

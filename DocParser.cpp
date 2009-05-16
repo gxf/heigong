@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "Logger.h"
 #include "DocParser.h"
 #include "Glyph.h"
@@ -19,8 +20,21 @@ bool DocParser::OpenFile(const char* filename){
     strlength       += std::strlen(tmpfile);
 
     char cmd[strlength + 200];
-    sprintf(cmd, "./catdoc -w %s >%s", filename, tmpfile);
+//    sprintf(cmd, "./catdoc -w %s >%s", filename, tmpfile);
+    sprintf(cmd, "./catdoc -m0 %s >%s", filename, tmpfile);
     system(cmd);
+
+    file.open(tmpfile);
+    if(!file){
+        LOG_ERROR("fail to open doc file.");
+        return false;
+    }
+    file.unsetf(std::ios::skipws);
+    return true;
+}
+
+bool DocParser::ReOpenFile(){
+    CloseFile();
 
     file.open(tmpfile);
     if(!file){

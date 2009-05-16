@@ -77,15 +77,10 @@ void RenderMan::InitGL()     // Create Some Everyday Functions
     LOG_EVENT(buf);
 
     glShadeModel(GL_SMOOTH);                // Enable Smooth Shading
-    glClearColor(0.0f, 0.0f, 0.0f, 0.5f);   // Black Background 
-//    glClearDepth(1.0f);                     // Depth Buffer Setup 
-//    glEnable(GL_DEPTH_TEST);                // Enables Depth Testing 
-//   glDepthFunc(GL_LEQUAL);                 // The Type Of Depth Testing To Do 
-//    glEnable ( GL_COLOR_MATERIAL ); 
+    glClearColor(1.0f, 1.0f, 1.0f, 0.5f);   // Black Background 
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
- //   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glFlush();
 }
@@ -121,6 +116,7 @@ bool RenderMan::RenderLine(int x, int y, int width, int length, Color & col){
     char buf[100];
     sprintf(buf, "render line to (%d , %d), width: %d, length: %d", x, y, width, length);
     LOG_EVENT(buf);
+    //
 
     char line[width * length];
     memset(line, 0xffffffff, sizeof(line));
@@ -170,6 +166,7 @@ bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap)
     LOG_EVENT(buf);
     */
 
+    glColor3f(1.0f, 1.0f, 0.0f);
     glWindowPos2i(x, SCREEN_HEIGHT - y);
     glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
     return true;
