@@ -3,6 +3,7 @@
 #define DOC_PARSER_H
 
 class Logger;
+class Glyph;
 
 class DocParser{
     public:
@@ -14,6 +15,8 @@ class DocParser{
         void CloseFile();
 
         DocParser & operator>>(char & ch);
+        DocParser & operator>>(Glyph & glyph);
+
         bool operator!();
 
     private:

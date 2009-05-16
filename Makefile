@@ -12,11 +12,20 @@ RM=rm -f
 
 TARGETS=hgMaster
 
+OBJECTS=hgMaster.o 	\
+		MayTwelfth.o 	\
+		RenderMan.o 	\
+		FontsManager.o 	\
+		LayoutManager.o \
+		FontsCache.o 	\
+		DocParser.o		\
+		Char.o
+
 VPATH=
 
 all: $(TARGETS) 
 
-hgMaster: hgMaster.o MayTwelfth.o RenderMan.o FontsManager.o LayoutManager.o FontsCache.o DocParser.o
+hgMaster: $(OBJECTS)
 	$(LD) $(LDFLAGS) $(LIB_PATH) $(LIBS) $^ -o $@
 
 hgMaster.o: hgMaster.cpp Logger.h Color.h RenderMan.h MayTwelfth.h Common.h FontsCache.h
@@ -38,6 +47,9 @@ MayTwelfth.o: MayTwelfth.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h La
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
 
 DocParser.o: DocParser.cpp DocParser.h Logger.h
+	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
+
+Char.o: Char.cpp Glyph.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $@
 
 clean:
