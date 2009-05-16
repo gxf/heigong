@@ -81,7 +81,7 @@ bool FontsManager::DelFont(FT_Face face){
     return false;
 }
 
-void FontsManager::GetBitmap(FT_ULong ch, FT_Bitmap** bitmap, FT_Glyph_Metrics** metrics, Position* topLeft, Position* advance){
+void FontsManager::GetGlyphSlot(FT_ULong ch, FT_GlyphSlot* slot){
 
     int error = FT_Load_Char(curFont, ch, FT_LOAD_RENDER); 
     if (error){
@@ -120,12 +120,14 @@ void FontsManager::GetBitmap(FT_ULong ch, FT_Bitmap** bitmap, FT_Glyph_Metrics**
             exit(0);
     }
 
-    *bitmap     = &(curFont->glyph->bitmap);
+    *slot = curFont->glyph;
+/*    *bitmap     = &(curFont->glyph->bitmap);
     *metrics    = &(curFont->glyph->metrics);
     topLeft->x  = curFont->glyph->bitmap_left;
     topLeft->y  = curFont->glyph->bitmap_top;
     advance->x  = curFont->glyph->advance.x;
     advance->y  = curFont->glyph->advance.y;
+    */
 }
 
 FT_Face FontsManager::FindFont(const char* path){

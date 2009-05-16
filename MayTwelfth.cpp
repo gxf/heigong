@@ -4,6 +4,7 @@
 #include "FontsManager.h"
 #include "FontsCache.h"
 #include "LayoutManager.h"
+#include "DocParser.h"
 #include "MayTwelfth.h"
 #include <cstdlib>
 #include <cstring>
@@ -11,16 +12,74 @@
 const int May12th::screen_width = SCREEN_WIDTH;
 const int May12th::screen_height= SCREEN_HEIGHT;
 
-May12th::May12th(Logger* log):
+May12th::May12th(Logger* log, const char* filename):
     logger(log), fonts(log), 
     layout(screen_width, screen_height, 30, 30, log), 
-    render(log, screen_width, screen_height) 
+    render(log, screen_width, screen_height), 
+    docParse(log)
 {
     render.Init();
+    if (false == docParse.OpenFile(filename)){
+        exit(0);
+    }
 }
 
 May12th::~May12th(){
     render.Quit();
+}
+
+void May12th::PerCharDisplay(){
+    render.Clear();
+    layout.NewPage();
+    fonts.SetFontSize(14);
+
+    char cur;
+    docParse >> cur;
+
+    while (cur != EOF){
+/*        char buf[100];
+        sprintf(buf, "Current char: %c", cur);
+        LOG_EVENT(buf);
+*/
+        if ('\n' == cur){
+            layout.NewLine();
+        }
+        else {
+            RenderChar(cur);
+        }
+        if (!(docParse >> cur))
+            break;
+    }
+    render.Flush();
+}
+
+bool May12th::RenderChar(const char ch){
+    if (EOF == ch)
+        return false;
+
+    FT_GlyphSlot glyphSlot;
+    fonts.GetGlyphSlot((FT_ULong)ch, &glyphSlot);
+
+    Position pos = 
+            layout.GetProperPos(LayoutManager::GT_CHAR, (glyphSlot->advance.x) >> 6, glyphSlot->bitmap.rows, (glyphSlot->metrics.horiBearingY) >> 6);
+
+//  sprintf(buf, "Got pos form LayoutManager @ (%d, %d)", pos.x, pos.y);
+//  LOG_EVENT(buf);
+
+    char p[glyphSlot->bitmap.pitch * glyphSlot->bitmap.rows];
+    std::memcpy(p, glyphSlot->bitmap.buffer, glyphSlot->bitmap.pitch * glyphSlot->bitmap.rows);
+    fontsCache.AdjustBitmap(glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, p);
+
+    pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
+    render.RenderGrayMap(pos.x, pos.y, glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, p);
+    return true;
+}
+
+bool May12th::RenderWord(const char* str, int size){
+    const char* ch = str;
+    if (NULL == ch || 0 == size)
+        return true;
+    return true;
 }
 
 bool May12th::RenderString(const char* str){
@@ -34,22 +93,21 @@ bool May12th::RenderString(const char* str){
         LOG_EVENT(buf);
         */
 
-        FT_Bitmap* bitmap; 
-        FT_Glyph_Metrics* metrics;
-        Position topLeft, advance;
-        fonts.GetBitmap((FT_ULong)*ch, &bitmap, &metrics, &topLeft, &advance);
+        FT_GlyphSlot glyphSlot;
+        fonts.GetGlyphSlot((FT_ULong)*ch, &glyphSlot);
 
         Position pos = 
-            layout.GetProperPos(LayoutManager::GT_CHAR, advance.x >> 6, bitmap->rows, metrics->horiBearingY >> 6);
+            layout.GetProperPos(LayoutManager::GT_CHAR, (glyphSlot->advance.x) >> 6, glyphSlot->bitmap.rows, (glyphSlot->metrics.horiBearingY) >> 6);
 
 //        sprintf(buf, "Got pos form LayoutManager @ (%d, %d)", pos.x, pos.y);
 //        LOG_EVENT(buf);
 
-        char p[bitmap->pitch * bitmap->rows];
-        std::memcpy(p, bitmap->buffer, bitmap->pitch * bitmap->rows);
-        fontsCache.AdjustBitmap(bitmap->pitch, bitmap->rows, p);
+        char p[glyphSlot->bitmap.pitch * glyphSlot->bitmap.rows];
+        std::memcpy(p, glyphSlot->bitmap.buffer, glyphSlot->bitmap.pitch * glyphSlot->bitmap.rows);
+        fontsCache.AdjustBitmap(glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, p);
 
-        render.RenderGrayMap(pos.x + (metrics->horiBearingX >> 6), pos.y, bitmap->pitch, bitmap->rows, p);
+        pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
+        render.RenderGrayMap(pos.x, pos.y, glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, p);
         ch++;
     }
     return true;
@@ -64,7 +122,7 @@ void May12th::MainLoop(){
         {
             switch(event.type){
                 case SDL_ACTIVEEVENT: 
-                    render.Clear();
+/*                    render.Clear();
                     layout.NewPage();
                     fonts.SetFontSize(32);
                     layout.SetLineSpacing(32/4);
@@ -79,6 +137,8 @@ void May12th::MainLoop(){
                     layout.SetLineSpacing(15/4);
                     RenderString("There is a place, in your heart. And everyone knows its name is love. Please do remember the people left us on May. 12th, 2008. And please do remember taking care of the still alives!");
                     render.Flush();
+                    */
+                    PerCharDisplay();
                     break;              
                 case SDL_VIDEORESIZE:
                     break;

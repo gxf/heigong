@@ -4,28 +4,27 @@
 #include "LayoutManager.h"
 #include "FontsManager.h"
 #include "FontsCache.h"
+#include "DocParser.h"
 #include "MayTwelfth.h"
+#include <cstdlib>
 
-int main()
+int main(int argc, char** argv)
 {
+    // Argument check
+    if (argc != 2){
+        std::cout << std::endl
+            << "Usage: " << std::endl
+            << "    hgMaster <filename>" << std::endl
+            << std::endl
+            << " <filename> - .doc file to open." << std::endl
+            << std::endl
+            << std::endl;
+        exit(0);
+    }
+
     Logger logger;
-    RenderMan rend(&logger, 640, 480);
-
-    Color col(255, 255, 0);
-
-/*    rend.Init();
-    rend.RenderPoint(50, 50, 10, col);
-    rend.RenderLine(0, 0, 2, 30, col);
-    rend.RenderLine2(0, 0, 75, 100, 3, col);
-    rend.RenderRectangle(50, 50, 100, 150, col);
-//    rend.RenderBitMap(50, 50, 100, 150, NULL);
-//    rend.RenderPixMap(50, 50, 100, 150, NULL);
-    rend.Flush();
-    rend.Quit();
-*/
-    May12th may(&logger);
+    May12th may(&logger, argv[1]);
     may.MainLoop();
-//    may.RenderString("Hello world.");
-//    may.RenderString("H");
+
     return 0;
 }
