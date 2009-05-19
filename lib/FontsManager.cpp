@@ -2,7 +2,7 @@
 #include "Logger.h"
 #include "FontsManager.h"
 
-const char* FontsManager::dftFontPath = "/usr/share/fonts/truetype/freefont/FreeSans.ttf";
+const char* FontsManager::dftFontPath = DEFAULT_FONT;
 
 FontsManager::FontsManager(Logger* log):
     curFont(NULL), dpi(96),
@@ -45,6 +45,11 @@ bool FontsManager::OpenFont(const char* path){
         default:
             LOG_ERROR("Open new font face fails.");
             return false;
+    }
+//    error = FT_Select_Charmap(face, FT_ENCODING_GB2312);
+    error = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+    if (error){
+        LOG_ERROR("Fail to select charmap encoding FT_ENCODING_GB2312.");
     }
     fonts.push_back(FontEntry(path, face));
     curFont = face;

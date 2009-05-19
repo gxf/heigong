@@ -42,13 +42,15 @@ void FontsCache::AdjustBitmap(int width, int height, void* bitmap){
     }
 }
 
-Char* FontsCache::GenChar(Position pos, int baseline, int width, int height, void* bitmap){
+void FontsCache::CacheFont(Char* ch, int width, int height, void* bitmap){
     // Cache & convert bitmap for local storage
     char* p = (char*)AquireMem(width * height);
     std::memcpy(p, bitmap, width * height);
     AdjustBitmap(width, height, p);
 
-    return new Char(pos, baseline, width, height, p);
+    ch->SetBitmap(width, height,p);
+
+    // TODO: Manage memory
 }
 
 void FontsCache::DelChar(Char * ch){

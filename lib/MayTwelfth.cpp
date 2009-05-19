@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "MayTwelfth.h"
 #include <cstdlib>
 #include <cstring>
@@ -25,27 +26,30 @@ void May12th::PerCharDisplay(){
     render.Clear();
     layout.NewPage();
     line.Clear();
-    layout.SetLineSpacing(12/4);
-    fonts.SetFontSize(12);
+    layout.SetLineSpacing(DEFAULT_FONT_SIZE/4);
+    fonts.SetFontSize(DEFAULT_FONT_SIZE);
 
-    char cur;
-    docParse >> cur;
+    Char* cur = new Char;
+    cur->SetID(Char::ID(DEFAULT_FONT, DEFAULT_FONT_SIZE));
+    docParse >> *cur;
 
-    while (cur != EOF){
+    while (EOF != cur->GetVal()){
 /*        char buf[100];
         sprintf(buf, "Current char: %c", cur);
         LOG_EVENT(buf);
 */
-        if ('\n' == cur){
+        if ('\n' == cur->GetVal()){
             layout.NewLine();
         }
-        else if(false == RenderChar(cur)){
+        else if(false == RenderChar(*cur)){
             render.Flush();
             docParse.ReOpenFile();
             layout.Reset();
             return;
         }
-        if (!(docParse >> cur))
+        cur = new Char;
+        cur->SetID(Char::ID(DEFAULT_FONT, DEFAULT_FONT_SIZE));
+        if (!(docParse >> *cur))
             break;
     }
     line.Flush(&render, &fontsCache, layout.GetLastBaseLine());
@@ -54,32 +58,31 @@ void May12th::PerCharDisplay(){
     docParse.ReOpenFile();
 }
 
-bool May12th::RenderChar(const char ch){
-    if (EOF == ch)
+bool May12th::RenderChar(Char& ch){
+    if (EOF == ch.GetVal())
         return false;
 
     Position     pos(0, 0);
     FT_GlyphSlot glyphSlot;
 
-    fonts.GetGlyphSlot((FT_ULong)ch, &glyphSlot);
+    fonts.GetGlyphSlot((FT_ULong)ch.GetVal(), &glyphSlot);
     int baseline = (glyphSlot->metrics.horiBearingY) >> 6;
-    Char* pch = 
-        fontsCache.GenChar(pos, baseline, 
-                           glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
-                           glyphSlot->bitmap.buffer);
+    ch.SetBaseline(baseline);
+    fontsCache.CacheFont(&ch, glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
+                         glyphSlot->bitmap.buffer);
     LAYOUT_RET ret = 
         layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
                           glyphSlot->bitmap.rows, baseline);
     pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
-    pch->SetPos(pos);
+    ch.SetPos(pos);
     switch(ret){
         case LO_OK:
-            line.AddGlyph(pch);
+            line.AddGlyph(&ch);
             break;
         case LO_NEW_LINE:
             line.Flush(&render, &fontsCache, layout.GetLastBaseLine());
             line.Clear();
-            line.AddGlyph(pch);
+            line.AddGlyph(&ch);
             break;
         case LO_NEW_PAGE:
             line.Flush(&render, &fontsCache, layout.GetLastBaseLine());

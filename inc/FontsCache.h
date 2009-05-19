@@ -10,8 +10,7 @@ class FontsCache{
 
     public:
         void AdjustBitmap(int width, int height, void* bitmap);
-        Char* GenChar(Position pos, int baseline,
-                      int width, int height, void* bitmap);
+        void CacheFont(Char* ch, int width, int height, void* bitmap);
         void DelChar(Char* ch);
 
     private:

@@ -4,20 +4,18 @@
 
 //using namespace heigong;
 
-Char::Char(Position p, int bl, int bm_w, int bm_h, void* bm):
+Char::Char(Position p, int bl, int bm_w, int bm_h, void* bm, ID cid):
     pos(p), baseline(bl), 
-    bitmap_w(bm_w), bitmap_h(bm_h), bitmap(bm)
+    bitmap_w(bm_w), bitmap_h(bm_h), bitmap(bm),
+    encodeMode(EM_UTF_8), val(0),
+    id(cid)
 {
 }
 
 Char::~Char(){
 }
 
-void Char::SetPos(const Position & p){
-    pos = p;
-}
-
-bool Char::Adjust(int bl){
+bool Char::AdjustPos(int bl){
     int delta = bl - baseline;
     if (delta < 0)
         return false;

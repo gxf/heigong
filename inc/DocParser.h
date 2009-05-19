@@ -4,6 +4,7 @@
 
 class Logger;
 class Glyph;
+class Char;
 
 class DocParser{
     public:
@@ -15,7 +16,8 @@ class DocParser{
         void CloseFile();
         bool ReOpenFile();
 
-        DocParser & operator>>(char & ch);
+        DocParser & operator>>(unsigned char & ch);
+        DocParser & operator>>(Char & ch);
         DocParser & operator>>(Glyph & glyph);
 
         bool operator!();

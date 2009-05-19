@@ -27,7 +27,7 @@ class May12th{
         void PerCharDisplay();
 
     private:
-        bool RenderChar(const char);
+        bool RenderChar(Char &);
 
     private:
         Logger*         logger;
@@ -40,6 +40,7 @@ class May12th{
         DocParser       docParse;
         Line            line;
 
+    private:
     private:
         const static int screen_width;
         const static int screen_height;

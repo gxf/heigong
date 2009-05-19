@@ -7,6 +7,8 @@
 
 class RenderMan;
 
+// Note: Line is just a abstract concept which does not
+// get any Glypth Object memory management involved
 class Line{
     public:
         Line(){}
@@ -20,9 +22,8 @@ class Line{
         void Flush(RenderMan * render, FontsCache * cache, int baseline){
             std::vector<Glyph*>::iterator itr = glyphs.begin();
             while (itr != glyphs.end()){
-                (*itr)->Adjust(baseline);
+                (*itr)->AdjustPos(baseline);
                 (*itr)->Draw(render);
-//                cache->DelChar(*itr);
                 ++itr;
             }
         }
