@@ -47,6 +47,37 @@ bool FontsManager::OpenFont(const char* path){
             return false;
     }
 //    error = FT_Select_Charmap(face, FT_ENCODING_GB2312);
+    FT_CharMap charmap; 
+    int n; 
+    for ( n = 0; n < face->num_charmaps; n++ ) { 
+        charmap = face->charmaps[n]; 
+        switch(charmap->encoding){
+            case FT_ENCODING_MS_SYMBOL:
+                LOG_EVENT("Supported Encoding: FT_ENCODING_MS_SYMBOL");
+                break;
+            case FT_ENCODING_UNICODE: 
+                LOG_EVENT("Supported Encoding: FT_ENCODING_UNICODE");
+                break;
+            case FT_ENCODING_SJIS:
+                LOG_EVENT("Supported Encoding: FT_ENCODING_SJIS");
+                break;
+            case FT_ENCODING_GB2312:
+                LOG_EVENT("Supported Encoding: FT_ENCODING_GB2312");
+                break;
+            case FT_ENCODING_BIG5:
+                LOG_EVENT("Supported Encoding: FT_ENCODING_BIG5");
+                break;
+            case FT_ENCODING_WANSUNG:
+                LOG_EVENT("Supported Encoding: FT_ENCODING_WANSUNG");
+                break;
+            case FT_ENCODING_JOHAB: 
+                LOG_EVENT("Supported Encoding: FT_ENCODING_JOHAB");
+                break;
+            default:
+                LOG_ERROR("Unknown Encoding");
+                break;
+        }
+    }
     error = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
     if (error){
         LOG_ERROR("Fail to select charmap encoding FT_ENCODING_GB2312.");

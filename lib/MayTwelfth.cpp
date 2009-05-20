@@ -10,7 +10,8 @@ May12th::May12th(Logger* log, const char* filename):
     logger(log), fonts(log), 
     layout(screen_width, screen_height, 30, 30, log), 
     render(log, screen_width, screen_height), 
-    docParse(log)
+    docParse(log),
+    encoding(EM_UTF_8)
 {
     render.Init();
     if (false == docParse.OpenFile(filename)){
@@ -29,7 +30,7 @@ void May12th::PerCharDisplay(){
     layout.SetLineSpacing(DEFAULT_FONT_SIZE/4);
     fonts.SetFontSize(DEFAULT_FONT_SIZE);
 
-    Char* cur = new Char;
+    Char* cur = new Char(logger);
     cur->SetID(Char::ID(DEFAULT_FONT, DEFAULT_FONT_SIZE));
     docParse >> *cur;
 
@@ -47,7 +48,7 @@ void May12th::PerCharDisplay(){
             layout.Reset();
             return;
         }
-        cur = new Char;
+        cur = new Char(logger);
         cur->SetID(Char::ID(DEFAULT_FONT, DEFAULT_FONT_SIZE));
         if (!(docParse >> *cur))
             break;
@@ -65,7 +66,7 @@ bool May12th::RenderChar(Char& ch){
     Position     pos(0, 0);
     FT_GlyphSlot glyphSlot;
 
-    fonts.GetGlyphSlot((FT_ULong)ch.GetVal(), &glyphSlot);
+    fonts.GetGlyphSlot((FT_ULong)ch.GetVal(EM_UTF_32), &glyphSlot);
     int baseline = (glyphSlot->metrics.horiBearingY) >> 6;
     ch.SetBaseline(baseline);
     fontsCache.CacheFont(&ch, glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
@@ -94,11 +95,6 @@ bool May12th::RenderChar(Char& ch){
             break;
     }
 
-//  sprintf(buf, "Got pos form LayoutManager @ (%d, %d)", pos.x, pos.y);
-//  LOG_EVENT(buf);
-
-//    pch -> Draw(&render);
-//    fontsCache.DelChar(pch);
     return true;
 }
 
@@ -148,22 +144,6 @@ void May12th::MainLoop(){
         {
             switch(event.type){
                 case SDL_ACTIVEEVENT: 
-/*                    render.Clear();
-                    layout.NewPage();
-                    fonts.SetFontSize(32);
-                    layout.SetLineSpacing(32/4);
-                    RenderString("Hello, world!");
-                    layout.NewLine();
-                    fonts.SetFontSize(40);
-                    layout.SetLineSpacing(40/4);
-                    RenderString("This is Garfiled's X Flavor!");
-                    layout.NewLine();
-                    layout.NewLine();
-                    fonts.SetFontSize(15);
-                    layout.SetLineSpacing(15/4);
-                    RenderString("There is a place, in your heart. And everyone knows its name is love. Please do remember the people left us on May. 12th, 2008. And please do remember taking care of the still alives!");
-                    render.Flush();
-                    */
                     PerCharDisplay();
                     break;              
                 case SDL_VIDEORESIZE:

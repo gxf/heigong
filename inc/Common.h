@@ -17,6 +17,13 @@ class Position{
         }
 };
 
+enum ENCODING_MODE{
+    EM_ASCII,
+    EM_UTF_8,
+    EM_UTF_16,
+    EM_UTF_32,
+};
+
 #define SCREEN_WIDTH    640
 #define SCREEN_HEIGHT   480
 

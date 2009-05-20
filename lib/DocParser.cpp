@@ -12,7 +12,7 @@
 const char* DocParser::tmpfile = "doc.tmp";
 
 DocParser::DocParser(Logger* log):
-    logger(log)
+    fd(NULL),logger(log)
 {
 }
 
@@ -88,31 +88,44 @@ bool DocParser::OpenFile(const char* filename){
     LOG_EVENT(cmd);
 
     system(cmd);
-
+/*
     file.open(tmpfile);
     if(!file){
         LOG_ERROR("fail to open doc file.");
         return false;
     }
     file.unsetf(std::ios::skipws);
+*/
+    if(!(fd = fopen(tmpfile, "r"))){
+        LOG_ERROR("fail to open doc file.");
+        return false;
+    }
     return true;
 }
 
 bool DocParser::ReOpenFile(){
     CloseFile();
-
+/*
     file.open(tmpfile);
     if(!file){
         LOG_ERROR("fail to open doc file.");
         return false;
     }
     file.unsetf(std::ios::skipws);
+    */
+    if(!(fd = fopen(tmpfile, "r"))){
+        LOG_ERROR("fail to open doc file.");
+        return false;
+    }
     return true;
 }
 
+
 void DocParser::CloseFile()
 {
-    file.close();
+//    file.close();
+    fclose(fd);
+    fd = NULL;
 }
 
 DocParser & DocParser::operator>>(unsigned char & ch){
@@ -134,27 +147,31 @@ DocParser & DocParser::operator>>(Char & ch){
     unsigned char c_val = 0;
 
     switch(ch.GetEncoding()){
-        case Char::EM_ASCII:
-            file >> c_val;
+        case EM_ASCII:
+//            file >> c_val;
+            c_val = getc(fd);
             ch.SetVal(c_val);
             break;
-        case Char::EM_UTF_8:
-            file >> c_val;
+        case EM_UTF_8:
+            c_val = getc(fd);
             val.f.byte1 = c_val;
             if (c_val >= 0x00 && c_val <= 0x7F){
+                ch.SetCharLength(1);
             }
-//            else if (c_val >= 0xC2 && c_val =< 0xDF){
             else if (c_val >= 0xC0 && c_val <= 0xDF){
-                file >> val.f.byte2;
+                val.f.byte2 = getc(fd);
+                ch.SetCharLength(2);
             }
             else if (c_val >= 0xE0 && c_val <= 0xEF){
-                file >> val.f.byte2;
-                file >> val.f.byte3;
+                val.f.byte2 = getc(fd);
+                val.f.byte3 = getc(fd);
+                ch.SetCharLength(3);
             }
             else if (c_val >= 0xF0 && c_val <= 0xF4){
-                file >> val.f.byte2;
-                file >> val.f.byte3;
-                file >> val.f.byte4;
+                val.f.byte2 = getc(fd);
+                val.f.byte3 = getc(fd);
+                val.f.byte4 = getc(fd);
+                ch.SetCharLength(4);
             }
             else{
                 LOG_ERROR("Unsupported UTF-8 encoding!");
@@ -174,5 +191,6 @@ DocParser & DocParser::operator>>(Glyph & glyph){
 }
 
 bool DocParser::operator!(){
-    return !file;
+//    return !file;
+    return false;
 }

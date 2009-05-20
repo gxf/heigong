@@ -23,6 +23,10 @@ class May12th{
         bool RenderWord(const char*, int size);
 
     public:
+        inline void SetEncoding(ENCODING_MODE em) { encoding = em; }
+        inline ENCODING_MODE GetEncoding() { return encoding; }
+
+    public:
         void MainLoop();
         void PerCharDisplay();
 
@@ -41,6 +45,8 @@ class May12th{
         Line            line;
 
     private:
+        ENCODING_MODE   encoding;
+
     private:
         const static int screen_width;
         const static int screen_height;

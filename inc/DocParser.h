@@ -25,6 +25,7 @@ class DocParser{
     private:
         static const char*  tmpfile;
         std::fstream        file;
+        FILE*               fd;
 
     private:
         Logger* logger;

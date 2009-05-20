@@ -5,16 +5,21 @@
 
 class Position;
 class RenderMan;
+class Logger;
 
 class Glyph{
     public:
-        Glyph(){};
+        Glyph(Logger* log): logger(log)
+        {};
         virtual ~Glyph(){}
 
     public:
 //        virtual bool Gen() = 0;
         virtual bool Draw(RenderMan*) = 0;
         virtual bool AdjustPos(int baseline) = 0;
+
+    protected:
+        Logger* logger;
 };
 
 class Char: public Glyph{
@@ -31,18 +36,14 @@ class Char: public Glyph{
         };
 
     public:
-        Char(Position p = Position(0, 0), int bl = 0, int bm_w = 0, int bm_h = 0, void* bm = 0, ID id = ID(0, 0));
+        Char(Logger* log, Position p = Position(0, 0), int bl = 0, 
+             int bm_w = 0, int bm_h = 0, void* bm = 0, 
+             ID id = ID(0, 0));
         ~Char();
 
     public:
-        enum ENCODING_MODE{
-            EM_ASCII,
-            EM_UTF_8,
-        };
-
-    public:
         inline void SetVal(unsigned int v) { val = v; }
-        inline unsigned int GetVal() { return val; }
+        inline void SetCharLength(unsigned int len) { charLen = len; }
         inline void SetPos(const Position & p){ pos = p; }
         inline void SetBitmap(int bw, int bh, void* b){
             bitmap_w = bw;
@@ -60,6 +61,7 @@ class Char: public Glyph{
         inline bool operator==(Char& ch){ return val == ch.val; }
 
     public:
+        unsigned int GetVal(ENCODING_MODE em = EM_UTF_8);
         bool Draw(RenderMan*);
         bool AdjustPos(int);
 
@@ -72,6 +74,7 @@ class Char: public Glyph{
 
         ENCODING_MODE   encodeMode;
         unsigned int    val;
+        unsigned int    charLen;
 
     public:
         ID              id;
@@ -80,7 +83,7 @@ class Char: public Glyph{
 
 class Graph: public Glyph{
     public:
-        Graph(){}
+        Graph(Logger* log):Glyph(log){}
         ~Graph(){}
 
     public:
