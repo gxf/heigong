@@ -10,31 +10,55 @@ May12th::May12th(Logger* log, const char* filename):
     logger(log), fonts(log), 
     layout(screen_width, screen_height, 30, 30, log), 
     render(log, screen_width, screen_height), 
-    docParse(log),
-    encoding(EM_UTF_8)
+    docParse(log), pgMgr(log),
+    encoding(EM_UTF_8), curPageNum(0)
 {
     render.Init();
     if (false == docParse.OpenFile(filename)){
         exit(0);
     }
+    Init(DEFAULT_FONT_SIZE);
 }
 
 May12th::~May12th(){
     render.Quit();
 }
 
-void May12th::PerCharDisplay(){
-    render.Clear();
+void May12th::Init(uint32 fontSize){
     layout.NewPage();
     line.Clear();
-    layout.SetLineSpacing(DEFAULT_FONT_SIZE/4);
-    fonts.SetFontSize(DEFAULT_FONT_SIZE);
+    layout.SetLineSpacing(fontSize/4);
+    fonts.SetFontSize(fontSize);
+//    pgMgr.StartPage(0);
+}
+
+void May12th::PerCharDisplay(int page_num){
+    if (page_num > pgMgr.GetToWorkPageNum()){
+        // TODO: forward search
+        LOG_ERROR("Forward search is not supported yet.");
+        return;
+    }
+    else if (page_num == pgMgr.GetToWorkPageNum()){
+        char buf[100];
+        sprintf(buf,"Render a new page: %d", page_num);
+        LOG_EVENT(buf);
+        pgMgr.StartPage(docParse.GetCurOffset());
+    }
+    else if (page_num < pgMgr.GetToWorkPageNum()){
+        char buf[100];
+        sprintf(buf,"Render the rendered page: %d", page_num);
+        LOG_EVENT(buf);
+        docParse.SetOffset(pgMgr.GetPageOffset(page_num));
+    }
 
     Char* cur = new Char(logger);
-    cur->SetID(Char::ID(DEFAULT_FONT, DEFAULT_FONT_SIZE));
+    cur -> SetID(Char::ID(DEFAULT_FONT, DEFAULT_FONT_SIZE));
+
     docParse >> *cur;
 
-    while (EOF != cur->GetVal()){
+    render.Clear();
+
+    while ((uint32)EOF != cur->GetVal()){
 /*        char buf[100];
         sprintf(buf, "Current char: %c", cur);
         LOG_EVENT(buf);
@@ -44,7 +68,8 @@ void May12th::PerCharDisplay(){
         }
         else if(false == RenderChar(*cur)){
             render.Flush();
-            docParse.ReOpenFile();
+            pgMgr.EndPage(page_num);
+//            docParse.ReOpenFile();
             layout.Reset();
             return;
         }
@@ -60,7 +85,7 @@ void May12th::PerCharDisplay(){
 }
 
 bool May12th::RenderChar(Char& ch){
-    if (EOF == ch.GetVal())
+    if ((uint32)EOF == ch.GetVal())
         return false;
 
     Position     pos(0, 0);
@@ -144,7 +169,7 @@ void May12th::MainLoop(){
         {
             switch(event.type){
                 case SDL_ACTIVEEVENT: 
-                    PerCharDisplay();
+                    PerCharDisplay(pgMgr.GetLastPageNum());
                     break;              
                 case SDL_VIDEORESIZE:
                     break;
@@ -152,6 +177,17 @@ void May12th::MainLoop(){
                     // handle key presses
                     switch (event.key.keysym.sym)
                     {
+                        case SDLK_UP:
+                            if (curPageNum - 1 >= 0){
+                                PerCharDisplay(--curPageNum);
+                            }
+                            else{
+                                PerCharDisplay(pgMgr.GetLastPageNum());
+                            }
+                            break;
+                        case SDLK_DOWN:
+                            PerCharDisplay(++curPageNum);
+                            break;
                         case SDLK_ESCAPE:
                             done = true;
                             break;

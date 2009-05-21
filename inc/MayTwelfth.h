@@ -11,6 +11,7 @@
 #include "MayTwelfth.h"
 #include "Glyph.h"
 #include "Line.h"
+#include "PageManager.h"
 
 class May12th{
     public:
@@ -28,9 +29,10 @@ class May12th{
 
     public:
         void MainLoop();
-        void PerCharDisplay();
+        void PerCharDisplay(int page_num);
 
     private:
+        void Init(uint32 fontSize);
         bool RenderChar(Char &);
 
     private:
@@ -43,9 +45,11 @@ class May12th{
         FontsCache      fontsCache;
         DocParser       docParse;
         Line            line;
+        PageManager     pgMgr;
 
     private:
         ENCODING_MODE   encoding;
+        int             curPageNum;
 
     private:
         const static int screen_width;

@@ -12,7 +12,7 @@
 const char* DocParser::tmpfile = "doc.tmp";
 
 DocParser::DocParser(Logger* log):
-    fd(NULL),logger(log)
+    offset(0), fd(NULL), logger(log)
 {
 }
 
@@ -128,7 +128,7 @@ void DocParser::CloseFile()
     fd = NULL;
 }
 
-DocParser & DocParser::operator>>(unsigned char & ch){
+DocParser & DocParser::operator>>(uchar8 & ch){
     file >> ch;
     return *this;
 }
@@ -151,27 +151,32 @@ DocParser & DocParser::operator>>(Char & ch){
 //            file >> c_val;
             c_val = getc(fd);
             ch.SetVal(c_val);
+            offset++;
             break;
         case EM_UTF_8:
             c_val = getc(fd);
             val.f.byte1 = c_val;
-            if (c_val >= 0x00 && c_val <= 0x7F){
+            if (/*c_val >= 0x00 &&*/ c_val <= 0x7F){
                 ch.SetCharLength(1);
+                offset++;
             }
             else if (c_val >= 0xC0 && c_val <= 0xDF){
                 val.f.byte2 = getc(fd);
                 ch.SetCharLength(2);
+                offset += 2;
             }
             else if (c_val >= 0xE0 && c_val <= 0xEF){
                 val.f.byte2 = getc(fd);
                 val.f.byte3 = getc(fd);
                 ch.SetCharLength(3);
+                offset += 3;
             }
             else if (c_val >= 0xF0 && c_val <= 0xF4){
                 val.f.byte2 = getc(fd);
                 val.f.byte3 = getc(fd);
                 val.f.byte4 = getc(fd);
                 ch.SetCharLength(4);
+                offset += 4;
             }
             else{
                 LOG_ERROR("Unsupported UTF-8 encoding!");
@@ -184,6 +189,15 @@ DocParser & DocParser::operator>>(Char & ch){
     }
     
     return *this;
+}
+
+void DocParser::SetOffset(uint32 offset){
+    if (fd){
+        fseek(fd, offset, 0);
+    }
+    else{
+        LOG_ERROR("File descriptor is invalid.");
+    }
 }
 
 DocParser & DocParser::operator>>(Glyph & glyph){

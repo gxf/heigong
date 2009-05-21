@@ -1,6 +1,9 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+typedef unsigned int    uint32;
+typedef unsigned char   uchar8; 
+
 class Position{
     public:
         int x;
@@ -27,11 +30,9 @@ enum ENCODING_MODE{
 #define SCREEN_WIDTH    640
 #define SCREEN_HEIGHT   480
 
-//#define DEFAULT_FONT    "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttf"
 #define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-droid/DroidSansFallback.ttf"
-//#define DEFAULT_FONT    "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
-//#define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansCondensed.ttf"
 #define DEFAULT_FONT_SIZE   12
+
 #endif
 
 
