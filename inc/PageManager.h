@@ -12,11 +12,9 @@ class PageManager{
             numToRender(0), numLastRendered(0),
             logger(log)
         {
-            // Init first page
-//            curPage = new Page(0, 0);
-//            pages.push_back(curPage);
         }
         ~PageManager(){
+            // De-allocate these not managed by PageCache
             std::vector<Page*>::iterator itr = pages.begin();
             while(itr != pages.end()){
                 ++itr;
@@ -27,22 +25,28 @@ class PageManager{
         const static int PAGE_ERROR = 0xffffffff;
 
     public:
-        inline void StartPage(uint32 offset){
-            char buf[100];
-            sprintf(buf, "Start page %d.", numToRender);
-            LOG_EVENT(buf);
+        inline void StartPage(long int offset){
             curPage = new Page(numToRender, offset);
             pages.push_back(curPage);
+            char buf[100];
+            sprintf(buf, "Start page %d. CurPage: %d", numToRender, (uint32)curPage);
+            LOG_EVENT(buf);
         }
 
-        inline void EndPage(int page_num){
+        inline void EndPage(int page_num, RenderMan* render){
             if (page_num == numToRender){
                 numLastRendered = numToRender++;
-            char buf[100];
-            sprintf(buf, "End page %d.", numLastRendered);
-            LOG_EVENT(buf);
+                char buf[100];
+                sprintf(buf, "End page %d. CurPage: %d", numLastRendered, (uint32)curPage);
+                LOG_EVENT(buf);
+
+#ifdef PAGE_CACHED_RENDER
+                // Put the page into page cache
+                render->GetFBSize(curPage);
+                pageCache.GetMem(curPage);
+                render->GetFrameBuffer(curPage);
+#endif
             }
-            // TODO: Put the page into page cache
         }
 
         inline uint32 GetPageOffset(const int page_num){
@@ -59,7 +63,7 @@ class PageManager{
         }
 
         // Get the page to do the work
-        inline int GetToWorkPageNum() { 
+        inline int GetToWorkPageNum(){
 /*            char buf[100];
             sprintf(buf, "Cur page num: %d.", numToRender);
             LOG_EVENT(buf);
@@ -67,11 +71,27 @@ class PageManager{
         }
 
         // Get the page have done the work
-        inline int GetLastPageNum() { 
+        inline int GetLastPageNum(){
 /*            char buf[100];
             sprintf(buf, "Last rendered page num: %d.", numLastRendered);
             LOG_EVENT(buf);
 */            return numLastRendered; 
+        }
+
+        inline bool CachedRender(int page_num, RenderMan* render){
+            std::vector<Page*>::iterator itr = pages.begin();
+            while(itr != pages.end()){
+                if (page_num == (*itr) -> GetNum() && 
+                    (*itr) -> CachedFB()){
+                    render -> RenderGrayMap(0, 0, (*itr)->GetFBWidth(), (*itr)->GetFBHeight(), (*itr)->GetFB());
+                    char buf[100];
+                    sprintf(buf, "Cached Rendering! Page: %d, fb ptr: %d", page_num, (int)(*itr)->GetFB());
+                    LOG_EVENT(buf);
+                    return true;
+                }
+                ++itr;
+            }
+            return false;
         }
 
     private:

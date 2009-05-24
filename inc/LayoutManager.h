@@ -27,7 +27,7 @@ class LayoutManager{
         // Interfaces
         const Position GetProperPos(GLYTH_TYPE tp, int width, int height, int bearingY);
 
-        void NewLine();
+        LAYOUT_RET NewLine();
         void NewPage();
 
     public:

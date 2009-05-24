@@ -12,7 +12,8 @@
 const char* DocParser::tmpfile = "doc.tmp";
 
 DocParser::DocParser(Logger* log):
-    offset(0), fd(NULL), logger(log)
+    offset(0), fd(NULL), fileEnds(true),
+    logger(log)
 {
 }
 
@@ -43,35 +44,6 @@ static void AdjustCmd(char* cmd, int length){
 }
 
 bool DocParser::OpenFile(const char* filename){
-#if 0
-    pid_t pid;
-
-    if ((pid = fork()) < 0){
-        LOG_ERROR("fork error.");
-        exit(0);
-    }
-    else if (0 == pid){
-        int strlength   = std::strlen(filename) + 1;
-        strlength       += std::strlen(tmpfile);
-        strlength		+= 256; 
-
-        char cmd[strlength];
-        std::memset(cmd, 0x0, strlength);
-//      sprintf(cmd, "./catdoc -w %s >%s", filename, tmpfile);
-        sprintf(cmd, "./catdoc -m0 %s >%s", filename, tmpfile);
-//        int fd = open(filename, O_RDWR | O_TRUNC);
-//        dup2(1, fd);
-        LOG_EVENT(cmd);
-        if (execlp("catdoc", "-w", filename, (char*)0) < 0){
-            LOG_ERROR("fail to run catdoc.");
-        }
-        exit(0);
-//        system(cmd);
-    }
-    if (waitpid(pid, NULL, 0) < 0){
-        LOG_ERROR("waitpid fails.");
-    }
-#endif
 
     char filen[std::strlen(filename) + 200];
     std::memset(filen, '\0', std::strlen(filename) + 200);
@@ -88,48 +60,33 @@ bool DocParser::OpenFile(const char* filename){
     LOG_EVENT(cmd);
 
     system(cmd);
-/*
-    file.open(tmpfile);
-    if(!file){
-        LOG_ERROR("fail to open doc file.");
-        return false;
-    }
-    file.unsetf(std::ios::skipws);
-*/
     if(!(fd = fopen(tmpfile, "r"))){
         LOG_ERROR("fail to open doc file.");
         return false;
     }
+    fileEnds = false;
     return true;
 }
 
 bool DocParser::ReOpenFile(){
     CloseFile();
-/*
-    file.open(tmpfile);
-    if(!file){
-        LOG_ERROR("fail to open doc file.");
-        return false;
-    }
-    file.unsetf(std::ios::skipws);
-    */
     if(!(fd = fopen(tmpfile, "r"))){
         LOG_ERROR("fail to open doc file.");
         return false;
     }
+    fileEnds = false;
     return true;
 }
 
 
 void DocParser::CloseFile()
 {
-//    file.close();
     fclose(fd);
     fd = NULL;
 }
 
 DocParser & DocParser::operator>>(uchar8 & ch){
-    file >> ch;
+    // deprecated
     return *this;
 }
 
@@ -137,41 +94,47 @@ DocParser & DocParser::operator>>(Char & ch){
     union VALUE{
         unsigned int all;
         struct{
-            unsigned char byte1;
-            unsigned char byte2;
-            unsigned char byte3;
-            unsigned char byte4;
+            uchar8 byte1;
+            uchar8 byte2;
+            uchar8 byte3;
+            uchar8 byte4;
         }f;
     }val;
     val.all = 0;
-    unsigned char c_val = 0;
+    int c_val = 0;
 
     switch(ch.GetEncoding()){
         case EM_ASCII:
-//            file >> c_val;
             c_val = getc(fd);
+            if(EOF == c_val){
+                fileEnds = true;
+            }
             ch.SetVal(c_val);
             offset++;
             break;
         case EM_UTF_8:
             c_val = getc(fd);
-            val.f.byte1 = c_val;
-            if (/*c_val >= 0x00 &&*/ c_val <= 0x7F){
+            if(EOF == c_val){
+                fileEnds = true;
+            }
+//            val.f.byte1 = reinterpret_cast<uchar8>(c_val);
+            val.f.byte1 = (uchar8)c_val;
+            if (/*val.f.byte1 >= 0x00 &&*/ val.f.byte1 <= 0x7F){
                 ch.SetCharLength(1);
                 offset++;
             }
-            else if (c_val >= 0xC0 && c_val <= 0xDF){
+            else if (val.f.byte1 >= 0xC0 && val.f.byte1 <= 0xDF){
                 val.f.byte2 = getc(fd);
                 ch.SetCharLength(2);
                 offset += 2;
             }
-            else if (c_val >= 0xE0 && c_val <= 0xEF){
+            else if (val.f.byte1 >= 0xE0 && val.f.byte1 <= 0xEF){
                 val.f.byte2 = getc(fd);
                 val.f.byte3 = getc(fd);
                 ch.SetCharLength(3);
                 offset += 3;
             }
-            else if (c_val >= 0xF0 && c_val <= 0xF4){
+            else if (val.f.byte1 >= 0xF0 && val.f.byte1 <= 0xF4){
                 val.f.byte2 = getc(fd);
                 val.f.byte3 = getc(fd);
                 val.f.byte4 = getc(fd);
@@ -191,9 +154,63 @@ DocParser & DocParser::operator>>(Char & ch){
     return *this;
 }
 
-void DocParser::SetOffset(uint32 offset){
+DocParser & DocParser::operator<<(Char & ch){
+    union VALUE{
+        unsigned int all;
+        struct{
+            uchar8 byte1;
+            uchar8 byte2;
+            uchar8 byte3;
+            uchar8 byte4;
+        }f;
+    }val;
+    val.all = ch.GetVal(ch.GetEncoding());
+
+    switch(ch.GetEncoding()){
+        case EM_ASCII:
+            ungetc(val.f.byte1, fd);
+            offset--;
+            fileEnds = false;
+            break;
+        case EM_UTF_8:
+            if (val.f.byte1 <= 0x7F){
+                ungetc(val.f.byte1, fd);
+                offset--;
+            }
+            else if (val.f.byte1 >= 0xC0 && val.f.byte1 <= 0xDF){
+                ungetc(val.f.byte2, fd);
+                ungetc(val.f.byte1, fd);
+                offset -= 2;
+            }
+            else if (val.f.byte1 >= 0xE0 && val.f.byte1 <= 0xEF){
+                ungetc(val.f.byte3, fd);
+                ungetc(val.f.byte2, fd);
+                ungetc(val.f.byte1, fd);
+                offset -= 3;
+            }
+            else if (val.f.byte1 >= 0xF0 && val.f.byte1 <= 0xF4){
+                ungetc(val.f.byte4, fd);
+                ungetc(val.f.byte3, fd);
+                ungetc(val.f.byte2, fd);
+                ungetc(val.f.byte1, fd);
+                offset -= 4;
+            }
+            else{
+                LOG_ERROR("Unsupported UTF-8 encoding!");
+            }
+            fileEnds = false;
+            break;
+        default:
+            LOG_ERROR("Unsupported Encoding format!");
+            break;
+    }
+    
+    return *this;
+}
+
+void DocParser::SetOffset(long int offset){
     if (fd){
-        fseek(fd, offset, 0);
+        fseek(fd, offset, SEEK_SET);
     }
     else{
         LOG_ERROR("File descriptor is invalid.");
@@ -205,6 +222,5 @@ DocParser & DocParser::operator>>(Glyph & glyph){
 }
 
 bool DocParser::operator!(){
-//    return !file;
-    return false;
+    return fileEnds;
 }

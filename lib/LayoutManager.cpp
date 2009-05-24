@@ -44,9 +44,15 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
 
     if (curPos.x + g_word_spacing + width >= p_width - h_m_width){
         // Current line is over for use
+        char buf[100];
+        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + g_word_spacing + width, curPos.y + g_line_spacing + curMaxHeight, p_height - v_m_width);
+        LOG_EVENT(buf);
         if (curPos.y + g_line_spacing + curMaxHeight >= p_height - v_m_width){
             // & current page is over for use
             // Return invalid position
+            char buf[100];
+            sprintf(buf, "Current y: %d, max height: %d", curPos.y + g_line_spacing + curMaxHeight, p_height - v_m_width);
+            LOG_EVENT(buf);
             curPos.x        = v_m_width;
             curPos.y        = h_m_width;
             lastBaseline    = curBaseline;
@@ -64,7 +70,6 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
             curBaseline     = bearingY;
             curMaxHeight    = height;
             pos             = curPos;
-//            pos.y           += curBaseline + delta;
             pos.y           += height;
             curPos.x        += width + g_word_spacing;
             return LO_NEW_LINE;
@@ -74,7 +79,6 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
     {
         // Current line still have space, return curPos
         pos      = curPos;
-//        pos.y    += curBaseline + delta;
         pos.y    += height;
         curPos.x += width + g_word_spacing;
         return LO_OK;
@@ -84,18 +88,35 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
 void LayoutManager::GetImagePos(Position & pos, int width, int height){
 }
 
-void LayoutManager::NewLine(){
-    curPos.x = h_m_width;
+LAYOUT_RET LayoutManager::NewLine(){
     if (0 == curMaxHeight){
         curPos.y += lastMaxHeight + g_line_spacing;
     }
     else{
         curPos.y += curMaxHeight + g_line_spacing;
+    }
+
+    if (curPos.y >= p_height - v_m_width){
+        // & current page is over for use
+        // Return invalid position
+        char buf[100];
+        sprintf(buf, "Current y: %d, max height: %d", curPos.y + g_line_spacing + curMaxHeight, p_height - v_m_width);
+        LOG_EVENT(buf);
+        curPos.x        = v_m_width;
+        curPos.y        = h_m_width;
+        lastBaseline    = curBaseline;
+        curBaseline     = 0;
+        curMaxHeight    = 0;
+        return LO_NEW_PAGE;
+    }
+    else{
+        curPos.x = h_m_width;
         lastMaxHeight   = curMaxHeight;
         curMaxHeight    = 0;
+        lastBaseline    = curBaseline;
+        curBaseline     = 0;
+        return LO_OK;
     }
-    lastBaseline    = curBaseline;
-    curBaseline     = 0;
 }
 
 void LayoutManager::NewPage(){

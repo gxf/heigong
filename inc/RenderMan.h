@@ -6,6 +6,7 @@
 
 class Logger;
 class Color;
+class Page;
 
 class RenderMan{
     public:
@@ -24,6 +25,8 @@ class RenderMan{
         bool RenderGrayMap(int x, int y, int width, int height, void* ptr);
         bool RenderPixMap(int x, int y, int width, int height, void* ptr);
 
+        void GetFBSize(Page*);
+        void GetFrameBuffer(Page*); 
         void Clear();
         void Flush();
 

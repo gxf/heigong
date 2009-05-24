@@ -27,11 +27,14 @@ enum ENCODING_MODE{
     EM_UTF_32,
 };
 
-#define SCREEN_WIDTH    640
-#define SCREEN_HEIGHT   480
+#define SCREEN_WIDTH    800
+#define SCREEN_HEIGHT   600
 
 #define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-droid/DroidSansFallback.ttf"
 #define DEFAULT_FONT_SIZE   12
+
+#define DEFAULT_RESERVED_PAGE   8
+#define DEFAULT_MAX_PAGE_SIZE   0x800000
 
 #endif
 

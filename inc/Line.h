@@ -19,7 +19,7 @@ class Line{
             glyphs.push_back(glyph);
         }
 
-        void Flush(RenderMan * render, FontsCache * cache, int baseline){
+        void DrawCurrent(RenderMan * render, FontsCache * cache, int baseline){
             std::vector<Glyph*>::iterator itr = glyphs.begin();
             while (itr != glyphs.end()){
                 (*itr)->AdjustPos(baseline);

@@ -20,21 +20,22 @@ class DocParser{
 
         DocParser & operator>>(uchar8 & ch);
         DocParser & operator>>(Char & ch);
+        DocParser & operator<<(Char & ch);
         DocParser & operator>>(Glyph & glyph);
 
         bool operator!();
 
     public:
         inline uint32 GetCurOffset(){ return offset; }
-        void SetOffset(uint32 offset);
+        void SetOffset(long int offset);
 
     private:
-        uint32              offset;     // Current file offset
+        long int            offset;     // Current file offset
 
     private:
         static const char*  tmpfile;
-        std::fstream        file;
         FILE*               fd;
+        bool                fileEnds;
 
     private:
         Logger* logger;

@@ -2,10 +2,11 @@
 #include <cstdio>
 #include <GL/glew.h>
 
-#include "RenderMan.h"
-#include "Color.h"
 #include "Common.h"
 #include "Logger.h"
+#include "Page.h"
+#include "RenderMan.h"
+#include "Color.h"
 
 using namespace std;
 
@@ -166,6 +167,7 @@ bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap)
     LOG_EVENT(buf);
     */
 
+//    glDrawBuffer(GL_FRONT_AND_BACK);
     glColor3f(1.0f, 1.0f, 0.0f);
     glWindowPos2i(x, SCREEN_HEIGHT - y);
     glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
@@ -183,5 +185,15 @@ void RenderMan::Flush(){
 //    LOG_EVENT("Flush to buffer");
     glFlush();
     SDL_GL_SwapBuffers();
+}
+
+void RenderMan::GetFBSize(Page* pg){
+    pg -> SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+}
+
+void RenderMan::GetFrameBuffer(Page* pg){
+    glFlush();
+//    glReadBuffer(GL_FRONT);
+    glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_LUMINANCE, GL_UNSIGNED_BYTE, pg -> GetFB());
 }
 

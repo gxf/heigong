@@ -21,7 +21,7 @@ all: $(TARGETS)
 libhg.a: $(OBJECTS)
 	$(AR) $(BUILD_DIR)/$@  $(addprefix $(BUILD_DIR)/,$^)
 
-RenderMan.o: RenderMan.cpp Logger.h Color.h RenderMan.h Common.h
+RenderMan.o: RenderMan.cpp Logger.h Color.h RenderMan.h Common.h Page.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(BUILD_DIR)/$@
 
 FontsManager.o: FontsManager.cpp Logger.h FontsManager.h Common.h
@@ -33,7 +33,7 @@ FontsCache.o: FontsCache.cpp FontsCache.h
 LayoutManager.o: LayoutManager.cpp Logger.h FontsManager.h LayoutManager.h Common.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(BUILD_DIR)/$@
 
-MayTwelfth.o: MayTwelfth.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h LayoutManager.h DocParser.h Common.h Glyph.h Line.h
+MayTwelfth.o: MayTwelfth.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h LayoutManager.h DocParser.h Common.h Glyph.h Line.h Page.h PageCache.h PageManager.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(BUILD_DIR)/$@
 
 DocParser.o: DocParser.cpp DocParser.h Logger.h

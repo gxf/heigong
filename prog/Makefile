@@ -15,7 +15,7 @@ all: $(TARGETS)
 libprog.a: hgMaster.o
 	$(AR) $(BUILD_DIR)/$@  $(addprefix $(BUILD_DIR)/,$^)
 
-hgMaster.o: hgMaster.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h LayoutManager.h DocParser.h Common.h Glyph.h Line.h
+hgMaster.o: hgMaster.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h LayoutManager.h DocParser.h Common.h Glyph.h Line.h Page.h PageCache.h PageManager.h
 	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(BUILD_DIR)/$@
 
 clean:

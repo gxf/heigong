@@ -3,42 +3,44 @@
 
 #include "Common.h"
 
-// Page Item for caching
-class PageItem{
-    public:
-        PageItem(void* fb = NULL, uint32 w = 0, uint32 h = 0):
-        pFb(fb), fbWidth(w), fbHeight(h),
-        valid(true)
-        {}
 
-        ~PageItem(){}
-
-    public:
-        void*   pFb;        // The content of framebuffer
-        uint32  fbWidth;    // The width of framebuffer
-        uint32  fbHeight;   // The height of framebuffer
-
-    public:
-        bool    valid;
-//        bool    
-};
+class PageCache;
 
 // Page class
 class Page{
     public:
-        Page(int n = 0, uint32 o = 0, PageItem* pi = NULL):
-            num(n), offset(o), pItem(pi)
+        Page(int n = 0, long int o = 0):
+            num(n), offset(o),
+            pFb(NULL), fbWidth(0), fbHeight(0),
+            valid(false)
         {}
 
         ~Page(){}
 
-        inline uint32 GetOffset() { return offset; }
+        inline long int GetOffset() { return offset; }
         inline int GetNum() { return num; }
+        inline int CachedFB(){ return valid; }
+        inline void SetSize(int w, int h){
+            fbWidth   = w;
+            fbHeight  = h;
+        }
+        inline void* GetFB(){ return pFb; }
+        inline uint32 GetFBWidth(){ return fbWidth; }
+        inline uint32 GetFBHeight(){ return fbHeight; }
+
+    public:
+        friend class PageCache;
+        
+    private:
+        int         num;        // Page Number
+        long int    offset;     // Offset of 1st charator in file
 
     private:
-        int         num;    // Page Number
-        uint32      offset; // Offset of 1st charator in file
-        PageItem *  pItem;
+        void*       pFb;        // The content of framebuffer
+        uint32      fbWidth;    // The width of framebuffer
+        uint32      fbHeight;   // The height of framebuffer
+        bool        valid;      // flag to show if pFb is valid
+
 };
 
 #endif

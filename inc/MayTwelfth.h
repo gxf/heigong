@@ -50,6 +50,7 @@ class May12th{
     private:
         ENCODING_MODE   encoding;
         int             curPageNum;
+        int             maxPageNum;
 
     private:
         const static int screen_width;

@@ -11,7 +11,8 @@ May12th::May12th(Logger* log, const char* filename):
     layout(screen_width, screen_height, 30, 30, log), 
     render(log, screen_width, screen_height), 
     docParse(log), pgMgr(log),
-    encoding(EM_UTF_8), curPageNum(0)
+    encoding(EM_UTF_8), 
+    curPageNum(0), maxPageNum(0xffffff)
 {
     render.Init();
     if (false == docParse.OpenFile(filename)){
@@ -29,7 +30,6 @@ void May12th::Init(uint32 fontSize){
     line.Clear();
     layout.SetLineSpacing(fontSize/4);
     fonts.SetFontSize(fontSize);
-//    pgMgr.StartPage(0);
 }
 
 void May12th::PerCharDisplay(int page_num){
@@ -48,46 +48,67 @@ void May12th::PerCharDisplay(int page_num){
         char buf[100];
         sprintf(buf,"Render the rendered page: %d", page_num);
         LOG_EVENT(buf);
+
+#ifdef PAGE_CACHED_RENDER
+        render.Clear();
+        if (true == pgMgr.CachedRender(page_num, &render)){
+            render.Flush();
+            return;
+        }
+        else{
+            docParse.SetOffset(pgMgr.GetPageOffset(page_num));
+        }
+#else
         docParse.SetOffset(pgMgr.GetPageOffset(page_num));
+#endif
     }
 
     Char* cur = new Char(logger);
     cur -> SetID(Char::ID(DEFAULT_FONT, DEFAULT_FONT_SIZE));
 
-    docParse >> *cur;
-
     render.Clear();
 
-    while ((uint32)EOF != cur->GetVal()){
-/*        char buf[100];
-        sprintf(buf, "Current char: %c", cur);
-        LOG_EVENT(buf);
-*/
-        if ('\n' == cur->GetVal()){
-            layout.NewLine();
-        }
-        else if(false == RenderChar(*cur)){
+    do{
+        if(!(docParse >> *cur)){
+            maxPageNum = page_num;
+            line.DrawCurrent(&render, &fontsCache, layout.GetLastBaseLine());
+            line.Clear();
             render.Flush();
-            pgMgr.EndPage(page_num);
-//            docParse.ReOpenFile();
-            layout.Reset();
+            pgMgr.EndPage(page_num, &render);
+            break;
+        }
+
+        if(false == RenderChar(*cur)){
+            render.Flush();
+            pgMgr.EndPage(page_num, &render);
+            docParse << *cur;
             return;
         }
         cur = new Char(logger);
         cur->SetID(Char::ID(DEFAULT_FONT, DEFAULT_FONT_SIZE));
-        if (!(docParse >> *cur))
-            break;
     }
-    line.Flush(&render, &fontsCache, layout.GetLastBaseLine());
-    line.Clear();
-    render.Flush();
-    docParse.ReOpenFile();
+    while(true);
+
+//    docParse.ReOpenFile();
 }
 
 bool May12th::RenderChar(Char& ch){
-    if ((uint32)EOF == ch.GetVal())
-        return false;
-
+    if ('\n' == ch.GetVal()){
+        switch(layout.NewLine()){
+            case LO_OK:
+                line.DrawCurrent(&render, &fontsCache, layout.GetLastBaseLine());
+                line.Clear();
+                return true;
+            case LO_NEW_PAGE:
+                line.DrawCurrent(&render, &fontsCache, layout.GetLastBaseLine());
+                line.Clear();
+                layout.Reset();
+                return false;
+            default:
+                LOG_ERROR("Unsupported Layout Newline return.");
+                return false;
+        }
+    }
     Position     pos(0, 0);
     FT_GlyphSlot glyphSlot;
 
@@ -106,14 +127,14 @@ bool May12th::RenderChar(Char& ch){
             line.AddGlyph(&ch);
             break;
         case LO_NEW_LINE:
-            line.Flush(&render, &fontsCache, layout.GetLastBaseLine());
+            line.DrawCurrent(&render, &fontsCache, layout.GetLastBaseLine());
             line.Clear();
             line.AddGlyph(&ch);
             break;
         case LO_NEW_PAGE:
-            line.Flush(&render, &fontsCache, layout.GetLastBaseLine());
-//            line.Clear();
-//            line.AddGlyph(pch);
+            line.DrawCurrent(&render, &fontsCache, layout.GetLastBaseLine());
+            line.Clear();
+            layout.Reset();
             return false;
         default:
             LOG_ERROR("Unsupported Layout return.");
@@ -128,6 +149,56 @@ bool May12th::RenderWord(const char* str, int size){
     if (NULL == ch || 0 == size)
         return true;
     return true;
+}
+
+void May12th::MainLoop(){
+    int done = false;
+    SDL_Event event;
+
+    while (!done){ 
+        while (SDL_PollEvent(&event))
+        {
+            switch(event.type){
+                case SDL_ACTIVEEVENT: 
+                    PerCharDisplay(pgMgr.GetLastPageNum());
+                    break;              
+                case SDL_VIDEORESIZE:
+                    break;
+                case SDL_KEYDOWN: 
+                    // handle key presses
+                    switch (event.key.keysym.sym)
+                    {
+                        case SDLK_UP:
+                            if (curPageNum - 1 >= 0){
+                                PerCharDisplay(--curPageNum);
+                            }
+                            else{
+                                PerCharDisplay(curPageNum);
+                            }
+                            break;
+                        case SDLK_DOWN:
+                            if (curPageNum + 1 <= maxPageNum){
+                                PerCharDisplay(++curPageNum);
+                            }
+                            else{
+                                PerCharDisplay(curPageNum);
+                            }
+                            break;
+                        case SDLK_ESCAPE:
+                            done = true;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case SDL_QUIT: // handle quit requests
+                    done = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+    } 
 }
 
 bool May12th::RenderString(const char* str){
@@ -160,47 +231,3 @@ bool May12th::RenderString(const char* str){
 */    return true;
 }
 
-void May12th::MainLoop(){
-    int done = false;
-    SDL_Event event;
-
-    while (!done){ 
-        while (SDL_PollEvent(&event))
-        {
-            switch(event.type){
-                case SDL_ACTIVEEVENT: 
-                    PerCharDisplay(pgMgr.GetLastPageNum());
-                    break;              
-                case SDL_VIDEORESIZE:
-                    break;
-                case SDL_KEYDOWN: 
-                    // handle key presses
-                    switch (event.key.keysym.sym)
-                    {
-                        case SDLK_UP:
-                            if (curPageNum - 1 >= 0){
-                                PerCharDisplay(--curPageNum);
-                            }
-                            else{
-                                PerCharDisplay(pgMgr.GetLastPageNum());
-                            }
-                            break;
-                        case SDLK_DOWN:
-                            PerCharDisplay(++curPageNum);
-                            break;
-                        case SDLK_ESCAPE:
-                            done = true;
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case SDL_QUIT: // handle quit requests
-                    done = true;
-                    break;
-                default:
-                    break;
-            }
-        }
-    } 
-}
