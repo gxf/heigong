@@ -2,15 +2,15 @@
 #define PAGE_H
 
 #include "Common.h"
-
+#include <stdio.h>
 
 class PageCache;
 
 // Page class
 class Page{
     public:
-        Page(int n = 0, long int o = 0):
-            num(n), offset(o),
+        Page(int n = 0, fpos_t* pos = NULL, long int o = 0):
+            num(n), pPos(pos), offset(o),
             pFb(NULL), fbWidth(0), fbHeight(0),
             valid(false)
         {}
@@ -18,6 +18,7 @@ class Page{
         ~Page(){}
 
         inline long int GetOffset() { return offset; }
+        inline fpos_t* GetStreamPos(){ return pPos; }
         inline int GetNum() { return num; }
         inline int CachedFB(){ return valid; }
         inline void SetSize(int w, int h){
@@ -33,6 +34,7 @@ class Page{
         
     private:
         int         num;        // Page Number
+        fpos_t  *   pPos;       // Position in file stream
         long int    offset;     // Offset of 1st charator in file
 
     private:

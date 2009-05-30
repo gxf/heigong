@@ -6,34 +6,44 @@
 #include <vector>
 
 class RenderMan;
+class Logger;
+class Context;
+
+// Attributes for line
+enum ALIGNMENT{
+    A_LEFT,
+    A_RIGHT,
+    A_CENTER,
+};
 
 // Note: Line is just a abstract concept which does not
 // get any Glypth Object memory management involved
 class Line{
     public:
-        Line(){}
+        Line(Logger* log, ALIGNMENT a = A_LEFT): 
+            align(a), curWidth(0),
+            logger(log)
+        {}
         ~Line(){}
 
     public:
-        void AddGlyph(Glyph* glyph){
-            glyphs.push_back(glyph);
-        }
+        void AddGlyph(Glyph* glyph);
 
-        void DrawCurrent(RenderMan * render, FontsCache * cache, int baseline){
-            std::vector<Glyph*>::iterator itr = glyphs.begin();
-            while (itr != glyphs.end()){
-                (*itr)->AdjustPos(baseline);
-                (*itr)->Draw(render);
-                ++itr;
-            }
-        }
+        void DrawCurrent(Context* ctx, int baseline);
 
-        void Clear(){
-            glyphs.clear();
-        }
+        void Clear();
+
+        void DrawFlush(Context* ctx);
 
     private:
         std::vector<Glyph*> glyphs;
+
+    private:
+        ALIGNMENT   align;
+        uint32      curWidth;
+
+    private:
+        Logger*     logger;
 };
 
 #endif

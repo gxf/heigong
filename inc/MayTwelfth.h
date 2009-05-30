@@ -1,17 +1,7 @@
 #ifndef MAY_TWELFTH_H
 #define MAY_TWELFTH_H
 
-#include "Common.h"
-#include "Logger.h"
-#include "RenderMan.h"
-#include "FontsManager.h"
-#include "FontsCache.h"
-#include "LayoutManager.h"
-#include "DocParser.h"
-#include "MayTwelfth.h"
-#include "Glyph.h"
-#include "Line.h"
-#include "PageManager.h"
+#include "Context.h"
 
 class May12th{
     public:
@@ -20,8 +10,6 @@ class May12th{
 
     public:
         // Interface for test.
-        bool RenderString(const char* str);
-        bool RenderWord(const char*, int size);
 
     public:
         inline void SetEncoding(ENCODING_MODE em) { encoding = em; }
@@ -29,23 +17,18 @@ class May12th{
 
     public:
         void MainLoop();
-        void PerCharDisplay(int page_num);
+//        void PerCharDisplay(int page_num);
+        void Display(int page_num);
+
+        inline Context* GetContext(){ return ctx; }
 
     private:
         void Init(uint32 fontSize);
-        bool RenderChar(Char &);
+//        bool RenderChar(Char &);
 
     private:
-        Logger*         logger;
-
-    private:
-        FontsManager    fonts;
-        LayoutManager   layout;
-        RenderMan       render;
-        FontsCache      fontsCache;
-        DocParser       docParse;
-        Line            line;
-        PageManager     pgMgr;
+        const static int screen_width;
+        const static int screen_height;
 
     private:
         ENCODING_MODE   encoding;
@@ -53,8 +36,10 @@ class May12th{
         int             maxPageNum;
 
     private:
-        const static int screen_width;
-        const static int screen_height;
+        Context*        ctx;
+
+    private:
+        Logger*         logger;
 };
 
 #endif

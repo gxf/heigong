@@ -6,7 +6,8 @@
 #include <cstring>
 
 #include <ft2build.h>  
-#include FT_FREETYPE_H 
+//#include FT_FREETYPE_H 
+#include <freetype/freetype.h>
 
 class Logger;
 class Position;

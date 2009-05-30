@@ -3,39 +3,217 @@
 #include "DocParser.h"
 #include "Glyph.h"
 #include <cstring>
+#include <cstdlib>
 #include <fstream>
+#include <string>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
 
-const char* DocParser::tmpfile = "doc.tmp";
+const char* DocParser::tmpfile = DEFAULT_TMP_FILE_NAME;
 
 DocParser::DocParser(Logger* log):
-    offset(0), fd(NULL), fileEnds(true),
+    docStream(log, tmpfile), 
     logger(log)
-{
+{}
+
+DocParser::~DocParser(){}
+
+bool DocParser::Init(const char* filen){
+    return docStream.OpenFile(filen);
+}
+void DocParser::SetCurParseOffset(long int offset){
+    ClearGlyphStream();
+    docStream.SetOffset(offset);
 }
 
-DocParser::~DocParser(){
+void DocParser::ClearGlyphStream(){
+    while(!(glyphStream.empty())){
+        delete glyphStream.front();
+        glyphStream.pop();
+    }
 }
 
-static void AdjustCmd(char* cmd, int length){
-    char* p = cmd;
-    char* q = NULL;
+DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph* glyph){
+    // Retrieve first when glyphStream is not empty
+    if (!(glyphStream.empty())){
+        glyph = glyphStream.front();
+        glyphStream.pop();
+        return DP_OK;
+    }
 
-    int i;
-    for (i = 0; i < length; i++, p++){
-        switch(*p){
-            case ' ':
-            case '(':
-            case ')':
-                for (q = p + (length + 1 - i); q > p; q--){
-                    *q = *(q - 1) ;
+    // Else, fill glyph stream with new content
+    if (!docStream){
+        glyph = NULL;
+        return DP_INVALID;  // Defensive code: this condition should never be met
+    }
+
+    try{
+        fillGlyphStream();
+    }
+    catch(Except_EOF &){
+        if (!(glyphStream.empty())){
+            glyph = glyphStream.front();
+            glyphStream.pop();
+            return DP_OK;
+        }
+        else{
+            glyph = NULL;
+            return DP_EOF;
+        }
+    }
+
+    if (glyphStream.empty()){
+        glyph = NULL;
+        return DP_ERROR;    // Defensive code: this condition should never be met
+    }
+    else{
+        glyph = glyphStream.front();
+        glyphStream.pop();
+        return DP_OK;
+    }
+}
+
+void DocParser::fillGlyphStream(){
+    int ch;
+    docStream >> ch;
+    skipBlanks(ch);
+
+    while(ch == '<'){
+        procLabel(ch);
+        skipBlanks(ch);     // EOF exception may throw
+        docStream >> ch;
+        skipBlanks(ch);
+    }
+
+    // Else, proc the word content. 
+    procWord(ch);
+}
+
+void DocParser::procLabel(int & ch){
+    // Search label for attribute, image, hyperlink
+    docStream >> ch;
+    // Only process certain labels
+    switch(ch){
+        case 'i':
+            if(match("mg")){
+                Image* pImg = new Image(logger);
+                getImageAttrib(ch, *pImg);
+                glyphStream.push(pImg);
+            }
+            else{
+                // ignore all left labels start with 'i'
+                while('>' != ch){ docStream >> ch; }
+            }
+            break;
+        case 'b':
+            if(match("r")){
+                // interpret <br> to new line
+                Char* c = new Char(logger);
+                c->SetVal('\n');
+                glyphStream.push(c);
+            }
+            // ignore all left labels start with 'b'
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'p':
+            if(match(">")){
+                Char* c = new Char(logger);
+                c->SetVal('\n');
+                glyphStream.push(c);
+            }
+            else{
+                // TODO: <p ...>
+            }
+            // ignore all left labels start with 'p'
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'd':
+            if(match("iv")){
+                // TODO: <div ...>
+            }
+            // ignore all left labels start with 'd'
+            while('>' != ch){ docStream >> ch; }
+            break;
+        default:
+            break;
+    }
+}
+
+void DocParser::procWord(int & ch){ 
+    Char* c = new Char(logger);
+    // But translate special tokens
+    // <    == &lt
+    // >    == &gt  
+    // &    == &amp
+    // "    == &quot
+    // blank == &nbsp
+    if (ch == '&'){
+        if (match("lt")){ 
+            c->SetVal('<'); 
+        }
+        else if (match("gt")){ 
+            c->SetVal('>'); 
+        }
+        else if (match("amp")){ 
+            c->SetVal('&'); 
+        } 
+        else if (match("quot")){ 
+            c->SetVal('\"'); 
+        }
+        else if (match("nbsp")){ 
+            c->SetVal(' '); 
+        } 
+        else{ 
+            docStream << ch; 
+            docStream >> *c;
+        }
+        glyphStream.push(c);
+    }
+    else{
+        docStream << ch; 
+        docStream >> *c;
+        glyphStream.push(c);
+    }
+}
+
+void DocParser::getImageAttrib(int & ch, Image & img){
+    skipBlanks(ch);
+
+    long int width   = 0;
+    long int height  = 0;
+    char* src;
+    
+    while('>' != ch){
+        docStream >> ch;
+        switch(ch){
+            case 'w':
+                if (match("idth")){
+                    skipBlanks(ch);
+                    if(!match("=")) throw Except_Parse_Err();
+                    skipBlanks(ch);
+                    width = getInteger();
                 }
-                length++;
-                *p = '\\';
-                p++;
+                // Skip other labels
+                break;
+            case 'h':
+                if (match("eight")){
+                    skipBlanks(ch);
+                    if(!match("=")) throw Except_Parse_Err();
+                    skipBlanks(ch);
+                    height = getInteger();
+                }
+                // Skip other labels
+                break;
+            case 's':
+                if (match("rc")){
+                    skipBlanks(ch);
+                    if(!match("=")) throw Except_Parse_Err();
+                    skipBlanks(ch);
+                    src = getString();  // Note: User's resposibility to release string
+                }
+                // Skip other labels
                 break;
             default:
                 break;
@@ -43,184 +221,102 @@ static void AdjustCmd(char* cmd, int length){
     }
 }
 
-bool DocParser::OpenFile(const char* filename){
-
-    char filen[std::strlen(filename) + 200];
-    std::memset(filen, '\0', std::strlen(filename) + 200);
-    std::memcpy(filen, filename, std::strlen(filename));
-    AdjustCmd(filen, std::strlen(filename));
-
-    int strlength   = std::strlen(filename) + 1;
-    strlength       += std::strlen(tmpfile);
-    strlength		+= 256; 
-
-    char cmd[strlength];
-    std::memset(cmd, 0x0, strlength);
-    sprintf(cmd, "./catdoc -w %s >%s", filen, tmpfile);
-    LOG_EVENT(cmd);
-
-    system(cmd);
-    if(!(fd = fopen(tmpfile, "r"))){
-        LOG_ERROR("fail to open doc file.");
-        return false;
+bool DocParser::match(char ch){
+    int c;
+    docStream >> c;
+    if (c == ch){
+        return true;
     }
-    fileEnds = false;
+    docStream << c;
+    return false;
+}
+
+bool DocParser::match(const char* ch){
+    int c;
+    int i = 0;
+
+    while ('\0' == ch[i]){
+        docStream >> c;
+        if (c != (int)ch[i]){
+            docStream << c;
+            while(--i >= 0){
+                int tmp = (int)ch[i];
+                docStream << tmp;
+            }
+            return false;
+        }
+        i++;
+    }
     return true;
 }
 
-bool DocParser::ReOpenFile(){
-    CloseFile();
-    if(!(fd = fopen(tmpfile, "r"))){
-        LOG_ERROR("fail to open doc file.");
-        return false;
+bool DocParser::match_b(const char* ch){
+    int c;
+    int i = 0;
+    // Skip blank spaces
+    while(' ' == ch[i] || '\t' == ch[i] || '\n' == ch[i]){
+        i++;
     }
-    fileEnds = false;
+
+    int beg = i;
+    while ('\0' == ch[i]){
+        docStream >> c;
+        if (c != ch[i]){
+            docStream << c;
+            while(--i >= beg){
+                int tmp = (int)ch[i];
+                docStream << tmp;
+            }
+            return false;
+        }
+        i++;
+    }
     return true;
 }
 
-
-void DocParser::CloseFile()
-{
-    fclose(fd);
-    fd = NULL;
-}
-
-DocParser & DocParser::operator>>(uchar8 & ch){
-    // deprecated
-    return *this;
-}
-
-DocParser & DocParser::operator>>(Char & ch){
-    union VALUE{
-        unsigned int all;
-        struct{
-            uchar8 byte1;
-            uchar8 byte2;
-            uchar8 byte3;
-            uchar8 byte4;
-        }f;
-    }val;
-    val.all = 0;
-    int c_val = 0;
-
-    switch(ch.GetEncoding()){
-        case EM_ASCII:
-            c_val = getc(fd);
-            if(EOF == c_val){
-                fileEnds = true;
-            }
-            ch.SetVal(c_val);
-            offset++;
-            break;
-        case EM_UTF_8:
-            c_val = getc(fd);
-            if(EOF == c_val){
-                fileEnds = true;
-            }
-//            val.f.byte1 = reinterpret_cast<uchar8>(c_val);
-            val.f.byte1 = (uchar8)c_val;
-            if (/*val.f.byte1 >= 0x00 &&*/ val.f.byte1 <= 0x7F){
-                ch.SetCharLength(1);
-                offset++;
-            }
-            else if (val.f.byte1 >= 0xC0 && val.f.byte1 <= 0xDF){
-                val.f.byte2 = getc(fd);
-                ch.SetCharLength(2);
-                offset += 2;
-            }
-            else if (val.f.byte1 >= 0xE0 && val.f.byte1 <= 0xEF){
-                val.f.byte2 = getc(fd);
-                val.f.byte3 = getc(fd);
-                ch.SetCharLength(3);
-                offset += 3;
-            }
-            else if (val.f.byte1 >= 0xF0 && val.f.byte1 <= 0xF4){
-                val.f.byte2 = getc(fd);
-                val.f.byte3 = getc(fd);
-                val.f.byte4 = getc(fd);
-                ch.SetCharLength(4);
-                offset += 4;
-            }
-            else{
-                LOG_ERROR("Unsupported UTF-8 encoding!");
-            }
-            ch.SetVal(val.all);
-            break;
-        default:
-            LOG_ERROR("Unsupported Encoding format!");
-            break;
-    }
-    
-    return *this;
-}
-
-DocParser & DocParser::operator<<(Char & ch){
-    union VALUE{
-        unsigned int all;
-        struct{
-            uchar8 byte1;
-            uchar8 byte2;
-            uchar8 byte3;
-            uchar8 byte4;
-        }f;
-    }val;
-    val.all = ch.GetVal(ch.GetEncoding());
-
-    switch(ch.GetEncoding()){
-        case EM_ASCII:
-            ungetc(val.f.byte1, fd);
-            offset--;
-            fileEnds = false;
-            break;
-        case EM_UTF_8:
-            if (val.f.byte1 <= 0x7F){
-                ungetc(val.f.byte1, fd);
-                offset--;
-            }
-            else if (val.f.byte1 >= 0xC0 && val.f.byte1 <= 0xDF){
-                ungetc(val.f.byte2, fd);
-                ungetc(val.f.byte1, fd);
-                offset -= 2;
-            }
-            else if (val.f.byte1 >= 0xE0 && val.f.byte1 <= 0xEF){
-                ungetc(val.f.byte3, fd);
-                ungetc(val.f.byte2, fd);
-                ungetc(val.f.byte1, fd);
-                offset -= 3;
-            }
-            else if (val.f.byte1 >= 0xF0 && val.f.byte1 <= 0xF4){
-                ungetc(val.f.byte4, fd);
-                ungetc(val.f.byte3, fd);
-                ungetc(val.f.byte2, fd);
-                ungetc(val.f.byte1, fd);
-                offset -= 4;
-            }
-            else{
-                LOG_ERROR("Unsupported UTF-8 encoding!");
-            }
-            fileEnds = false;
-            break;
-        default:
-            LOG_ERROR("Unsupported Encoding format!");
-            break;
-    }
-    
-    return *this;
-}
-
-void DocParser::SetOffset(long int offset){
-    if (fd){
-        fseek(fd, offset, SEEK_SET);
-    }
-    else{
-        LOG_ERROR("File descriptor is invalid.");
+void DocParser::skipBlanks(int & ch){
+    // Skip blank spaces
+    while(' ' == ch || '\t' == ch || '\n' == ch){
+        docStream >> ch;
     }
 }
 
-DocParser & DocParser::operator>>(Glyph & glyph){
-    return *this;
+long int DocParser::getInteger(){
+    std::string str;
+    int ch;
+    int term = ' ';
+    docStream >> ch;
+    if ('\"' == ch){ 
+        term = '\"';
+        docStream >> ch;
+    }
+    do{
+        str += (char)ch;
+        docStream >> ch;
+    }
+    while(term != ch);
+
+    return std::strtol(str.c_str(), '\0', 10);
 }
 
-bool DocParser::operator!(){
-    return fileEnds;
+char* DocParser::getString(){
+    std::string str;
+    int ch;
+    int term = ' ';
+    docStream >> ch;
+    if ('\"' == ch){ 
+        term = '\"';
+        docStream >> ch;
+    }
+    do{
+        str += (char)ch;
+        docStream >> ch;
+    }
+    while(term != ch);
+
+    // Note: User's resposibility to release string
+    char* cstr = new char[str.size() + 1];
+    std::strcpy(cstr, str.c_str());
+    return cstr;
 }
+

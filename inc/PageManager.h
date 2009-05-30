@@ -25,11 +25,11 @@ class PageManager{
         const static int PAGE_ERROR = 0xffffffff;
 
     public:
-        inline void StartPage(long int offset){
-            curPage = new Page(numToRender, offset);
+        inline void StartPage(fpos_t* pos, long int offset){
+            curPage = new Page(numToRender, pos, offset);
             pages.push_back(curPage);
             char buf[100];
-            sprintf(buf, "Start page %d. CurPage: %d", numToRender, (uint32)curPage);
+            sprintf(buf, "Start page %d. Offset: %ld. CurPage: %d", numToRender, offset, (uint32)curPage);
             LOG_EVENT(buf);
         }
 
@@ -54,6 +54,9 @@ class PageManager{
             std::vector<Page*>::iterator itr = pages.begin();
             while(itr != pages.end()){
                 if (page_num == (*itr) -> GetNum()){
+                    char buf[100];
+                    sprintf(buf, "Retrieved offset: %ld.", (*itr) -> GetOffset());
+                    LOG_EVENT(buf);
                     return (*itr) -> GetOffset();
                 }
                 ++itr;
@@ -62,20 +65,31 @@ class PageManager{
             return PAGE_ERROR;
         }
 
+        inline fpos_t* GetPagePos(const int page_num){
+            // Notice: Can only get the page already exists.
+            std::vector<Page*>::iterator itr = pages.begin();
+            while(itr != pages.end()){
+                if (page_num == (*itr) -> GetNum()){
+/*                    char buf[100];
+                    sprintf(buf, "Retrieved offset: %ld.", (*itr) -> GetOffset());
+                    LOG_EVENT(buf);
+*/                    
+                    return (*itr) -> GetStreamPos();
+                }
+                ++itr;
+            }
+            LOG_ERROR("Fail to look for page.");
+            return NULL;
+        }
+
         // Get the page to do the work
         inline int GetToWorkPageNum(){
-/*            char buf[100];
-            sprintf(buf, "Cur page num: %d.", numToRender);
-            LOG_EVENT(buf);
-*/            return numToRender;
+            return numToRender;
         }
 
         // Get the page have done the work
         inline int GetLastPageNum(){
-/*            char buf[100];
-            sprintf(buf, "Last rendered page num: %d.", numLastRendered);
-            LOG_EVENT(buf);
-*/            return numLastRendered; 
+            return numLastRendered; 
         }
 
         inline bool CachedRender(int page_num, RenderMan* render){

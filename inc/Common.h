@@ -4,6 +4,9 @@
 typedef unsigned int    uint32;
 typedef unsigned char   uchar8; 
 
+class Except_EOF{};         // EOF is met
+class Except_Parse_Err{};   // parse error
+
 class Position{
     public:
         int x;
@@ -36,6 +39,7 @@ enum ENCODING_MODE{
 #define DEFAULT_RESERVED_PAGE   8
 #define DEFAULT_MAX_PAGE_SIZE   0x800000
 
+#define DEFAULT_TMP_FILE_NAME   "hg.tmp"
 #endif
 
 

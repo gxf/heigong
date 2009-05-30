@@ -2,24 +2,40 @@
 #define GLYPH_H
 
 //namespace heigong{
+#include "Common.h"
+#include <stdio.h>
 
 class Position;
 class RenderMan;
+class Line;
+class LayoutManager;
+class PageManager;
 class Logger;
+class Context;
 
 class Glyph{
     public:
-        Glyph(Logger* log): logger(log)
+        Glyph(Logger* log): 
+            pos(0, 0), 
+            bitmap_w(0), bitmap_h(0), bitmap(NULL),
+            logger(log)
         {};
         virtual ~Glyph(){}
 
     public:
-//        virtual bool Gen() = 0;
         virtual bool Draw(RenderMan*) = 0;
-        virtual bool AdjustPos(int baseline) = 0;
+        virtual bool AdjustPos(int x, int y) = 0;
+        virtual bool Setup(Context* ctx) = 0;
+
+    public:
+        Position        pos;        // Left-bottom position
+        int             bitmap_w;   // Bitmap width
+        int             bitmap_h;   // Bitmap height
+        void *          bitmap;
 
     protected:
         Logger* logger;
+
 };
 
 class Char: public Glyph{
@@ -36,9 +52,7 @@ class Char: public Glyph{
         };
 
     public:
-        Char(Logger* log, Position p = Position(0, 0), int bl = 0, 
-             int bm_w = 0, int bm_h = 0, void* bm = 0, 
-             ID id = ID(0, 0));
+        Char(Logger* log, int bl = 0, ID id = ID(0, 0));
         ~Char();
 
     public:
@@ -63,14 +77,11 @@ class Char: public Glyph{
     public:
         unsigned int GetVal(ENCODING_MODE em = EM_UTF_8);
         bool Draw(RenderMan*);
-        bool AdjustPos(int);
+        bool AdjustPos(int, int);
+        bool Setup(Context* ctx);
 
     public:
-        Position        pos;
         int             baseline;
-        int             bitmap_w;   // Bitmap width
-        int             bitmap_h;   // Bitmap height
-        void *          bitmap;
 
         ENCODING_MODE   encodeMode;
         unsigned int    val;
@@ -81,12 +92,15 @@ class Char: public Glyph{
 
 };
 
-class Graph: public Glyph{
+class Image: public Glyph{
     public:
-        Graph(Logger* log):Glyph(log){}
-        ~Graph(){}
+        Image(Logger* log):Glyph(log){}
+        ~Image(){}
 
     public:
+        bool Draw(RenderMan*);
+        bool AdjustPos(int, int);
+        bool Setup(Context* ctx);
 };
 
 class Table: public Glyph{

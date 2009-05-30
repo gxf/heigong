@@ -6,13 +6,13 @@ include $(HG_ROOT)/makefile.def
 
 TARGETS=hgMaster
 
-OBJECTS=libprog.a	\
-		libhg.a		
+LIB_FILES=libprog.a	\
+		  libhg.a		
 
 all: $(TARGETS) 
 	$(CP) $^ $(HG_ROOT)/
 
-hgMaster: $(OBJECTS)
+hgMaster: $(LIB_FILES)
 	$(LD) $(LDFLAGS) $(LIB_PATH) $(LIBS) $^ -o $@
 
 libprog.a:

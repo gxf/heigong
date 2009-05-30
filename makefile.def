@@ -11,6 +11,8 @@ INC_PATH=-I/usr/include/GL -I/usr/include/freetype2 -I$(HG_ROOT)/inc
 LIBS=-lGL -lGLU -lGLEW -lSDL -lfreetype
 LIB_PATH=
 
+CPPFLAGS=$(CFLAGS) $(INC_PATH)
+
 MAKE=make
 RM=rm -f
 CP=cp
