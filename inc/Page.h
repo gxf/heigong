@@ -2,6 +2,7 @@
 #define PAGE_H
 
 #include "Common.h"
+#include "DocParser.h"
 #include <stdio.h>
 
 class PageCache;
@@ -9,16 +10,15 @@ class PageCache;
 // Page class
 class Page{
     public:
-        Page(int n = 0, fpos_t* pos = NULL, long int o = 0):
-            num(n), pPos(pos), offset(o),
+        Page(int n = 0, DocParser::HDocState hState = (DocParser::HDocState)0):
+            num(n), hPState(hState),
             pFb(NULL), fbWidth(0), fbHeight(0),
             valid(false)
         {}
 
         ~Page(){}
 
-        inline long int GetOffset() { return offset; }
-        inline fpos_t* GetStreamPos(){ return pPos; }
+        inline DocParser::HDocState GetParserState(){ return hPState; }
         inline int GetNum() { return num; }
         inline int CachedFB(){ return valid; }
         inline void SetSize(int w, int h){
@@ -33,9 +33,8 @@ class Page{
         friend class PageCache;
         
     private:
-        int         num;        // Page Number
-        fpos_t  *   pPos;       // Position in file stream
-        long int    offset;     // Offset of 1st charator in file
+        int                     num;        // Page Number
+        DocParser::HDocState    hPState;     // Parser state at page start
 
     private:
         void*       pFb;        // The content of framebuffer

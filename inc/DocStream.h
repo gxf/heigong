@@ -2,18 +2,15 @@
 #define DOC_STREAM_H
 
 #include "Common.h"
-#include "HtmlFilter.h"
 
 class Char;
 class Logger;
 
 class DocStream{
     public:
-        DocStream(Logger * log, const char * tmpfilen):
+        DocStream(Logger * log, const char * tmpfilen = DEFAULT_TMP_FILE_NAME):
             tmpFile(tmpfilen), fd(NULL), fileEnds(false),
-            offset(0),
-//            htmlFil(log), 
-            logger(log)
+            offset(0), logger(log)
         {}
         ~DocStream(){
             if(fd){ CloseFile(); }
@@ -49,7 +46,6 @@ class DocStream{
         long int            offset;     // Current file offset
 
     private:
-//        HtmlFilter          htmlFil;
         Logger*             logger;
 };
 

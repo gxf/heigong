@@ -27,7 +27,7 @@ class Context{
             fonts(log), 
             layout(screen_width, screen_height, 30, 30, log), 
             render(log, screen_width, screen_height), 
-            docParse(log), line(log), pgMgr(log)
+            docParse(log), line(log), pgMgr(log, docParse)
         {}
         ~Context(){}
 

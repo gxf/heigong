@@ -3,7 +3,7 @@
 
 #include "Common.h"
 #include "DocStream.h"
-#include <queue>
+#include <deque>
 #include <stdio.h>
 
 class Logger;
@@ -24,10 +24,18 @@ class DocParser{
             DP_ERROR,       // Internal parse error
         }DP_RET_T;
 
+        typedef struct DocState_Rec{
+            std::deque<Glyph*>  buffer;
+            long int            offset;
+        }DocState, *HDocState;
+
     public:
         bool Init(const char* filen);
         DP_RET_T GetNextGlyph(Glyph* g);
         void SetCurParseOffset(long int offset);
+
+        HDocState ShadowDocState();
+        bool RestoreDocState(HDocState hState);
 
     private:
         void ClearGlyphStream();
@@ -49,10 +57,7 @@ class DocParser{
         char* getString();
 
     private:
-        static const char*  tmpfile;
-
-    private:
-        std::queue<Glyph*>  glyphStream;
+        std::deque<Glyph*>  glyphBuffer;
         DocStream           docStream;
         Logger*             logger;
 };

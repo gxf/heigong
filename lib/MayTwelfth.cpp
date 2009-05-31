@@ -8,7 +8,6 @@ const int May12th::screen_height= SCREEN_HEIGHT;
 
 May12th::May12th(Logger* log, const char* filename):
     encoding(EM_UTF_8), 
-    curPageNum(0), maxPageNum(0xffffff),
     ctx(NULL), logger(log)
 {
     ctx = new Context(log, screen_width, screen_height);
@@ -41,7 +40,7 @@ void May12th::Display(int page_num){
         char buf[100];
         sprintf(buf,"Render a new page: %d", page_num);
         LOG_EVENT(buf);
-        ctx->pgMgr.StartPage(ctx->docParse.GetStreamPos(), ctx->docParse.GetCurOffset());
+        ctx->pgMgr.StartPage();
     }
     else if (page_num < ctx->pgMgr.GetToWorkPageNum()){
         char buf[100];
@@ -55,10 +54,10 @@ void May12th::Display(int page_num){
             return;
         }
         else{
-            ctx->docParse.SetOffset(ctx->pgMgr.GetPageOffset(page_num));
+            ctx->pgMgr.RestorePage(page_num);
         }
 #else
-        ctx->docParse.SetOffset(ctx->pgMgr.GetPageOffset(page_num));
+        ctx->pgMgr.RestorePage(page_num);
 #endif
     }
 
@@ -79,7 +78,7 @@ void May12th::Display(int page_num){
                 }
                 break;
             case DocParser::DP_EOF:
-                maxPageNum = page_num;
+                ctx->pgMgr.SetMaxPageNum(page_num);
                 ctx->line.DrawFlush(ctx);
                 ctx->render.Flush();
                 ctx->pgMgr.EndPage(page_num, &ctx->render);
@@ -100,7 +99,7 @@ void May12th::MainLoop(){
         {
             switch(event.type){
                 case SDL_ACTIVEEVENT: 
-                    Display(ctx->pgMgr.GetLastPageNum());
+                    Display(ctx->pgMgr.RepeatPage());
                     break;              
                 case SDL_VIDEORESIZE:
                     break;
@@ -109,20 +108,10 @@ void May12th::MainLoop(){
                     switch (event.key.keysym.sym)
                     {
                         case SDLK_UP:
-                            if (curPageNum - 1 >= 0){
-                                Display(--curPageNum);
-                            }
-                            else{
-                                Display(curPageNum);
-                            }
+                            Display(ctx->pgMgr.PrevPage());
                             break;
                         case SDLK_DOWN:
-                            if (curPageNum + 1 <= maxPageNum){
-                                Display(++curPageNum);
-                            }
-                            else{
-                                Display(curPageNum);
-                            }
+                            Display(ctx->pgMgr.NextPage());
                             break;
                         case SDLK_ESCAPE:
                             done = true;

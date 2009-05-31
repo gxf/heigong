@@ -11,10 +11,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-const char* DocParser::tmpfile = DEFAULT_TMP_FILE_NAME;
-
 DocParser::DocParser(Logger* log):
-    docStream(log, tmpfile), 
+    docStream(log), 
     logger(log)
 {}
 
@@ -29,17 +27,17 @@ void DocParser::SetCurParseOffset(long int offset){
 }
 
 void DocParser::ClearGlyphStream(){
-    while(!(glyphStream.empty())){
-        delete glyphStream.front();
-        glyphStream.pop();
+    while(!(glyphBuffer.empty())){
+        delete glyphBuffer.front();
+        glyphBuffer.pop_front();
     }
 }
 
 DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph* glyph){
-    // Retrieve first when glyphStream is not empty
-    if (!(glyphStream.empty())){
-        glyph = glyphStream.front();
-        glyphStream.pop();
+    // Retrieve first when glyphBuffer is not empty
+    if (!(glyphBuffer.empty())){
+        glyph = glyphBuffer.front();
+        glyphBuffer.pop_front();
         return DP_OK;
     }
 
@@ -53,9 +51,9 @@ DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph* glyph){
         fillGlyphStream();
     }
     catch(Except_EOF &){
-        if (!(glyphStream.empty())){
-            glyph = glyphStream.front();
-            glyphStream.pop();
+        if (!(glyphBuffer.empty())){
+            glyph = glyphBuffer.front();
+            glyphBuffer.pop_front();
             return DP_OK;
         }
         else{
@@ -64,15 +62,26 @@ DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph* glyph){
         }
     }
 
-    if (glyphStream.empty()){
+    if (glyphBuffer.empty()){
         glyph = NULL;
         return DP_ERROR;    // Defensive code: this condition should never be met
     }
     else{
-        glyph = glyphStream.front();
-        glyphStream.pop();
+        glyph = glyphBuffer.front();
+        glyphBuffer.pop_front();
         return DP_OK;
     }
+}
+
+DocParser::HDocState DocParser::ShadowDocState(){
+    // Shadow docStream offset and glyphBuffer
+    return (HDocState)NULL;
+}
+
+bool DocParser::RestoreDocState(DocParser::HDocState hState){
+    // Restore the docStream offset and glyphBuffer
+
+    return true;
 }
 
 void DocParser::fillGlyphStream(){
@@ -100,7 +109,7 @@ void DocParser::procLabel(int & ch){
             if(match("mg")){
                 Image* pImg = new Image(logger);
                 getImageAttrib(ch, *pImg);
-                glyphStream.push(pImg);
+                glyphBuffer.push_back(pImg);
             }
             else{
                 // ignore all left labels start with 'i'
@@ -112,7 +121,7 @@ void DocParser::procLabel(int & ch){
                 // interpret <br> to new line
                 Char* c = new Char(logger);
                 c->SetVal('\n');
-                glyphStream.push(c);
+                glyphBuffer.push_back(c);
             }
             // ignore all left labels start with 'b'
             while('>' != ch){ docStream >> ch; }
@@ -121,7 +130,7 @@ void DocParser::procLabel(int & ch){
             if(match(">")){
                 Char* c = new Char(logger);
                 c->SetVal('\n');
-                glyphStream.push(c);
+                glyphBuffer.push_back(c);
             }
             else{
                 // TODO: <p ...>
@@ -169,12 +178,12 @@ void DocParser::procWord(int & ch){
             docStream << ch; 
             docStream >> *c;
         }
-        glyphStream.push(c);
+        glyphBuffer.push_back(c);
     }
     else{
         docStream << ch; 
         docStream >> *c;
-        glyphStream.push(c);
+        glyphBuffer.push_back(c);
     }
 }
 
