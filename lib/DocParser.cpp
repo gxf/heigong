@@ -33,17 +33,17 @@ void DocParser::ClearGlyphStream(){
     }
 }
 
-DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph* glyph){
+DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph){
     // Retrieve first when glyphBuffer is not empty
     if (!(glyphBuffer.empty())){
-        glyph = glyphBuffer.front();
+        *glyph = glyphBuffer.front();
         glyphBuffer.pop_front();
         return DP_OK;
     }
 
     // Else, fill glyph stream with new content
     if (!docStream){
-        glyph = NULL;
+        *glyph = NULL;
         return DP_INVALID;  // Defensive code: this condition should never be met
     }
 
@@ -52,22 +52,22 @@ DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph* glyph){
     }
     catch(Except_EOF &){
         if (!(glyphBuffer.empty())){
-            glyph = glyphBuffer.front();
+            *glyph = glyphBuffer.front();
             glyphBuffer.pop_front();
             return DP_OK;
         }
         else{
-            glyph = NULL;
+            *glyph = NULL;
             return DP_EOF;
         }
     }
 
     if (glyphBuffer.empty()){
-        glyph = NULL;
+        *glyph = NULL;
         return DP_ERROR;    // Defensive code: this condition should never be met
     }
     else{
-        glyph = glyphBuffer.front();
+        *glyph = glyphBuffer.front();
         glyphBuffer.pop_front();
         return DP_OK;
     }
@@ -75,11 +75,26 @@ DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph* glyph){
 
 DocParser::HDocState DocParser::ShadowDocState(){
     // Shadow docStream offset and glyphBuffer
-    return (HDocState)NULL;
+    HDocState shadowState = new DocState;
+    std::deque<Glyph*>::iterator itr= glyphBuffer.begin();
+    while(itr != glyphBuffer.end()){
+        shadowState->buffer.push_back((*itr)->Dup());
+        ++itr;
+    }
+    shadowState->offset = docStream.GetCurOffset();
+    return shadowState;
 }
 
 bool DocParser::RestoreDocState(DocParser::HDocState hState){
     // Restore the docStream offset and glyphBuffer
+    std::deque<Glyph*>::iterator itr= hState->buffer.begin();
+    while(itr != hState->buffer.end()){
+        glyphBuffer.push_back((*itr)->Dup());
+        ++itr;
+    }
+    docStream.SetOffset(hState->offset);
+
+    delete hState;
 
     return true;
 }
@@ -91,13 +106,18 @@ void DocParser::fillGlyphStream(){
 
     while(ch == '<'){
         procLabel(ch);
-        skipBlanks(ch);     // EOF exception may throw
-        docStream >> ch;
+        docStream >> ch;    // EOF exception may throw
         skipBlanks(ch);
     }
 
     // Else, proc the word content. 
-    procWord(ch);
+    while(ch != '<'){
+        procWord(ch);
+        docStream >> ch;
+    }
+    if (ch == '<'){
+        docStream << ch;
+    }
 }
 
 void DocParser::procLabel(int & ch){
@@ -145,7 +165,19 @@ void DocParser::procLabel(int & ch){
             // ignore all left labels start with 'd'
             while('>' != ch){ docStream >> ch; }
             break;
+        case '!':
+            if(match("--")){
+                while(!match_b("-->")){
+                    docStream >> ch;
+                }
+                break;
+            }
+            // ignore all left labels start with '!'
+            while('>' != ch){ docStream >> ch; }
+            break;
         default:
+            // ignore all other labels
+            while('>' != ch){ docStream >> ch; }
             break;
     }
 }
@@ -244,7 +276,7 @@ bool DocParser::match(const char* ch){
     int c;
     int i = 0;
 
-    while ('\0' == ch[i]){
+    while ('\0' != ch[i]){
         docStream >> c;
         if (c != (int)ch[i]){
             docStream << c;
@@ -268,7 +300,7 @@ bool DocParser::match_b(const char* ch){
     }
 
     int beg = i;
-    while ('\0' == ch[i]){
+    while ('\0' != ch[i]){
         docStream >> c;
         if (c != ch[i]){
             docStream << c;

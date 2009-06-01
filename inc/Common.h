@@ -38,8 +38,9 @@ enum ENCODING_MODE{
 
 #define DEFAULT_RESERVED_PAGE   8
 #define DEFAULT_MAX_PAGE_SIZE   0x800000
+#define DEFAULT_FONTS_CACHE_SIZE    1024*1024
 
-#define DEFAULT_TMP_FILE_NAME   "hg.tmp"
+#define DEFAULT_TMP_FILE_NAME   "tmp.hg"
 #endif
 
 

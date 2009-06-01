@@ -3,15 +3,17 @@
 #include <vector>
 
 //using namespace heigong;
+FontsCache Char::ftCache;
 
-Char::Char(Logger* log, int bl,ID cid):
+Char::Char(Logger* log, int bl, ID cid):
     Glyph(log), baseline(bl), 
     encodeMode(EM_UTF_8), val(0), charLen(1),
-    id(cid)
+    id(cid), valid(true)
 {
 }
 
 Char::~Char(){
+    valid = false;
 }
 
 unsigned int Char::GetVal(ENCODING_MODE em){
@@ -71,7 +73,7 @@ bool Char::Setup(Context* ctx){
 
     ctx->fonts.GetGlyphSlot((FT_ULong)GetVal(EM_UTF_32), &glyphSlot);
     baseline = ((glyphSlot->metrics.horiBearingY) >> 6);
-    ctx->ftCache.CacheFont(this, 
+    ftCache.CacheFont(this, 
             glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
             glyphSlot->bitmap.buffer);
     LAYOUT_RET ret = 
@@ -97,3 +99,22 @@ bool Char::Setup(Context* ctx){
 
     return true;
 }
+
+Glyph* Char::Dup(){
+    Char* ch = new Char(logger);
+
+    ch->pos         = this->pos;
+    ch->bitmap_w    = this->bitmap_w;
+    ch->bitmap_h    = this->bitmap_h;
+    // Always let the cache assign memory
+    ftCache.CacheFont(ch, bitmap_w , bitmap_h, bitmap);
+    ch->baseline    = this->baseline;
+    ch->encodeMode  = this->encodeMode;
+    ch->val         = this->val;
+    ch->charLen     = this->charLen;
+    ch->id          = this->id;
+    ch->valid       = this->valid;
+
+    return ch;
+}
+

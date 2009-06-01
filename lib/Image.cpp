@@ -11,3 +11,7 @@ bool Image::Draw(RenderMan* render){
 bool Image::AdjustPos(int x, int y){
     return true;
 }
+
+Glyph* Image::Dup(){
+    return NULL;
+}

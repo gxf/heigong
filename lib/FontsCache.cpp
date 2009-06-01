@@ -1,11 +1,13 @@
-#include "Common.h"
 #include "Glyph.h"
 #include "FontsCache.h"
 #include <cstdlib>
 #include <cstring>
 
-FontsCache::FontsCache(){
-}
+uint32 FontsCache::cacheSize = DEFAULT_FONTS_CACHE_SIZE;
+
+FontsCache::FontsCache():
+    curSize(0)
+{}
 
 FontsCache::~FontsCache(){
 }
@@ -51,6 +53,16 @@ void FontsCache::CacheFont(Char* ch, int width, int height, void* bitmap){
     ch->SetBitmap(width, height,p);
 
     // TODO: Manage memory
+    elems.push_back(ch);
+}
+
+void FontsCache::CacheFont2(Char* ch, int width, int height, void* bitmap){
+    char* p = (char*)AquireMem(width * height);
+    std::memcpy(p, bitmap, width * height);
+    ch->SetBitmap(width, height,p);
+
+    // TODO: Manage memory
+    elems.push_back(ch);
 }
 
 void FontsCache::DelChar(Char * ch){
@@ -64,4 +76,18 @@ void * FontsCache::AquireMem(int size){
 
 void FontsCache::ReleaseMem(char mem[]){
     delete [] mem;
+}
+
+void FontsCache::ForceEvict(){
+    Evict();
+}
+
+void FontsCache::Evict(){
+    std::vector<Char*>::iterator itr = elems.begin();
+    while(itr != elems.end()){
+        if(false == (*itr)->valid){
+            DelChar(*itr);
+        }
+        ++itr;
+    }
 }

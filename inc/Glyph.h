@@ -11,6 +11,7 @@ class Line;
 class LayoutManager;
 class PageManager;
 class Logger;
+class FontsCache;
 class Context;
 
 class Glyph{
@@ -26,6 +27,7 @@ class Glyph{
         virtual bool Draw(RenderMan*) = 0;
         virtual bool AdjustPos(int x, int y) = 0;
         virtual bool Setup(Context* ctx) = 0;
+        virtual Glyph * Dup() = 0;
 
     public:
         Position        pos;        // Left-bottom position
@@ -46,8 +48,9 @@ class Char: public Glyph{
                     name(n), pt(size)
                 {}
                 // Trivial copy constructor & assigment operator
+
             public:
-                const char* name;
+                const char* name;   // Pointer to static data
                 int         pt;
         };
 
@@ -79,17 +82,18 @@ class Char: public Glyph{
         bool Draw(RenderMan*);
         bool AdjustPos(int, int);
         bool Setup(Context* ctx);
+        Glyph* Dup();
 
     public:
         int             baseline;
-
         ENCODING_MODE   encodeMode;
         unsigned int    val;
         unsigned int    charLen;
-
-    public:
         ID              id;
+        bool            valid;      // If the char still need to exist in mem
 
+    private:
+        static FontsCache ftCache;
 };
 
 class Image: public Glyph{
@@ -101,10 +105,18 @@ class Image: public Glyph{
         bool Draw(RenderMan*);
         bool AdjustPos(int, int);
         bool Setup(Context* ctx);
+        Glyph* Dup();
 };
 
 class Table: public Glyph{
     public:
+        Table(Logger* log);
+
+    public:
+        bool Draw(RenderMan*);
+        bool AdjustPos(int, int);
+        bool Setup(Context* ctx);
+        Glyph* Dup();
 };
 
 //} // namespace heigong

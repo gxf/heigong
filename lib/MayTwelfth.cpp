@@ -67,7 +67,7 @@ void May12th::Display(int page_num){
     DocParser::DP_RET_T dp_ret = DocParser::DP_OK;
 
     while(DocParser::DP_OK == dp_ret){
-        dp_ret = ctx->docParse.GetNextGlyph(glyph);
+        dp_ret = ctx->docParse.GetNextGlyph(&glyph);
 
         switch(dp_ret){
             case DocParser::DP_OK:

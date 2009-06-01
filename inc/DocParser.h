@@ -31,7 +31,7 @@ class DocParser{
 
     public:
         bool Init(const char* filen);
-        DP_RET_T GetNextGlyph(Glyph* g);
+        DP_RET_T GetNextGlyph(Glyph** g);
         void SetCurParseOffset(long int offset);
 
         HDocState ShadowDocState();
