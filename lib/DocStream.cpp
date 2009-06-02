@@ -89,11 +89,17 @@ DocStream & DocStream::operator>>(int & ch){
         // TODO: recover stream
         throw Except_EOF();
     }
+    else{
+        if (offset > 0){
+            --offset;
+        }
+    }
     return *this;
 }
 
 DocStream& DocStream::operator<<(int &ch){
     ungetc(ch, fd);
+    offset++;
     return *this;
 }
 
@@ -130,25 +136,25 @@ DocStream & DocStream::operator>>(Char & ch){
             val.f.byte1 = (uchar8)c_val;
             if (/*val.f.byte1 >= 0x00 &&*/ val.f.byte1 <= 0x7F){
                 ch.SetCharLength(1);
-                offset++;
+                if (offset > 0){ --offset; }
             }
             else if (val.f.byte1 >= 0xC0 && val.f.byte1 <= 0xDF){
                 val.f.byte2 = getc(fd);
                 ch.SetCharLength(2);
-                offset += 2;
+                if (offset > 0){ offset = (offset - 2) ? (offset - 2) : 0; }
             }
             else if (val.f.byte1 >= 0xE0 && val.f.byte1 <= 0xEF){
                 val.f.byte2 = getc(fd);
                 val.f.byte3 = getc(fd);
                 ch.SetCharLength(3);
-                offset += 3;
+                if (offset > 0){ offset = (offset - 3) ? (offset - 3) : 0; }
             }
             else if (val.f.byte1 >= 0xF0 && val.f.byte1 <= 0xF4){
                 val.f.byte2 = getc(fd);
                 val.f.byte3 = getc(fd);
                 val.f.byte4 = getc(fd);
                 ch.SetCharLength(4);
-                offset += 4;
+                if (offset > 0){ offset = (offset - 4) ? (offset - 4) : 0; }
             }
             else{
                 LOG_ERROR("Unsupported UTF-8 encoding!");
@@ -178,31 +184,31 @@ DocStream & DocStream::operator<<(Char & ch){
     switch(ch.GetEncoding()){
         case EM_ASCII:
             ungetc(val.f.byte1, fd);
-            offset--;
+            offset++;
             fileEnds = false;
             break;
         case EM_UTF_8:
             if (val.f.byte1 <= 0x7F){
                 ungetc(val.f.byte1, fd);
-                offset--;
+                offset++;
             }
             else if (val.f.byte1 >= 0xC0 && val.f.byte1 <= 0xDF){
                 ungetc(val.f.byte2, fd);
                 ungetc(val.f.byte1, fd);
-                offset -= 2;
+                offset += 2;
             }
             else if (val.f.byte1 >= 0xE0 && val.f.byte1 <= 0xEF){
                 ungetc(val.f.byte3, fd);
                 ungetc(val.f.byte2, fd);
                 ungetc(val.f.byte1, fd);
-                offset -= 3;
+                offset += 3;
             }
             else if (val.f.byte1 >= 0xF0 && val.f.byte1 <= 0xF4){
                 ungetc(val.f.byte4, fd);
                 ungetc(val.f.byte3, fd);
                 ungetc(val.f.byte2, fd);
                 ungetc(val.f.byte1, fd);
-                offset -= 4;
+                offset += 3;
             }
             else{
                 LOG_ERROR("Unsupported UTF-8 encoding!");
@@ -217,19 +223,19 @@ DocStream & DocStream::operator<<(Char & ch){
     return *this;
 }
 
-void DocStream::SetOffset(long int offset){
+void DocStream::SetOffset(long int off){
     if (fd){
-        if (-1 == fseek(fd, offset, SEEK_SET)){
+        if (-1 == fseek(fd, off, SEEK_SET)){
             LOG_ERROR("fail to seek offset in file");
-        }
-        if (offset != ftell(fd)){
-            char buf[100];
-            sprintf(buf,"offset: %ld, ftell: %ld, unmatch!", offset, ftell(fd));
-            LOG_ERROR(buf);
         }
     }
     else{
         LOG_ERROR("File descriptor is invalid.");
     }
+    offset = 0;
 }
 
+long int DocStream::GetCurOffset(){ 
+    // return the stream position but ingore unputc(s) in stream
+    return ftell(fd) - offset; 
+}

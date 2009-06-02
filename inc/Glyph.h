@@ -68,10 +68,11 @@ class Char: public Glyph{
             bitmap   = b;
         }
         inline void SetBaseline(int b){ baseline = b; }
-        inline void SetID(ID cid){
-            id = cid;
-        }
+        inline void SetID(ID cid){ id = cid; }
+        inline void SetAttrib(Attrib_Glyph & attr){ attrib = attr; }
+
         inline void* GetBitmap() { return bitmap; }
+        inline Attrib_Glyph GetAttrib(Attrib_Glyph & attr){ return attrib; }
         inline ENCODING_MODE GetEncoding(){ return encodeMode; }
         inline bool operator==(char ch){ return (char)val == ch; }
         inline bool operator!=(char ch){ return (char)val != ch; }
@@ -91,6 +92,7 @@ class Char: public Glyph{
         unsigned int    charLen;
         ID              id;
         bool            valid;      // If the char still need to exist in mem
+        Attrib_Glyph    attrib;
 
     private:
         static FontsCache ftCache;

@@ -23,11 +23,11 @@ class Context{
         PageManager     pgMgr;
 
     public:
-        Context(Logger* log, int screen_width, int screen_height):
+        Context(Logger* log, int screen_width, int screen_height, uint32 margin_v = MARGIN_VERTICAL, uint32 margin_h = MARGIN_HORIZONTAL):
             fonts(log), 
-            layout(screen_width, screen_height, 30, 30, log), 
+            layout(screen_width, screen_height, margin_v, margin_h, log), 
             render(log, screen_width, screen_height), 
-            docParse(log), line(log), pgMgr(log, docParse)
+            docParse(log), line(log, screen_width, margin_v), pgMgr(log, docParse)
         {}
         ~Context(){}
 

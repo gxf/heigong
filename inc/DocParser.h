@@ -9,6 +9,7 @@
 class Logger;
 class Glyph;
 class Char;
+class Line;
 class Image;
 
 class DocParser{
@@ -31,7 +32,7 @@ class DocParser{
 
     public:
         bool Init(const char* filen);
-        DP_RET_T GetNextGlyph(Glyph** g);
+        DP_RET_T GetNextGlyph(Glyph** g, Line* line);
         void SetCurParseOffset(long int offset);
 
         HDocState ShadowDocState();
@@ -46,7 +47,8 @@ class DocParser{
         bool match_b(const char* chs);
 
     private:
-        void fillGlyphStream();
+        void fillGlyphStream(Line * line);
+        void getStyle(int & ch);
         void getImageAttrib(int & ch, Image & img);
         void skipBlanks(int & ch);
         void procLabel(int & ch);
@@ -54,11 +56,18 @@ class DocParser{
 
     private:
         long int getInteger();
-        char* getString();
+        double getFloat(int term);
+        char* getString(int term);
 
     private:
         std::deque<Glyph*>  glyphBuffer;
         DocStream           docStream;
+
+    private:
+        Attrib_Glyph        glyphAttrib;
+        Attrib_Line         lineAttrib;
+
+    private:
         Logger*             logger;
 };
 

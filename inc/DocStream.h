@@ -31,7 +31,7 @@ class DocStream{
         inline bool operator!(){ return (fd) ? false : true; }
 
     public:
-        inline uint32 GetCurOffset(){ return offset; }
+        long int GetCurOffset();
         void SetOffset(long int offset);
 
     private:

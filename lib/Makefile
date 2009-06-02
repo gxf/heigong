@@ -8,7 +8,7 @@ SRC_FILES=$(shell ls *.cpp)
 OBJ_FILES=$(subst .cpp,.o,$(SRC_FILES))
 DEP_FILES=$(addprefix $(BUILD_DIR)/,$(subst .cpp,.d,$(SRC_FILES)))
 
-TARGETS=$(DEP_FILES) libhg.a 
+TARGETS=libhg.a 
 
 VPATH=$(INC_DIR):$(BUILD_DIR)
 

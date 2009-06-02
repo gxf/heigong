@@ -5,7 +5,7 @@
 const char* FontsManager::dftFontPath = DEFAULT_FONT;
 
 FontsManager::FontsManager(Logger* log):
-    curFont(NULL), dpi(96),
+    curFont(NULL), dpi(DPI),
     logger(log)
 {
     int error = FT_Init_FreeType(&library); 

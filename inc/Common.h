@@ -23,6 +23,32 @@ class Position{
         }
 };
 
+// Attributes for line
+enum ALIGNMENT{
+    A_LEFT = 0,
+    A_RIGHT,
+    A_CENTRAL,
+};
+
+class Attrib_Glyph{
+    public:
+        bool bold;
+        // Trivial consturctor & copy constructor;
+    
+    public:
+        void Reset(){ bold = false; }
+};
+
+class Attrib_Line{
+    // Common attribute for glyph
+    public:
+        ALIGNMENT   align;
+        double      indent;
+        // Trivial consturctor & copy constructor;
+    public:
+        void Reset(){ align = A_LEFT; indent = 0; }
+};
+
 enum ENCODING_MODE{
     EM_ASCII,
     EM_UTF_8,
@@ -30,8 +56,12 @@ enum ENCODING_MODE{
     EM_UTF_32,
 };
 
+#define DPI             96
 #define SCREEN_WIDTH    800
 #define SCREEN_HEIGHT   600
+
+#define MARGIN_VERTICAL     30
+#define MARGIN_HORIZONTAL   30
 
 #define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-droid/DroidSansFallback.ttf"
 #define DEFAULT_FONT_SIZE   12

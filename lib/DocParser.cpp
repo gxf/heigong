@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "DocParser.h"
 #include "Glyph.h"
+#include "Line.h"
 #include <cstring>
 #include <cstdlib>
 #include <fstream>
@@ -27,13 +28,16 @@ void DocParser::SetCurParseOffset(long int offset){
 }
 
 void DocParser::ClearGlyphStream(){
+#if 0
     while(!(glyphBuffer.empty())){
         delete glyphBuffer.front();
         glyphBuffer.pop_front();
     }
+#endif
+    glyphBuffer.clear();
 }
 
-DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph){
+DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph, Line * line){
     // Retrieve first when glyphBuffer is not empty
     if (!(glyphBuffer.empty())){
         *glyph = glyphBuffer.front();
@@ -48,7 +52,7 @@ DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph){
     }
 
     try{
-        fillGlyphStream();
+        fillGlyphStream(line);
     }
     catch(Except_EOF &){
         if (!(glyphBuffer.empty())){
@@ -87,6 +91,7 @@ DocParser::HDocState DocParser::ShadowDocState(){
 
 bool DocParser::RestoreDocState(DocParser::HDocState hState){
     // Restore the docStream offset and glyphBuffer
+    ClearGlyphStream();
     std::deque<Glyph*>::iterator itr= hState->buffer.begin();
     while(itr != hState->buffer.end()){
         glyphBuffer.push_back((*itr)->Dup());
@@ -94,18 +99,17 @@ bool DocParser::RestoreDocState(DocParser::HDocState hState){
     }
     docStream.SetOffset(hState->offset);
 
-    delete hState;
-
     return true;
 }
 
-void DocParser::fillGlyphStream(){
+void DocParser::fillGlyphStream(Line* line){
     int ch;
     docStream >> ch;
     skipBlanks(ch);
 
     while(ch == '<'){
         procLabel(ch);
+        line->SetAttrib(lineAttrib);
         docStream >> ch;    // EOF exception may throw
         skipBlanks(ch);
     }
@@ -151,9 +155,11 @@ void DocParser::procLabel(int & ch){
                 Char* c = new Char(logger);
                 c->SetVal('\n');
                 glyphBuffer.push_back(c);
+                break;
             }
-            else{
-                // TODO: <p ...>
+            else if (match_b("style") && match_b("=") && match("\"")){
+                // <p style="..."> 
+                getStyle(ch);
             }
             // ignore all left labels start with 'p'
             while('>' != ch){ docStream >> ch; }
@@ -175,6 +181,21 @@ void DocParser::procLabel(int & ch){
             // ignore all left labels start with '!'
             while('>' != ch){ docStream >> ch; }
             break;
+        case 't':
+            if(match("itle>")){
+                lineAttrib.align = A_CENTRAL;
+                glyphAttrib.bold = true;
+                break;
+            }
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case '/':
+            if(match("title>")){
+                lineAttrib.Reset();
+                glyphAttrib.Reset();
+            }
+            while('>' != ch){ docStream >> ch; }
+            break;
         default:
             // ignore all other labels
             while('>' != ch){ docStream >> ch; }
@@ -184,6 +205,7 @@ void DocParser::procLabel(int & ch){
 
 void DocParser::procWord(int & ch){ 
     Char* c = new Char(logger);
+    c->SetAttrib(glyphAttrib);
     // But translate special tokens
     // <    == &lt
     // >    == &gt  
@@ -219,6 +241,37 @@ void DocParser::procWord(int & ch){
     }
 }
 
+void DocParser::getStyle(int &ch){
+    skipBlanks(ch);
+
+    while('\"' != ch){
+        docStream >> ch;
+        switch(ch){
+            case 't':
+                if (match("ext-indent:")){
+                    lineAttrib.indent = getFloat('m');
+                }
+                else if (match("ext-align:")){
+                    skipBlanks(ch);
+                    char* align = getString(';');
+                    if(strcmp(align, "center") == 0){
+                        lineAttrib.align = A_CENTRAL;
+                    }
+                    else if(strcmp(align, "left") == 0){
+                        lineAttrib.align = A_LEFT;
+                    }
+                    else if(strcmp(align, "right") == 0){
+                        lineAttrib.align = A_RIGHT;
+                    }
+                    delete align;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+}
 void DocParser::getImageAttrib(int & ch, Image & img){
     skipBlanks(ch);
 
@@ -252,7 +305,7 @@ void DocParser::getImageAttrib(int & ch, Image & img){
                     skipBlanks(ch);
                     if(!match("=")) throw Except_Parse_Err();
                     skipBlanks(ch);
-                    src = getString();  // Note: User's resposibility to release string
+                    src = getString(' ');  // Note: User's resposibility to release string
                 }
                 // Skip other labels
                 break;
@@ -294,14 +347,14 @@ bool DocParser::match(const char* ch){
 bool DocParser::match_b(const char* ch){
     int c;
     int i = 0;
-    // Skip blank spaces
-    while(' ' == ch[i] || '\t' == ch[i] || '\n' == ch[i]){
-        i++;
-    }
 
     int beg = i;
     while ('\0' != ch[i]){
-        docStream >> c;
+        // Skip blank spaces
+        do{
+            docStream >> c;
+        }
+        while(' ' == c || '\t' == c || '\n' == c);
         if (c != ch[i]){
             docStream << c;
             while(--i >= beg){
@@ -340,11 +393,29 @@ long int DocParser::getInteger(){
     return std::strtol(str.c_str(), '\0', 10);
 }
 
-char* DocParser::getString(){
+double DocParser::getFloat(int term){
     std::string str;
     int ch;
-    int term = ' ';
     docStream >> ch;
+    skipBlanks(ch);
+    if ('\"' == ch){ 
+        term = '\"';
+        docStream >> ch;
+    }
+    do{
+        str += (char)ch;
+        docStream >> ch;
+    }
+    while(term != ch);
+
+    return std::strtod(str.c_str(), NULL);
+}
+
+char* DocParser::getString(int term){
+    std::string str;
+    int ch;
+    docStream >> ch;
+    skipBlanks(ch);
     if ('\"' == ch){ 
         term = '\"';
         docStream >> ch;
