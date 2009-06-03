@@ -108,7 +108,9 @@ void DocParser::fillGlyphStream(Line* line){
     skipBlanks(ch);
 
     while(ch == '<'){
-        procLabel(ch);
+        if(false == procLabel(ch)){
+            return;
+        }
         line->SetAttrib(lineAttrib);
         docStream >> ch;    // EOF exception may throw
         skipBlanks(ch);
@@ -124,7 +126,7 @@ void DocParser::fillGlyphStream(Line* line){
     }
 }
 
-void DocParser::procLabel(int & ch){
+bool DocParser::procLabel(int & ch){
     // Search label for attribute, image, hyperlink
     docStream >> ch;
     // Only process certain labels
@@ -141,11 +143,12 @@ void DocParser::procLabel(int & ch){
             }
             break;
         case 'b':
-            if(match("r")){
+            if(match("r>")){
                 // interpret <br> to new line
                 Char* c = new Char(logger);
                 c->SetVal('\n');
                 glyphBuffer.push_back(c);
+                return false;   // Return immediately for line processing
             }
             // ignore all left labels start with 'b'
             while('>' != ch){ docStream >> ch; }
@@ -155,7 +158,7 @@ void DocParser::procLabel(int & ch){
                 Char* c = new Char(logger);
                 c->SetVal('\n');
                 glyphBuffer.push_back(c);
-                break;
+                return false;   // Return immediately for line processing
             }
             else if (match_b("style") && match_b("=") && match("\"")){
                 // <p style="..."> 
@@ -201,6 +204,7 @@ void DocParser::procLabel(int & ch){
             while('>' != ch){ docStream >> ch; }
             break;
     }
+    return true;
 }
 
 void DocParser::procWord(int & ch){ 
@@ -212,21 +216,38 @@ void DocParser::procWord(int & ch){
     // &    == &amp
     // "    == &quot
     // blank == &nbsp
+    // “    == &ldquo
+    // ”    == &rdquo
+    // －   == &mdash
+#define FourBytes(a, b, c, d) (d << 24 | c << 16 | b << 8 | a)
     if (ch == '&'){
-        if (match("lt")){ 
+        if (match("lt;")){ 
             c->SetVal('<'); 
         }
-        else if (match("gt")){ 
+        else if (match("gt;")){ 
             c->SetVal('>'); 
         }
-        else if (match("amp")){ 
+        else if (match("amp;")){ 
             c->SetVal('&'); 
         } 
-        else if (match("quot")){ 
+        else if (match("quot;")){ 
             c->SetVal('\"'); 
         }
-        else if (match("nbsp")){ 
+        else if (match("nbsp;")){ 
             c->SetVal(' '); 
+        } 
+        else if (match("ldquo;")){ 
+//            c->SetVal(FourBytes(0xe2, 0x80, 0x9c, 0x00)); 
+            c->SetVal('\"');    // Work around
+        } 
+        else if (match("rdquo;")){ 
+//            c->SetVal(FourBytes(0xe2, 0x80, 0x9d, 0x00)); 
+            c->SetVal('\"');    // Work around
+        } 
+
+        else if (match("mdash;")){ 
+//            c->SetVal(FourBytes(0xef, 0xbc, 0x8d, 0x00)); 
+            c->SetVal('-');    // Work around
         } 
         else{ 
             docStream << ch; 

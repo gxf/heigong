@@ -37,7 +37,7 @@ int PageManager::NextPage(){
 }
 
 int PageManager::RepeatPage(){
-    return numLastRendered;
+    return curPageNum;
 }
 
 void PageManager::StartPage(){

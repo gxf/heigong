@@ -51,7 +51,7 @@ class DocParser{
         void getStyle(int & ch);
         void getImageAttrib(int & ch, Image & img);
         void skipBlanks(int & ch);
-        void procLabel(int & ch);
+        bool procLabel(int & ch);
         void procWord(int & ch);
 
     private:

@@ -57,6 +57,7 @@ void May12th::Display(int page_num){
             ctx->pgMgr.RestorePage(page_num);
         }
 #else
+        ctx->layout.NewPage();
         ctx->pgMgr.RestorePage(page_num);
 #endif
     }
