@@ -150,6 +150,9 @@ bool DocParser::procLabel(int & ch){
         case 'd':
             if(match("iv")){
                 // TODO: <div ...>
+                Char* c = new Char(logger);
+                c->SetVal('\n');
+                glyphBuffer.push_back(c);
             }
             // ignore all left labels start with 'd'
             while('>' != ch){ docStream >> ch; }
@@ -236,6 +239,12 @@ bool DocParser::procLabel(int & ch){
             while('>' != ch){ docStream >> ch; }
             break;
         case '/':
+            if(match("div>")){
+                Char* c = new Char(logger);
+                c->SetVal('\n');
+                glyphBuffer.push_back(c);
+                break;
+            }
             if(match("title>")){
                 lineAttrib.Reset();
                 glyphAttrib.Reset();
