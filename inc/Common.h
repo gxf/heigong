@@ -6,6 +6,7 @@ typedef unsigned char   uchar8;
 
 class Except_EOF{};         // EOF is met
 class Except_Parse_Err{};   // parse error
+class Except_Fail_To_Open_File{};
 
 class Position{
     public:
@@ -44,9 +45,14 @@ class Attrib_Line{
     public:
         ALIGNMENT   align;
         double      indent;
+        double      height;
+
         // Trivial consturctor & copy constructor;
     public:
-        void Reset(){ align = A_LEFT; indent = 0; }
+        Attrib_Line(ALIGNMENT a = A_LEFT, double i = 0, double h = 0):
+            align(a), indent(i), height(h)
+        {}
+        void Reset(){ align = A_LEFT; indent = 0; height = 0;}
 };
 
 enum ENCODING_MODE{

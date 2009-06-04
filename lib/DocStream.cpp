@@ -77,7 +77,7 @@ void DocStream::CloseFile()
     LOG_EVENT(cmd);
 
 //    system(cmd);
-    sprintf(cmd, "rm -f *.png *.jpg");
+    sprintf(cmd, "rm -f *.png *.jpg *.emf");
     LOG_EVENT(cmd);
     system(cmd);
 }

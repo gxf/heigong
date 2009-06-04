@@ -26,7 +26,7 @@ void Line::DrawFlush(Context* ctx){
     int xShift = 0;
     switch(attrib.align){
         case A_LEFT:
-            xShift = attrib.indent * (DPI) / 304.8;
+//            xShift = attrib.indent;
             break;
         case A_CENTRAL:
             xShift = (pageWidth - margin - curWidth) / 2;

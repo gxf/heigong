@@ -34,6 +34,9 @@ class Line{
         inline void SetCentralAligned(){ attrib.align = A_CENTRAL; }
         inline void SetAttrib(const Attrib_Line & att){ attrib = att; }
 
+        inline double GetHeight() { return attrib.height; }
+        inline double GetIndent() { return attrib.indent; }
+
     private:
         std::vector<Glyph*> glyphs;
 

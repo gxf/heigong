@@ -5,6 +5,7 @@
 
 class Logger;
 class FontsManager;
+class Line;
 
 enum LAYOUT_RET{
     LO_OK,
@@ -14,7 +15,7 @@ enum LAYOUT_RET{
 
 class LayoutManager{
     public:
-        LayoutManager(int w, int h, int m_v, int m_h, Logger* log,
+        LayoutManager(int w, int h, int m_v, int m_h, Line* l, Logger* log,
                       int ls = 2, int ws = 2);
         ~LayoutManager();
 
@@ -53,7 +54,7 @@ class LayoutManager{
         void GetImagePos(Position & pos, int width, int height);
 
     private:
-        //
+        // Configuration
         int p_width;        // Page width
         int p_height;       // Page height
         int v_m_width;      // Vertical Margin width
@@ -61,14 +62,19 @@ class LayoutManager{
         int g_line_spacing; // Global line spacing
         int g_word_spacing; // Global word spacing
 
-        Position curPos;    // Current raster position
-        int curMaxHeight;   // Max height in one line
-        int lastMaxHeight;  // Max height in last line
-        int curBaseline;    // Current baseline position (y-axis)
-        int lastBaseline;   // Baseline of last line
+    private:
+        // Status
+        Position curPos;         // Current raster position
+        int      curMaxHeight;   // Max height in one line
+        int      lastMaxHeight;  // Max height in last line
+        int      curBaseline;    // Current baseline position (y-axis)
+        int      lastBaseline;   // Baseline of last line
+
+        bool     firstLine;
 
     private:
-        Logger*     logger;
+        Line *   line;
+        Logger * logger;
 };
 
 #endif

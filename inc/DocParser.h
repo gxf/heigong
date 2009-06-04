@@ -4,6 +4,7 @@
 #include "Common.h"
 #include "DocStream.h"
 #include <deque>
+#include <queue>
 #include <stdio.h>
 
 class Logger;
@@ -60,6 +61,18 @@ class DocParser{
         char* getString(int term);
 
     private:
+        enum LIST_MODE{
+            LM_NONE,
+            LM_DIR,      // <dir>, directory list
+            LM_MEMU,     // <menu>, menu list
+            LM_ORDER,    // <ol>, ordered list
+            LM_UNORDER,  // <ul>, un-ordered list
+            LM_DEFIN,    // <dl>, definition list
+        };
+        LIST_MODE listMode;  
+
+    private:
+        std::queue<Glyph*>  delayedToken;
         std::deque<Glyph*>  glyphBuffer;
         DocStream           docStream;
 

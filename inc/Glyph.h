@@ -100,14 +100,30 @@ class Char: public Glyph{
 
 class Image: public Glyph{
     public:
-        Image(Logger* log):Glyph(log){}
-        ~Image(){}
+        Image(Logger* log);
+        ~Image();
 
     public:
         bool Draw(RenderMan*);
         bool AdjustPos(int, int);
         bool Setup(Context* ctx);
         Glyph* Dup();
+
+    public:
+        inline void SetReqWidth(uint32 w) { req_width = w; }
+        inline void SetReqHeight(uint32 h) { req_height = h; }
+        void SetSrcFile(const char* src);
+
+    protected:
+        bool SetupPNG(Context* ctx, FILE* fp);
+
+    public:
+        uint32  req_width;
+        uint32  req_height;
+
+    public:
+        char* file_name;
+        char* file_path;
 };
 
 class Table: public Glyph{

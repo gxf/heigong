@@ -15,19 +15,19 @@
 class Context{
     public:
         FontsManager    fonts;
+        Line            line;
         LayoutManager   layout;
         RenderMan       render;
         FontsCache      ftCache;
         DocParser       docParse;
-        Line            line;
         PageManager     pgMgr;
 
     public:
         Context(Logger* log, int screen_width, int screen_height, uint32 margin_v = MARGIN_VERTICAL, uint32 margin_h = MARGIN_HORIZONTAL):
-            fonts(log), 
-            layout(screen_width, screen_height, margin_v, margin_h, log), 
+            fonts(log), line(log, screen_width, margin_v), 
+            layout(screen_width, screen_height, margin_v, margin_h, &line, log), 
             render(log, screen_width, screen_height), 
-            docParse(log), line(log, screen_width, margin_v), pgMgr(log, docParse)
+            docParse(log), pgMgr(log, docParse)
         {}
         ~Context(){}
 
