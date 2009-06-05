@@ -70,6 +70,7 @@ class DocParser{
             LM_DEFIN,    // <dl>, definition list
         };
         LIST_MODE listMode;  
+        bool      headerMode;
 
     private:
         std::queue<Glyph*>  delayedToken;

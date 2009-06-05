@@ -51,17 +51,17 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
     else{
         Xoff = g_word_spacing + width;
     }
+    int Yoff = g_line_spacing + curMaxHeight;
+    Yoff = (Yoff > line->GetHeight()) ? Yoff : line->GetHeight();
+
     if (curPos.x + Xoff >= p_width - h_m_width){
         // Current line is over for use
         char buf[100];
-        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + g_line_spacing + curMaxHeight, p_height - v_m_width);
+        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
         LOG_EVENT(buf);
-        if (curPos.y + g_line_spacing + curMaxHeight >= p_height - v_m_width){
+        if (curPos.y + Yoff + curMaxHeight >= p_height - v_m_width){
             // & current page is over for use
             // Return invalid position
-            char buf[100];
-            sprintf(buf, "Current y: %d, max height: %d", curPos.y + g_line_spacing + curMaxHeight, p_height - v_m_width);
-            LOG_EVENT(buf);
             curPos.x        = v_m_width;
             curPos.y        = h_m_width;
             lastBaseline    = curBaseline;
@@ -72,19 +72,14 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
             return LO_NEW_PAGE;
         }
         else{
-            uint32 lineH = g_line_spacing + curMaxHeight;
-            lineH = (lineH > line->GetHeight()) ? lineH : line->GetHeight();
             // Return position of new line head
             curPos.x        = h_m_width;
-            curPos.y        += lineH;
+            curPos.y        += Yoff;
             lastBaseline    = curBaseline;
             curBaseline     = bearingY;
             lastMaxHeight   = curMaxHeight;
             curMaxHeight    = height;
             pos             = curPos;
-//            if (firstLine){
-//                pos.x += line->GetIndent();
-//            }
             pos.y           += height;
             curPos.x        += width + g_word_spacing;
             firstLine= false;
@@ -96,6 +91,7 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
         // Current line still have space, return curPos
         pos      = curPos;
         if (firstLine){
+            // Append indent offset
             pos.x += line->GetIndent();
         }
         pos.y    += height;
@@ -109,18 +105,22 @@ void LayoutManager::GetImagePos(Position & pos, int width, int height){
 
 LAYOUT_RET LayoutManager::NewLine(){
     firstLine = true;
-    if (0 == curMaxHeight){
-        curPos.y += lastMaxHeight + g_line_spacing;
+
+    int Yoff = g_line_spacing;
+    if (0 == curMaxHeight){ 
+        Yoff += lastMaxHeight; 
     }
-    else{
-        curPos.y += curMaxHeight + g_line_spacing;
+    else{ 
+        Yoff += curMaxHeight; 
+        Yoff = (Yoff > line->GetHeight()) ? Yoff : line->GetHeight();
     }
+    curPos.y += Yoff;
 
     if (curPos.y >= p_height - v_m_width){
         // & current page is over for use
         // Return invalid position
         char buf[100];
-        sprintf(buf, "Current y: %d, max height: %d", curPos.y + g_line_spacing + curMaxHeight, p_height - v_m_width);
+        sprintf(buf, "Current y: %d, max height: %d", curPos.y, p_height - v_m_width);
         LOG_EVENT(buf);
         curPos.x        = v_m_width;
         curPos.y        = h_m_width;
@@ -142,13 +142,13 @@ LAYOUT_RET LayoutManager::NewLine(){
 void LayoutManager::NewPage(){
     curPos.x = v_m_width;
     curPos.y = h_m_width;
+    uint32 Yoff = g_line_spacing + curMaxHeight;
+    Yoff = (Yoff > line->GetHeight()) ? Yoff : line->GetHeight();
     if (0 == curMaxHeight){
-        uint32 lineH = g_line_spacing + curMaxHeight;
-        lineH = (lineH > line->GetHeight()) ? lineH : line->GetHeight();
-        curPos.y += lineH;
+        curPos.y += Yoff;
     }
     else{
-        curPos.y += curMaxHeight + g_line_spacing;
+        curPos.y += Yoff;
         lastMaxHeight   = curMaxHeight;
         curMaxHeight    = 0;
     }

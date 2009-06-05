@@ -85,6 +85,12 @@ void May12th::Display(int page_num){
                 ctx->render.Flush();
                 ctx->pgMgr.EndPage(page_num, &ctx->render);
                 break;
+            case DocParser::DP_INVALID:
+                LOG_ERROR("DocParser return invalid stream!");
+                break;
+            case DocParser::DP_ERROR:
+                LOG_ERROR("DocParser return parse error!");
+                break;
             default:
                 LOG_ERROR("Unsupported DocParser return type!");
                 break;

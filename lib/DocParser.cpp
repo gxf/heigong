@@ -3,6 +3,7 @@
 #include "DocParser.h"
 #include "Glyph.h"
 #include "Line.h"
+#include <stdlib.h>
 #include <cstring>
 #include <cstdlib>
 #include <fstream>
@@ -13,7 +14,7 @@
 #include <fcntl.h>
 
 DocParser::DocParser(Logger* log):
-    listMode(LM_NONE),
+    listMode(LM_NONE), headerMode(false),
     docStream(log), 
     logger(log)
 {}
@@ -68,8 +69,8 @@ DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph, Line * line){
     }
 
     if (glyphBuffer.empty()){
-        *glyph = NULL;
-        return DP_ERROR;    // Defensive code: this condition should never be met
+        GetNextGlyph(glyph, line);  // Header parsing may lead to this
+        return DP_OK;
     }
     else{
         *glyph = glyphBuffer.front();
@@ -234,6 +235,7 @@ bool DocParser::procLabel(int & ch){
             if(match("itle>")){
                 lineAttrib.align = A_CENTRAL;
                 glyphAttrib.bold = true;
+                headerMode       = true;
                 break;
             }
             while('>' != ch){ docStream >> ch; }
@@ -248,6 +250,7 @@ bool DocParser::procLabel(int & ch){
             if(match("title>")){
                 lineAttrib.Reset();
                 glyphAttrib.Reset();
+                headerMode = false;
                 break;
             }
             else if(match("ol>")){
@@ -324,12 +327,16 @@ void DocParser::procWord(int & ch){
             docStream << ch; 
             docStream >> *c;
         }
-        glyphBuffer.push_back(c);
+        if(!headerMode){
+            glyphBuffer.push_back(c);
+        }
     }
     else{
         docStream << ch; 
         docStream >> *c;
-        glyphBuffer.push_back(c);
+        if(!headerMode){
+            glyphBuffer.push_back(c);
+        }
     }
 }
 
