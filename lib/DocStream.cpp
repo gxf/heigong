@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdlib.h>
 
 void DocStream::AdjustCmd(char* cmd, int length){
     char* p = cmd;
