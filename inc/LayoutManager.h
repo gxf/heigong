@@ -49,9 +49,9 @@ class LayoutManager{
 
     public:
         LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
+        LAYOUT_RET GetImagePos(Position & pos, int width, int height);
             
         void Reset();
-        void GetImagePos(Position & pos, int width, int height);
 
     private:
         // Configuration

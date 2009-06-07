@@ -100,7 +100,62 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
     }
 }
 
-void LayoutManager::GetImagePos(Position & pos, int width, int height){
+LAYOUT_RET LayoutManager::GetImagePos(Position & pos, int width, int height){
+    curMaxHeight = (curMaxHeight > height) ? curMaxHeight : height;
+    int Xoff;
+    if (firstLine){
+        Xoff = line->GetIndent() + g_word_spacing + width;
+    }
+    else{
+        Xoff = g_word_spacing + width;
+    }
+    int Yoff = g_line_spacing + curMaxHeight;
+    Yoff = (Yoff > line->GetHeight()) ? Yoff : line->GetHeight();
+
+    if (curPos.x + Xoff >= p_width - h_m_width){
+        // Current line is over for use
+        char buf[100];
+        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
+        LOG_EVENT(buf);
+        if (curPos.y + Yoff + curMaxHeight >= p_height - v_m_width){
+            // & current page is over for use
+            // Return invalid position
+            curPos.x        = v_m_width;
+            curPos.y        = h_m_width;
+            lastBaseline    = curBaseline;
+            curBaseline     = 0;
+            curMaxHeight    = 0;
+            pos.x           = -1;
+            pos.y           = -1;
+            return LO_NEW_PAGE;
+        }
+        else{
+            // Return position of new line head
+            curPos.x        = h_m_width;
+            curPos.y        += Yoff;
+            lastBaseline    = curBaseline;
+            curBaseline     = 0;
+            lastMaxHeight   = curMaxHeight;
+            curMaxHeight    = height;
+            pos             = curPos;
+            pos.y           += height;
+            curPos.x        += width + g_word_spacing;
+            firstLine= false;
+            return LO_NEW_LINE;
+        }
+    }
+    else
+    {
+        // Current line still have space, return curPos
+        pos      = curPos;
+        if (firstLine){
+            // Append indent offset
+            pos.x += line->GetIndent();
+        }
+        pos.y    += height;
+        curPos.x += width + g_word_spacing;
+        return LO_OK;
+    }
 }
 
 LAYOUT_RET LayoutManager::NewLine(){

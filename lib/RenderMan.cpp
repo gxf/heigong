@@ -167,7 +167,6 @@ bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap)
     LOG_EVENT(buf);
     */
 
-//    glDrawBuffer(GL_FRONT_AND_BACK);
     glColor3f(1.0f, 1.0f, 0.0f);
     glWindowPos2i(x, SCREEN_HEIGHT - y);
     glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
@@ -177,6 +176,9 @@ bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap)
 bool RenderMan::RenderPixMap(int x, int y, int width, int height, void* pixmap){
     char buf[100];
     sprintf(buf, "render pixmap with left-top @ (%d , %d), width: %d, height: %d", x, y, width, height);
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glWindowPos2i(x, SCREEN_HEIGHT - y);
+    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
 
     return true;
 }

@@ -7,6 +7,7 @@ typedef unsigned char   uchar8;
 class Except_EOF{};         // EOF is met
 class Except_Parse_Err{};   // parse error
 class Except_Fail_To_Open_File{};
+class Except_Fail_To_Read_file{};
 
 class Position{
     public:

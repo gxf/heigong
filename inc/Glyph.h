@@ -104,6 +104,14 @@ class Image: public Glyph{
         ~Image();
 
     public:
+        typedef enum IMAGE_FILE_TYPE{
+            IF_NONE,
+            IF_PNG,
+            IF_JPG,
+            IF_EMF,
+        }IF_T;
+
+    public:
         bool Draw(RenderMan*);
         bool AdjustPos(int, int);
         bool Setup(Context* ctx);
@@ -116,6 +124,9 @@ class Image: public Glyph{
 
     protected:
         bool SetupPNG(Context* ctx, FILE* fp);
+        bool SetupJPG();
+        IF_T DetectFormat(const char*, FILE * fp);
+        void Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 b_depth);
 
     public:
         uint32  req_width;

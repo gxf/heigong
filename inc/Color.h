@@ -34,4 +34,8 @@ class Color{
         }
 };
 
+class Color_A : public Color{
+    public:
+        unsigned char A;
+};
 #endif
