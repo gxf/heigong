@@ -28,7 +28,7 @@ const Position LayoutManager::GetProperPos(GLYTH_TYPE tp, int width, int height,
             GetCharPos(pos, width, height, bearingY);
             break;
         case GT_BITMAP:
-            GetImagePos(pos, width, height);
+            GetGraphPos(pos, width, height);
             break;
         default:
             LOG_ERROR("Unsupported glyth type.");
@@ -100,7 +100,7 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
     }
 }
 
-LAYOUT_RET LayoutManager::GetImagePos(Position & pos, int width, int height){
+LAYOUT_RET LayoutManager::GetGraphPos(Position & pos, int width, int height){
     curMaxHeight = (curMaxHeight > height) ? curMaxHeight : height;
     int Xoff;
     if (firstLine){

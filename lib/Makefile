@@ -4,9 +4,15 @@ INC_DIR=$(HG_ROOT)/inc
 
 include $(HG_ROOT)/makefile.def
 
-SRC_FILES=$(shell ls *.cpp)
-OBJ_FILES=$(subst .cpp,.o,$(SRC_FILES))
-DEP_FILES=$(addprefix $(BUILD_DIR)/,$(subst .cpp,.d,$(SRC_FILES)))
+CPP_SRC_FILES=$(shell ls *.cpp)
+C_SRC_FILES=$(shell ls *.c)
+SRC_FILES=$(CPP_SRC_FILES) \
+		  $(C_SRC_FILES)
+OBJ_FILES=$(subst .cpp,.o,$(CPP_SRC_FILES)) \
+		  $(subst .c,.o,$(C_SRC_FILES))
+DEP_FILES=$(addprefix $(BUILD_DIR)/,$(subst .cpp,.d,$(CPP_SRC_FILES)))	\
+		  $(addprefix $(BUILD_DIR)/,$(subst .c,.d,$(C_SRC_FILES)))
+
 
 TARGETS=libhg.a 
 
@@ -24,6 +30,10 @@ $(BUILD_DIR)/%.d: %.cpp
 	$(CC) -MM $(CPPFLAGS) $< | sed 's,\($*\)\.o[ :]*,\1.o $(BUILD_DIR)/$@ : ,g' > $(BUILD_DIR)/$@; \
 	echo "	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(subst .d,.o,$@) " >> $(BUILD_DIR)/$@
 
+$(BUILD_DIR)/%.d: %.c
+	@set -e; rm -f $(BUILD_DIR)/$@; \
+	$(CC) -MM $(CPPFLAGS) $< | sed 's,\($*\)\.o[ :]*,\1.o $(BUILD_DIR)/$@ : ,g' > $(BUILD_DIR)/$@; \
+	echo "	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(subst .d,.o,$@) " >> $(BUILD_DIR)/$@
 
 clean:
 	$(RM) $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))

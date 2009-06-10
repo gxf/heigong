@@ -98,10 +98,10 @@ class Char: public Glyph{
         static FontsCache ftCache;
 };
 
-class Image: public Glyph{
+class Graph: public Glyph{
     public:
-        Image(Logger* log);
-        ~Image();
+        Graph(Logger* log);
+        ~Graph();
 
     public:
         typedef enum IMAGE_FILE_TYPE{
@@ -124,7 +124,7 @@ class Image: public Glyph{
 
     protected:
         bool SetupPNG(Context* ctx, FILE* fp);
-        bool SetupJPG();
+        bool SetupJPG(Context* ctx, FILE* fp);
         IF_T DetectFormat(const char*, FILE * fp);
         void Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 b_depth, int channel);
 

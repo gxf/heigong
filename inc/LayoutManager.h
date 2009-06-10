@@ -49,7 +49,7 @@ class LayoutManager{
 
     public:
         LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
-        LAYOUT_RET GetImagePos(Position & pos, int width, int height);
+        LAYOUT_RET GetGraphPos(Position & pos, int width, int height);
             
         void Reset();
 

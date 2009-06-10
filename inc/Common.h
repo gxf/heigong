@@ -1,8 +1,15 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+typedef int    int32;
+typedef short  int16;
+typedef char   char8; 
+typedef char8  int8; 
+
 typedef unsigned int    uint32;
+typedef unsigned short  uint16;
 typedef unsigned char   uchar8; 
+typedef uchar8          uint8; 
 
 class Except_EOF{};         // EOF is met
 class Except_Parse_Err{};   // parse error

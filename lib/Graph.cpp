@@ -1,15 +1,18 @@
 #include <png.h>
+#include <jpeglib.h>
+#include <jerror.h>
 #include "Color.h"
 #include "Context.h"
+#include "image.h"
 #include <string>
 
-Image::Image(Logger* log):
+Graph::Graph(Logger* log):
     Glyph(log), file_name(NULL), file_path(NULL)
 {
     file_path = (char*)"./";
 }
 
-Image::~Image(){
+Graph::~Graph(){
     if (file_name != NULL){
         delete [] file_name;
     }
@@ -18,15 +21,15 @@ Image::~Image(){
     }
 }
 
-void Image::SetSrcFile(const char* src) { 
+void Graph::SetSrcFile(const char* src) { 
     char buf[100];
-    sprintf(buf, "Image file: %s", src);
+    sprintf(buf, "Graph file: %s", src);
     LOG_EVENT(buf);
     file_name = new char[std::strlen(src) + 1];
     std::memcpy(file_name, src, std::strlen(src) + 1);
 }
 
-bool Image::Setup(Context* ctx){
+bool Graph::Setup(Context* ctx){
     std::string file(file_path);
     file += file_name;
 
@@ -48,7 +51,7 @@ bool Image::Setup(Context* ctx){
             return SetupPNG(ctx, fp);
         case IF_JPG:
             LOG_EVENT("JPG file is detected.");
-            return SetupJPG();
+            return SetupJPG(ctx, fp);
             break;
         case IF_EMF:
             break;
@@ -59,7 +62,7 @@ bool Image::Setup(Context* ctx){
     return true;
 }
 
-Image::IF_T Image::DetectFormat(const char * str, FILE * fp){
+Graph::IF_T Graph::DetectFormat(const char * str, FILE * fp){
     // Detect if it is PNG file
     size_t number = 8;
     char header[number];
@@ -78,6 +81,7 @@ Image::IF_T Image::DetectFormat(const char * str, FILE * fp){
         throw Except_Fail_To_Read_file();
     }
     if (0xFF == ch || 0xD8 == ch){
+        rewind(fp);
         return IF_JPG;
     }
     rewind(fp);
@@ -88,7 +92,7 @@ Image::IF_T Image::DetectFormat(const char * str, FILE * fp){
     return IF_NONE;
 }
 
-bool Image::SetupPNG(Context* ctx, FILE* fp){
+bool Graph::SetupPNG(Context* ctx, FILE* fp){
     png_structp png_ptr = 
         png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
     if (!png_ptr){
@@ -122,11 +126,9 @@ bool Image::SetupPNG(Context* ctx, FILE* fp){
     png_read_info(png_ptr, info_ptr);
 
     png_uint_32 width, height;
-    int bit_depth, col_type, channel, interlace_type;
+    int bit_depth, col_type, channel;
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &col_type,
-            &interlace_type, NULL, NULL);
-
-    printf("interlace_type = %d\n", interlace_type);
+            NULL, NULL, NULL);
 
     if (col_type == PNG_COLOR_TYPE_PALETTE){
         png_set_expand(png_ptr);
@@ -170,7 +172,7 @@ bool Image::SetupPNG(Context* ctx, FILE* fp){
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 
     LAYOUT_RET ret;
-    ret = ctx->layout.GetImagePos(pos, bitmap_w, bitmap_h);
+    ret = ctx->layout.GetGraphPos(pos, bitmap_w, bitmap_h);
 
     switch(ret){
         case LO_OK:
@@ -192,7 +194,7 @@ bool Image::SetupPNG(Context* ctx, FILE* fp){
     return true;
 }
 
-void Image::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, int channel){
+void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, int channel){
     // Convert image from RGB to Grayscale
 
     bitmap = NULL;
@@ -275,14 +277,24 @@ void Image::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
         bitmap_h = h;
         LOG_EVENT("Color converted from RGBA to Grayscale.");
     }
-    printf("Bit depth: %d\n", (int)bit_depth);
 }
 
-bool Image::SetupJPG(){
+bool Graph::SetupJPG(Context* ctx, FILE* fp){
+    ImageOptions global_IO;
+    Image output_image;
+	
+    if(loadImage(&global_IO)==ERROR){
+        LOG_ERROR("Loading jpg file fails");
+        return false;
+    }
+    output_image.width = req_width;
+    output_image.height = req_height;
+
+    fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
     return true;
 }
 
-bool Image::Draw(RenderMan* render){
+bool Graph::Draw(RenderMan* render){
 //    return render->RenderGrayMap(pos.x, pos.y, req_width, req_height, bitmap);
     if (bitmap != NULL){
         return render->RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
@@ -292,12 +304,12 @@ bool Image::Draw(RenderMan* render){
         return false;
 }
 
-bool Image::AdjustPos(int x, int y){
+bool Graph::AdjustPos(int x, int y){
     return true;
 }
 
-Glyph* Image::Dup(){
-    Image* img = new Image(logger);
+Glyph* Graph::Dup(){
+    Graph* img = new Graph(logger);
 
     img->pos        = this->pos;
     img->bitmap_w   = this->bitmap_w;

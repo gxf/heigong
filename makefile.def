@@ -8,7 +8,7 @@ LDFLAGS=
 INC=/usr/include/GL /usr/include/freetype2 $(HG_ROOT)/inc
 #INC_PATH=$(addprefix -I,$(INC))
 INC_PATH=-I/usr/include/GL -I/usr/include/freetype2 -I$(HG_ROOT)/inc
-LIBS=-lGL -lGLU -lGLEW -lSDL -lfreetype -lpng
+LIBS=-lGL -lGLU -lGLEW -lSDL -lfreetype -lpng -ljpeg
 LIB_PATH=
 
 CPPFLAGS=$(CFLAGS) $(INC_PATH)

@@ -160,8 +160,8 @@ bool DocParser::procLabel(int & ch){
             break;
         case 'i':
             if(match("mg")){
-                Image* pImg = new Image(logger);
-                getImageAttrib(ch, *pImg);
+                Graph* pImg = new Graph(logger);
+                getGraphAttrib(ch, *pImg);
                 glyphBuffer.push_back(pImg);
             }
             else{
@@ -378,7 +378,7 @@ void DocParser::getStyle(int &ch){
     }
 
 }
-void DocParser::getImageAttrib(int & ch, Image & img){
+void DocParser::getGraphAttrib(int & ch, Graph & img){
     skipBlanks(ch);
 
     while('>' != ch){

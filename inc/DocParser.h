@@ -11,7 +11,7 @@ class Logger;
 class Glyph;
 class Char;
 class Line;
-class Image;
+class Graph;
 
 class DocParser{
     public:
@@ -50,7 +50,7 @@ class DocParser{
     private:
         void fillGlyphStream(Line * line);
         void getStyle(int & ch);
-        void getImageAttrib(int & ch, Image & img);
+        void getGraphAttrib(int & ch, Graph & img);
         void skipBlanks(int & ch);
         bool procLabel(int & ch);
         void procWord(int & ch);
