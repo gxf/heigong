@@ -178,7 +178,7 @@ bool RenderMan::RenderPixMap(int x, int y, int width, int height, void* pixmap){
     sprintf(buf, "render pixmap with left-top @ (%d , %d), width: %d, height: %d", x, y, width, height);
     glColor3f(1.0f, 1.0f, 0.0f);
     glWindowPos2i(x, SCREEN_HEIGHT - y);
-    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
+    glDrawPixels(width, height, GL_RGB, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
 
     return true;
 }

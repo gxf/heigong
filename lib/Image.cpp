@@ -14,7 +14,7 @@ Image::~Image(){
         delete [] file_name;
     }
     if (bitmap != NULL){
-//        delete [] (char*)bitmap;
+        delete [] (char*)bitmap;
     }
 }
 
@@ -118,27 +118,24 @@ bool Image::SetupPNG(Context* ctx, FILE* fp){
     }
 
     png_init_io(png_ptr, fp);
-//    png_set_sig_bytes(png_ptr, 0);
 
-/*    
-    png_read_png(png_ptr, info_ptr, 
-                 PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_STRIP_ALPHA , 
-                 NULL);
-*/
     png_read_info(png_ptr, info_ptr);
 
-    uchar8 col_type;
-    uchar8 bit_depth;
-//    bitmap = png_get_rows(png_ptr, info_ptr);
+    png_uint_32 width, height;
+    int bit_depth, col_type, channel, interlace_type;
+    png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &col_type,
+            &interlace_type, NULL, NULL);
 
-    bitmap_w = png_get_image_width(png_ptr, info_ptr);
-    bitmap_h = png_get_image_height(png_ptr, info_ptr);
-
-    col_type = png_get_color_type(png_ptr, info_ptr);
-    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    printf("interlace_type = %d\n", interlace_type);
 
     if (col_type == PNG_COLOR_TYPE_PALETTE){
-        png_set_palette_to_rgb(png_ptr);
+        png_set_expand(png_ptr);
+    }
+    if (col_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8){
+        png_set_expand(png_ptr);
+    }
+    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)){
+        png_set_expand(png_ptr);
     }
     if (bit_depth == 16){
         png_set_strip_16(png_ptr);
@@ -146,34 +143,34 @@ bool Image::SetupPNG(Context* ctx, FILE* fp){
     if (col_type & PNG_COLOR_MASK_ALPHA){
         png_set_strip_alpha(png_ptr);
     }
-    png_color_16 my_background;
-    png_color_16p image_background;
 
-    if (png_get_bKGD(png_ptr, info_ptr, &image_background))
-        png_set_background(png_ptr, image_background, 
-                           PNG_BACKGROUND_GAMMA_FILE, 0, 1.0);
-    else
-        png_set_background(png_ptr, &my_background, 
-                           PNG_BACKGROUND_GAMMA_SCREEN, 1, 1.0);
-                
     png_read_update_info(png_ptr, info_ptr);
 
-//    bitmap = new char[bitmap_w * bitmap_h * 4];
-    bitmap = new char[800 * 600 * 4];   // Enough to hold one page
-    png_read_image(png_ptr, (png_byte**)bitmap);
+    png_bytep row_pointers[height];
+
+    uint32 row;
+
+    char* bmap = new char[png_get_rowbytes(png_ptr, info_ptr) * height];
+
+    for (row = 0; row < height; row++){
+        row_pointers[row] = 
+            (png_bytep)bmap + row * png_get_rowbytes(png_ptr, info_ptr);
+    }
+
+    png_read_image(png_ptr, row_pointers);
     png_read_end(png_ptr, end_info);
 
     col_type = png_get_color_type(png_ptr, info_ptr);
     bit_depth = png_get_bit_depth(png_ptr, info_ptr);
-//    bitmap_w = png_get_image_width(png_ptr, info_ptr);
-//    bitmap_h = png_get_image_height(png_ptr, info_ptr);
-//    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+    channel = png_get_channels(png_ptr, info_ptr);
 
-    Convert(&bitmap, bitmap_w, bitmap_h, col_type, bit_depth);
+    Convert((void**)row_pointers, png_get_rowbytes(png_ptr, info_ptr), height, col_type, bit_depth, channel);
+    delete [] bmap;
+
+    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 
     LAYOUT_RET ret;
     ret = ctx->layout.GetImagePos(pos, bitmap_w, bitmap_h);
-//    ret = ctx->layout.GetImagePos(pos, req_width, req_height);
 
     switch(ret){
         case LO_OK:
@@ -195,13 +192,14 @@ bool Image::SetupPNG(Context* ctx, FILE* fp){
     return true;
 }
 
-void Image::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth){
-    // Convert image from RGB to Greyscale
-    printf("Bit depth: %d\n", (int)bit_depth);
-    uchar8 * nbmap = NULL;
-    Color* p = (Color*)*bmap;
-    Color_A * pa = (Color_A*)*bmap;
+void Image::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, int channel){
+    // Convert image from RGB to Grayscale
+
+    bitmap = NULL;
+    Color* p = NULL;
+    Color_A * pa = NULL;
     int i = 0, j = 0;
+#if 0
     switch(col_t){ 
         case PNG_COLOR_TYPE_GRAY:
             LOG_EVENT("Color need not to convert.");
@@ -210,29 +208,34 @@ void Image::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth){
             LOG_ERROR("Unsupported png color format conversion: PNG_COLOR_TYPE_PALETTE");
             break;
         case PNG_COLOR_TYPE_RGB:
-            nbmap = new uchar8[800 * 600 * 4];
-            for(;i < h; i++){
+            bitmap = new uchar8[w * h];
+            for(;i < h ; i++){
+                p = (Color *)bmap[i];
                 for(;j < w; j += 3){
-                    *nbmap = (6969 * (int)p->R + 23434 * (int)p->G + 2365 * (int)p->B)/32768;
+                    *(uchar8*)bitmap = (6969 * (long int)p->R + 23434 * (long int)p->G + 2365 * (long int)p->B)/32768;
+                    printf("p: %x, R: %x, G: %x, B: %x, Gray: %x\n", (int)p, (int)p->R, (int)p->G, (int)p->B, *(uchar8*)bitmap);
+                    bitmap = (uchar8*)bitmap + 1;
                     p++;
                 }
             }
-            delete [] (char*)*bmap;
-            *bmap = nbmap;
-            LOG_EVENT("Color converted from RGB to Greyscale.");
+            bitmap_w = w / 3;
+            bitmap_h = h;
+            LOG_EVENT("Color converted from RGB to Grayscale.");
             break;
         case PNG_COLOR_TYPE_RGB_ALPHA:
-            nbmap = new uchar8[800 * 600 * 4];
-            for(;i < h; i++){
+            bitmap = new uchar8[w * h];
+            for(;i < h ; i++){
+                pa = (Color_A*)bmap[i];
                 for(;j < w; j += 4){
-                    *nbmap = (6969 * (int)pa->R + 23434 * (int)pa->G + 2365 * (int)pa->B)/32768;
+                    *(uchar8*)bitmap = (6969 * (long int)pa->R + 23434 * (long int)pa->G + 2365 * (long int)pa->B)/32768;
+                    printf("pa: %x, R: %x, G: %x, B: %x, Gray: %x\n", (int)pa, (int)pa->R, (int)pa->G, (int)pa->B, *(uchar8*)bitmap);
+                    bitmap = (uchar8*)bitmap + 1;
                     pa++;
                 }
             }
-            delete [] (char*)*bmap;
-            *bmap = nbmap;
-            LOG_EVENT("Color converted from RGBA to Greyscale.");
-//            LOG_EVENT("Unsupported png color format conversion: PNG_COLOR_TYPE_RGB_ALPHA");
+            bitmap_w = w / 4;
+            bitmap_h = h;
+            LOG_EVENT("Color converted from RGBA to Grayscale.");
             break;
         case PNG_COLOR_TYPE_GRAY_ALPHA:
             LOG_ERROR("Unsupported png color format conversion: PNG_COLOR_TYPE_GRAY_ALPHA");
@@ -241,6 +244,38 @@ void Image::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth){
             LOG_ERROR("Unsupported png color format.");
             break;
     }
+#endif
+    if (channel == 3){
+        bitmap = new uchar8[w * h / channel];
+        uchar8* nbmap = (uchar8 *)bitmap;
+        for(i = h - 1;i >= 0 ; i--){
+            p = (Color *)bmap[i];
+            for(j = 0;j < w; j += channel){
+                *(uchar8*)nbmap = (6969 * (long int)p->R + 23434 * (long int)p->G + 2365 * (long int)p->B)/32768;
+                nbmap++;
+                p++;
+            }
+        }
+        bitmap_w = w / channel;
+        bitmap_h = h;
+        LOG_EVENT("Color converted from RGB to Grayscale.");
+    }
+    else if (channel == 4){
+        bitmap = new uchar8[w * h / channel];
+        uchar8* nbmap = (uchar8 *)bitmap;
+        for(i = h - 1;i >= 0 ; i--){
+            pa = (Color_A*)bmap[i];
+            for(j = 0;j < w; j += channel){
+                *(uchar8*)nbmap = (6969 * (long int)pa->R + 23434 * (long int)pa->G + 2365 * (long int)pa->B)/32768;
+                nbmap++;
+                pa++;
+            }
+        }
+        bitmap_w = w / channel;
+        bitmap_h = h;
+        LOG_EVENT("Color converted from RGBA to Grayscale.");
+    }
+    printf("Bit depth: %d\n", (int)bit_depth);
 }
 
 bool Image::SetupJPG(){

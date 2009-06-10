@@ -126,7 +126,7 @@ class Image: public Glyph{
         bool SetupPNG(Context* ctx, FILE* fp);
         bool SetupJPG();
         IF_T DetectFormat(const char*, FILE * fp);
-        void Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 b_depth);
+        void Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 b_depth, int channel);
 
     public:
         uint32  req_width;
