@@ -128,7 +128,7 @@ bool Graph::SetupPNG(Context* ctx, FILE* fp){
     png_uint_32 width, height;
     int bit_depth, col_type, channel;
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &col_type,
-            NULL, NULL, NULL);
+                 NULL, NULL, NULL);
 
     if (col_type == PNG_COLOR_TYPE_PALETTE){
         png_set_expand(png_ptr);
@@ -265,9 +265,9 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
     else if (channel == 4){
         bitmap = new uchar8[w * h / channel];
         uchar8* nbmap = (uchar8 *)bitmap;
-        for(i = h - 1;i >= 0 ; i--){
+        for(i = h - 1; i >= 0; i--){
             pa = (Color_A*)bmap[i];
-            for(j = 0;j < w; j += channel){
+            for(j = 0; j < w; j += channel){
                 *(uchar8*)nbmap = (6969 * (long int)pa->R + 23434 * (long int)pa->G + 2365 * (long int)pa->B)/32768;
                 nbmap++;
                 pa++;
@@ -282,8 +282,8 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
 bool Graph::SetupJPG(Context* ctx, FILE* fp){
     ImageOptions global_IO;
     Image output_image;
-	
-    if(loadImage(&global_IO)==ERROR){
+
+    if(loadImage(&global_IO) == ERROR){
         LOG_ERROR("Loading jpg file fails");
         return false;
     }
@@ -295,10 +295,8 @@ bool Graph::SetupJPG(Context* ctx, FILE* fp){
 }
 
 bool Graph::Draw(RenderMan* render){
-//    return render->RenderGrayMap(pos.x, pos.y, req_width, req_height, bitmap);
     if (bitmap != NULL){
         return render->RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
-//        return render->RenderPixMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
     }
     else
         return false;
@@ -319,5 +317,6 @@ Glyph* Graph::Dup(){
     img->file_name  = new char[std::strlen(file_name) + 1];
     std::memcpy(img->file_name, file_name, std::strlen(file_name) + 1);
     img->file_path  = this->file_path;
+
     return NULL;
 }
