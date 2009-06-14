@@ -24,7 +24,6 @@ May12th::~May12th(){
 
 void May12th::Init(uint32 fontSize){
     ctx->layout.NewPage();
-    ctx->line.Clear();
     ctx->layout.SetLineSpacing(fontSize/4);
     ctx->fonts.SetFontSize(fontSize);
 }
@@ -68,7 +67,7 @@ void May12th::Display(int page_num){
     DocParser::DP_RET_T dp_ret = DocParser::DP_OK;
 
     while(DocParser::DP_OK == dp_ret){
-        dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->line);
+        dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->layout);
 
         switch(dp_ret){
             case DocParser::DP_OK:
@@ -80,7 +79,7 @@ void May12th::Display(int page_num){
                 break;
             case DocParser::DP_EOF:
                 ctx->pgMgr.SetMaxPageNum(page_num);
-                ctx->line.DrawFlush(ctx);
+                ctx->layout.curLine->DrawFlush(&ctx->render);
                 ctx->render.Flush();
                 ctx->pgMgr.EndPage(page_num, &ctx->render);
                 break;

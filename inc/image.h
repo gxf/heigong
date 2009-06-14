@@ -68,7 +68,7 @@ typedef struct {
      UINT32 width;  /* width of image in pixels */
      UINT32 height; /* height of image in pixels */
      UINT16 depth;  /* depth of image in bits if IRGB type */
-     UINT8  data[640*480*2];    /* data rounded to full byte for each row */
+     UINT8  data[800*600];    /* data rounded to full byte for each row */
      UINT32 pixlen; /* length of pixel if IRGB type, gif 使用该属性 */
      UINT32 new_width;
      UINT32 new_height;
@@ -81,6 +81,8 @@ typedef struct {
      UINT32 zoom;		/**< zoom只能取值1,2或者3,相应的大小1: 160*128, 2: 320*240, 3: 640*480 */
      BOOL exactly;		/**< TRUE 表示缩放到zoom对应的大小， FALSE表示等比例缩放 */
      BOOL smooth;		/**< 平滑，TRUE表示平滑， FALSE不平滑 */
+     UINT32 width;	// zoom to certain width
+     UINT32 height;	// zoom to certain height 
 } ImageOptions;
 
 /* imagetypes.c */

@@ -8,25 +8,28 @@
 
 class RenderMan;
 class Logger;
-class Context;
+class LayoutManager;
 
 // Note: Line is just a abstract concept which does not
 // get any Glypth Object memory management involved
 class Line{
     public:
-        Line(Logger* log, uint32 pw, uint32 m, ALIGNMENT a = A_LEFT): 
+        Line(Logger* log, LayoutManager* lo, uint32 pw, uint32 m, ALIGNMENT a = A_LEFT): 
             curWidth(0),
             pageWidth(pw), margin(m),
-            logger(log)
+            layout(lo), logger(log)
         {}
         ~Line(){}
 
     public:
+        Line* Dup(){
+            return new Line(logger, layout, pageWidth, margin, attrib.align); 
+        }
+
         void AddGlyph(Glyph* glyph);
 
-        void DrawCurrent(Context* ctx, int baseline);
         void Clear();
-        void DrawFlush(Context* ctx);
+        void DrawFlush(RenderMan* render);
 
     public:
         inline void SetLeftAligned(){ attrib.align = A_LEFT; }
@@ -47,6 +50,7 @@ class Line{
         uint32      margin;
 
     private:
+        LayoutManager* layout;
         Logger*     logger;
 };
 

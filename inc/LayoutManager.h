@@ -1,11 +1,11 @@
 #ifndef LAYOUT_MANAGER_H
 #define LAYOUT_MANAGER_H
 
-#include "Common.h"
+#include "Line.h"
 
 class Logger;
 class FontsManager;
-class Line;
+class RenderMan;
 
 enum LAYOUT_RET{
     LO_OK,
@@ -15,7 +15,8 @@ enum LAYOUT_RET{
 
 class LayoutManager{
     public:
-        LayoutManager(int w, int h, int m_v, int m_h, Line* l, Logger* log,
+        LayoutManager(int w, int h, int m_v, int m_h, 
+                      Logger* log, RenderMan* render,
                       int ls = 2, int ws = 2);
         ~LayoutManager();
 
@@ -47,6 +48,7 @@ class LayoutManager{
         inline int GetCurBaseLine(){ return curBaseline; }
         inline int GetLastBaseLine(){ return lastBaseline; }
 
+        inline void AddGlyph(Glyph* g){ curLine->AddGlyph(g); }
     public:
         LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
         LAYOUT_RET GetGraphPos(Position & pos, int width, int height);
@@ -72,8 +74,10 @@ class LayoutManager{
 
         bool     firstLine;
 
+    public:
+        Line *   curLine;
     private:
-        Line *   line;
+        RenderMan* render;
         Logger * logger;
 };
 

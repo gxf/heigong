@@ -41,7 +41,7 @@ unsigned int Char::GetVal(ENCODING_MODE em){
     }
 }
 
-bool Char::AdjustPos(int align, int bl){
+bool Char::Relocate(int align, int bl){
     int delta = bl - baseline;
     if (delta < 0)
         return false;
@@ -58,10 +58,8 @@ bool Char::Setup(Context* ctx){
     if ('\n' == GetVal()){
         switch(ctx->layout.NewLine()){
             case LO_OK:
-                ctx->line.DrawFlush(ctx);
                 return true;
             case LO_NEW_PAGE:
-                ctx->line.DrawFlush(ctx);
                 ctx->layout.Reset();
                 return false;
             default:
@@ -71,25 +69,28 @@ bool Char::Setup(Context* ctx){
     }
     FT_GlyphSlot glyphSlot;
 
+    if (0 == attrib.size || 
+        false == ctx->fonts.SetFontSize(attrib.size)){
+        ctx->fonts.SetFontSize(DEFAULT_FONT_SIZE);
+    }
     ctx->fonts.GetGlyphSlot((FT_ULong)GetVal(EM_UTF_32), &glyphSlot);
     baseline = ((glyphSlot->metrics.horiBearingY) >> 6);
     ftCache.CacheFont(this, 
             glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
             glyphSlot->bitmap.buffer);
+    ctx->fonts.SetFontSize(DEFAULT_FONT_SIZE);
     LAYOUT_RET ret = 
         ctx->layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
                                glyphSlot->bitmap.rows, baseline);
     pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
     switch(ret){
         case LO_OK:
-            ctx->line.AddGlyph(this);
+            ctx->layout.AddGlyph(this);
             break;
         case LO_NEW_LINE:
-            ctx->line.DrawFlush(ctx);
-            ctx->line.AddGlyph(this);
+            ctx->layout.AddGlyph(this);
             break;
         case LO_NEW_PAGE:
-            ctx->line.DrawFlush(ctx);
             ctx->layout.Reset();
             return false;
         default:

@@ -10,7 +10,7 @@
 class Logger;
 class Glyph;
 class Char;
-class Line;
+class LayoutManager;
 class Graph;
 
 class DocParser{
@@ -33,7 +33,7 @@ class DocParser{
 
     public:
         bool Init(const char* filen);
-        DP_RET_T GetNextGlyph(Glyph** g, Line* line);
+        DP_RET_T GetNextGlyph(Glyph** g, LayoutManager* line);
         void SetCurParseOffset(long int offset);
 
         HDocState ShadowDocState();
@@ -48,9 +48,10 @@ class DocParser{
         bool match_b(const char* chs);
 
     private:
-        void fillGlyphStream(Line * line);
+        void fillGlyphStream(LayoutManager* layout);
         void getStyle(int & ch);
         void getGraphAttrib(int & ch, Graph & img);
+       	void getMyFont(int &ch);
         void skipBlanks(int & ch);
         bool procLabel(int & ch);
         void procWord(int & ch);

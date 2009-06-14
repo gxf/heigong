@@ -1,18 +1,10 @@
-#include "Context.h"
+#include "Logger.h"
+#include "LayoutManager.h"
 
 void Line::AddGlyph(Glyph* glyph){
     glyphs.push_back(glyph);
     uint32 maxX = glyph->pos.x + glyph->bitmap_w;
     curWidth = (curWidth > maxX) ? curWidth : maxX;
-}
-
-void Line::DrawCurrent(Context* ctx, int baseline){
-    std::vector<Glyph*>::iterator itr = glyphs.begin();
-    while (itr != glyphs.end()){
-        (*itr)->AdjustPos(0, baseline);
-        (*itr)->Draw(&(ctx->render));
-        ++itr;
-    }
 }
 
 void Line::Clear(){
@@ -21,8 +13,8 @@ void Line::Clear(){
     curWidth = margin;
 }
 
-void Line::DrawFlush(Context* ctx){
-    int baseline = ctx->layout.GetLastBaseLine();
+void Line::DrawFlush(RenderMan* render){
+    int baseline = layout->GetLastBaseLine();
     int xShift = 0;
     switch(attrib.align){
         case A_LEFT:
@@ -40,8 +32,8 @@ void Line::DrawFlush(Context* ctx){
     }
     std::vector<Glyph*>::iterator itr = glyphs.begin();
     while (itr != glyphs.end()){
-        (*itr)->AdjustPos(xShift, baseline);
-        (*itr)->Draw(&(ctx->render));
+        (*itr)->Relocate(xShift, baseline);
+        (*itr)->Draw(render);
         ++itr;
     }
     Clear();

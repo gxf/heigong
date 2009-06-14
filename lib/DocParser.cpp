@@ -2,7 +2,8 @@
 #include "Logger.h"
 #include "DocParser.h"
 #include "Glyph.h"
-#include "Line.h"
+//#include "Line.h"
+#include "LayoutManager.h"
 #include <stdlib.h>
 #include <cstring>
 #include <cstdlib>
@@ -39,7 +40,7 @@ void DocParser::ClearGlyphStream(){
     glyphBuffer.clear();
 }
 
-DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph, Line * line){
+DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph, LayoutManager * layout){
     // Retrieve first when glyphBuffer is not empty
     if (!(glyphBuffer.empty())){
         *glyph = glyphBuffer.front();
@@ -54,7 +55,7 @@ DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph, Line * line){
     }
 
     try{
-        fillGlyphStream(line);
+        fillGlyphStream(layout);
     }
     catch(Except_EOF &){
         if (!(glyphBuffer.empty())){
@@ -69,7 +70,7 @@ DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph, Line * line){
     }
 
     if (glyphBuffer.empty()){
-        GetNextGlyph(glyph, line);  // Header parsing may lead to this
+        GetNextGlyph(glyph, layout);  // Header parsing may lead to this
         return DP_OK;
     }
     else{
@@ -104,7 +105,7 @@ bool DocParser::RestoreDocState(DocParser::HDocState hState){
     return true;
 }
 
-void DocParser::fillGlyphStream(Line* line){
+void DocParser::fillGlyphStream(LayoutManager* layout){
     int ch;
     docStream >> ch;
     skipBlanks(ch);
@@ -116,7 +117,7 @@ void DocParser::fillGlyphStream(Line* line){
         docStream >> ch;    // EOF exception may throw
         skipBlanks(ch);
     }
-    line->SetAttrib(lineAttrib);
+    layout->curLine->SetAttrib(lineAttrib);
 
     // proc the word content. 
     while(!delayedToken.empty()){
@@ -203,6 +204,13 @@ bool DocParser::procLabel(int & ch){
             }
             while('>' != ch){ docStream >> ch; }
             break;
+	case 'm':
+	    if (match("yfont")){
+                getMyFont(ch);
+                break;
+	    }
+            while('>' != ch){ docStream >> ch; }
+	    break;
         case 'o':
             if(match("l") && match_b(">")){
                 listMode = LM_ORDER;
@@ -238,6 +246,10 @@ bool DocParser::procLabel(int & ch){
                 headerMode       = true;
                 break;
             }
+            else if (match("able")){
+                ParseTable(ch);
+                break;
+            }
             while('>' != ch){ docStream >> ch; }
             break;
         case '/':
@@ -259,6 +271,10 @@ bool DocParser::procLabel(int & ch){
             }
             else if(match("ul>")){
                 listMode = LM_NONE;
+                break;
+            }
+            else if(match("myfont>")){
+                glyphAttrib.Reset();
                 break;
             }
             while('>' != ch){ docStream >> ch; }
@@ -336,6 +352,29 @@ void DocParser::procWord(int & ch){
         docStream >> *c;
         if(!headerMode){
             glyphBuffer.push_back(c);
+        }
+    }
+}
+void DocParser::getMyFont(int &ch){
+    skipBlanks(ch);
+
+    while('>' != ch){
+        docStream >> ch;
+        switch(ch){
+            case 'n':
+                if (match("ame") && match_b("=")){
+                    // TODO: FONT translate
+                    glyphAttrib.font = NULL;
+                }
+                break;
+            case 's':
+                if (match("ize") && match_b("=")){
+                    glyphAttrib.size = getInteger() / 2;
+//                    LOG_EVENT_STR2("Got size: ", glyphAttrib.size);
+                }
+                break;
+            default:
+                break;
         }
     }
 }
@@ -473,6 +512,56 @@ bool DocParser::match_b(const char* ch){
     return true;
 }
 
+void ParseTable(int & ch){
+    skipBlanks(ch);
+
+    Table* tab = new Table(logger);
+
+    // Parse table attributes
+    while('>' != ch){
+        docStream >> ch;
+        if (match_b("width=")){
+            tab->width = getFloat('\"') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL); 
+        }
+        else if (match_b("border=")){
+            tab->border = getInteger();
+        }
+        else if (match_b("cols")){
+            tab->col = getInteger();
+        }
+        else if (match_b("rows")){
+            tab->row = getInteger();
+        }
+    }
+
+    // Parse row by row
+    DocStream >> ch;
+
+    while(match_b("<\\table>")){
+        getTR(ch, tab);
+    }
+}
+
+void getTR(int & ch, Table* tab){
+    if (match("<tr>")){
+        while(!match_b("<\\tr>")){
+            docStream >> ch;
+            getTD(ch, Table);
+        }
+    }
+}
+
+void getTD(int &ch, Table* tab){
+    if (match("<td")){
+        // Get td attribute
+        docStream >> ch;
+        while('>' != ch){
+            if(match_b("width")){
+            }
+        }
+    }
+}
+// Auxilary functions
 void DocParser::skipBlanks(int & ch){
     // Skip blank spaces
     while(' ' == ch || '\t' == ch || '\n' == ch){

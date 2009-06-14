@@ -31,8 +31,14 @@ STATUS buildIndex(Image * image,ImageOptions *image_ops)
      xzoom=yzoom=100000;
      
      if(image_ops->zoom>=1 && image_ops->zoom<=3){
+	if(image_ops->width != 0 && image_ops->height != 0){
+	  image->new_width = image_ops->width;
+	  image->new_height= image_ops->height;
+	}
+	else{
 	  image->new_width = demand_size[image_ops->zoom-1][0];
 	  image->new_height = demand_size[image_ops->zoom-1][1];
+	}
      }
      else return ERROR;
      

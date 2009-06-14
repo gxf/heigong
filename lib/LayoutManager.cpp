@@ -6,7 +6,7 @@
 #include "RenderMan.h"
 
 LayoutManager::LayoutManager(int w, int h, int mv, int mh, 
-                             Line* l, Logger* log, int ls, int ws):
+                             Logger* log, RenderMan * r, int ls, int ws):
     p_width(w), p_height(h), 
     v_m_width(mv), h_m_width(mh), 
     g_line_spacing(ls),g_word_spacing(ws),
@@ -14,8 +14,9 @@ LayoutManager::LayoutManager(int w, int h, int mv, int mh,
     curMaxHeight(0), lastMaxHeight(0),
     curBaseline(0), lastBaseline(0),
     firstLine(true),
-    line(l), logger(log)
+    render(r), logger(log)
 {
+    curLine = new Line(log, this, w, mv);
 }
 
 LayoutManager::~LayoutManager(){}
@@ -46,13 +47,13 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
 
     int Xoff;
     if (firstLine){
-        Xoff = line->GetIndent() + g_word_spacing + width;
+        Xoff = curLine->GetIndent() + g_word_spacing + width;
     }
     else{
         Xoff = g_word_spacing + width;
     }
     int Yoff = g_line_spacing + curMaxHeight;
-    Yoff = (Yoff > line->GetHeight()) ? Yoff : line->GetHeight();
+    Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
 
     if (curPos.x + Xoff >= p_width - h_m_width){
         // Current line is over for use
@@ -69,6 +70,12 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
             curMaxHeight    = 0;
             pos.x           = -1;
             pos.y           = -1;
+
+            curLine->DrawFlush(render);
+            Line* lastLine = curLine;
+            curLine = lastLine->Dup();
+            delete lastLine;
+
             return LO_NEW_PAGE;
         }
         else{
@@ -82,7 +89,14 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
             pos             = curPos;
             pos.y           += height;
             curPos.x        += width + g_word_spacing;
+
             firstLine= false;
+
+            curLine->DrawFlush(render);
+            Line* lastLine = curLine;
+            curLine = lastLine->Dup();
+            delete lastLine;
+
             return LO_NEW_LINE;
         }
     }
@@ -92,7 +106,7 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
         pos      = curPos;
         if (firstLine){
             // Append indent offset
-            pos.x += line->GetIndent();
+            pos.x += curLine->GetIndent();
         }
         pos.y    += height;
         curPos.x += width + g_word_spacing;
@@ -104,13 +118,13 @@ LAYOUT_RET LayoutManager::GetGraphPos(Position & pos, int width, int height){
     curMaxHeight = (curMaxHeight > height) ? curMaxHeight : height;
     int Xoff;
     if (firstLine){
-        Xoff = line->GetIndent() + g_word_spacing + width;
+        Xoff = curLine->GetIndent() + g_word_spacing + width;
     }
     else{
         Xoff = g_word_spacing + width;
     }
     int Yoff = g_line_spacing + curMaxHeight;
-    Yoff = (Yoff > line->GetHeight()) ? Yoff : line->GetHeight();
+    Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
 
     if (curPos.x + Xoff >= p_width - h_m_width){
         // Current line is over for use
@@ -127,6 +141,12 @@ LAYOUT_RET LayoutManager::GetGraphPos(Position & pos, int width, int height){
             curMaxHeight    = 0;
             pos.x           = -1;
             pos.y           = -1;
+
+            curLine->DrawFlush(render);
+            Line* lastLine = curLine;
+            curLine = lastLine->Dup();
+            delete lastLine;
+
             return LO_NEW_PAGE;
         }
         else{
@@ -140,7 +160,14 @@ LAYOUT_RET LayoutManager::GetGraphPos(Position & pos, int width, int height){
             pos             = curPos;
             pos.y           += height;
             curPos.x        += width + g_word_spacing;
+
             firstLine= false;
+
+            curLine->DrawFlush(render);
+            Line* lastLine = curLine;
+            curLine = lastLine->Dup();
+            delete lastLine;
+
             return LO_NEW_LINE;
         }
     }
@@ -150,7 +177,7 @@ LAYOUT_RET LayoutManager::GetGraphPos(Position & pos, int width, int height){
         pos      = curPos;
         if (firstLine){
             // Append indent offset
-            pos.x += line->GetIndent();
+            pos.x += curLine->GetIndent();
         }
         pos.y    += height;
         curPos.x += width + g_word_spacing;
@@ -167,9 +194,11 @@ LAYOUT_RET LayoutManager::NewLine(){
     }
     else{ 
         Yoff += curMaxHeight; 
-        Yoff = (Yoff > line->GetHeight()) ? Yoff : line->GetHeight();
+        Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
     }
     curPos.y += Yoff;
+
+    LAYOUT_RET ret = LO_OK;
 
     if (curPos.y >= p_height - v_m_width){
         // & current page is over for use
@@ -182,7 +211,8 @@ LAYOUT_RET LayoutManager::NewLine(){
         lastBaseline    = curBaseline;
         curBaseline     = 0;
         curMaxHeight    = 0;
-        return LO_NEW_PAGE;
+       
+        ret = LO_NEW_PAGE;
     }
     else{
         curPos.x = h_m_width;
@@ -190,15 +220,23 @@ LAYOUT_RET LayoutManager::NewLine(){
         curMaxHeight    = 0;
         lastBaseline    = curBaseline;
         curBaseline     = 0;
-        return LO_OK;
+       
+        ret = LO_OK;
     }
+    curLine->DrawFlush(render);
+    Line* lastLine = curLine;
+    curLine = lastLine->Dup();
+    delete lastLine;
+
+    return ret;
+
 }
 
 void LayoutManager::NewPage(){
     curPos.x = v_m_width;
     curPos.y = h_m_width;
     uint32 Yoff = g_line_spacing + curMaxHeight;
-    Yoff = (Yoff > line->GetHeight()) ? Yoff : line->GetHeight();
+    Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine ->GetHeight();
     if (0 == curMaxHeight){
         curPos.y += Yoff;
     }

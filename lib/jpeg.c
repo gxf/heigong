@@ -196,7 +196,7 @@ STATUS jpegLoad(char *fullname, ImageOptions *image_ops)
      fra_jpg_err jerr;
      Image *image = 0;;
      UINT8 *rows = 0;
-     UINT16 demand_size[3][2]={{160,128},{320,240},{640,480}};
+     UINT16 demand_size[4][2]={{160,128},{320,240},{640,480}};
      
      
      image= global_image;
@@ -236,15 +236,21 @@ STATUS jpegLoad(char *fullname, ImageOptions *image_ops)
      }
 	  
      if(image_ops->zoom>=1 && image_ops->zoom<=3){
-	  INT16 i;
+	if(image_ops->width != 0 && image_ops->height != 0){
+	  image->new_width = image_ops->width;
+	  image->new_height= image_ops->height;
+	}
+	else{
 	  image->new_width = demand_size[image_ops->zoom-1][0];
 	  image->new_height = demand_size[image_ops->zoom-1][1];
-	  for(i=3;i>=0;i--){
-	       if((cinfo.image_width>>i)>=image->new_width &&(cinfo.image_height>>i)>=image->new_height){
-		    cinfo.scale_denom = (1<<i);
-		    break;
-	       }
-	  }
+	}
+	INT16 i;
+	for(i=3;i>=0;i--){
+	    if((cinfo.image_width>>i)>=image->new_width &&(cinfo.image_height>>i)>=image->new_height){
+		cinfo.scale_denom = (1<<i);
+		break;
+	    }
+	}
      }
      else{
 	  jpeg_destroy_decompress(&cinfo);

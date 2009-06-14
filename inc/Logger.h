@@ -1,6 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <string.h>
 #include <iostream>
 #include <fstream>
 
@@ -31,6 +32,9 @@ class Logger{
             }
             outfile << GetEventTypeStr(type) << event << std::endl;
         }
+
+        char* GetBuf(){ return buffer; }
+
     private:
         inline const char *GetEventTypeStr(EVENT_T type){
             switch(type){
@@ -46,6 +50,9 @@ class Logger{
             return NULL;
         }
 
+    private:
+        char buffer[200];
+
     public:
         const char*     logfile;
         std::ofstream   outfile;
@@ -54,5 +61,13 @@ class Logger{
 #define LOG_EVENT(str)      logger->LogEvent(str, Logger::EVENT);
 #define LOG_WARNING(str)    logger->LogEvent(str, Logger::WARN);
 #define LOG_ERROR(str)      logger->LogEvent(str, Logger::ERR);
+#define LOG_EVENT_STR(str)  \
+    std::memset(logger->GetBuf(), 0x0, 200); \
+    sprintf(logger->GetBuf(), str "%s"); \
+    logger->LogEvent(logger->GetBuf(), Logger::EVENT);
 
+#define LOG_EVENT_STR2(str, val)  \
+    std::memset(logger->GetBuf(), 0x0, 200); \
+    sprintf(logger->GetBuf(), str "%d", val); \
+    logger->LogEvent(logger->GetBuf(), Logger::EVENT);
 #endif

@@ -85,7 +85,7 @@ bool FontsManager::OpenFont(const char* path){
     fonts.push_back(FontEntry(path, face));
     curFont = face;
 
-    SetFontSize(25);
+    SetFontSize(DEFAULT_FONT_SIZE);
     return true;
 }
 
@@ -94,7 +94,7 @@ bool FontsManager::SetFontSize(int pt){
         return false;
     int error = FT_Set_Char_Size(curFont, pt * 64, 0, dpi, 0 ); 
     if (error){
-        LOG_ERROR("Fail to set char size.");
+        LOG_EVENT("Fail to set char size.");
         return false;
     }
     return true;

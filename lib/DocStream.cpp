@@ -45,7 +45,6 @@ bool DocStream::OpenFile(const char* filename){
 
     char cmd[strlength];
     std::memset(cmd, 0x0, strlength);
-//    sprintf(cmd, "./catdoc -w %s >%s", filen, tmpFile);
     sprintf(cmd, "./wvWare -x ./wvHtml.xml -d ./wvTmp -b wvImage %s > %s", filen, tmpFile);
     LOG_EVENT(cmd);
 

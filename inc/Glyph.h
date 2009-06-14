@@ -25,7 +25,7 @@ class Glyph{
 
     public:
         virtual bool Draw(RenderMan*) = 0;
-        virtual bool AdjustPos(int x, int y) = 0;
+        virtual bool Relocate(int x, int y) = 0;
         virtual bool Setup(Context* ctx) = 0;
         virtual Glyph * Dup() = 0;
 
@@ -69,6 +69,8 @@ class Char: public Glyph{
         }
         inline void SetBaseline(int b){ baseline = b; }
         inline void SetID(ID cid){ id = cid; }
+        inline void SetSize(int s){ id.pt = s; }
+        inline void SetFont(const char* n) { id.name = n; }
         inline void SetAttrib(Attrib_Glyph & attr){ attrib = attr; }
 
         inline void* GetBitmap() { return bitmap; }
@@ -81,7 +83,7 @@ class Char: public Glyph{
     public:
         unsigned int GetVal(ENCODING_MODE em = EM_UTF_8);
         bool Draw(RenderMan*);
-        bool AdjustPos(int, int);
+        bool Relocate(int, int);
         bool Setup(Context* ctx);
         Glyph* Dup();
 
@@ -113,7 +115,7 @@ class Graph: public Glyph{
 
     public:
         bool Draw(RenderMan*);
-        bool AdjustPos(int, int);
+        bool Relocate(int, int);
         bool Setup(Context* ctx);
         Glyph* Dup();
 
@@ -127,6 +129,7 @@ class Graph: public Glyph{
         bool SetupJPG(Context* ctx, FILE* fp);
         IF_T DetectFormat(const char*, FILE * fp);
         void Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 b_depth, int channel);
+        void ConvertJPG(void* bmap, int w, int h);
 
     public:
         uint32  req_width;
@@ -143,9 +146,15 @@ class Table: public Glyph{
 
     public:
         bool Draw(RenderMan*);
-        bool AdjustPos(int, int);
+        bool Relocate(int, int);
         bool Setup(Context* ctx);
         Glyph* Dup();
+
+    public:
+        uint32 width;
+        uint32 col;
+        uint32 row;
+        uint32 border;
 };
 
 //} // namespace heigong

@@ -42,10 +42,24 @@ enum ALIGNMENT{
 class Attrib_Glyph{
     public:
         bool bold;
+        bool italic;
+        int  size;
+        const char* font;
+
+    public:
+        Attrib_Glyph():
+          bold(false), italic(false), size(0), font(0)
+        {}
+
         // Trivial consturctor & copy constructor;
     
     public:
-        void Reset(){ bold = false; }
+        void Reset(){ 
+            bold    = false; 
+            italic  = false;
+            size    = 0;
+            font    = 0;
+        }
 };
 
 class Attrib_Line{
@@ -76,6 +90,8 @@ enum ENCODING_MODE{
 
 #define MARGIN_VERTICAL     30
 #define MARGIN_HORIZONTAL   30
+
+#define IMAGE_GAURD_SIZE    40
 
 #define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-droid/DroidSansFallback.ttf"
 #define DEFAULT_FONT_SIZE   12

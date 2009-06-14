@@ -6,6 +6,9 @@
 #include "image.h"
 #include <string>
 
+ImageOptions global_IO;
+Image output_image;
+
 Graph::Graph(Logger* log):
     Glyph(log), file_name(NULL), file_path(NULL)
 {
@@ -176,14 +179,12 @@ bool Graph::SetupPNG(Context* ctx, FILE* fp){
 
     switch(ret){
         case LO_OK:
-            ctx->line.AddGlyph(this);
+            ctx->layout.AddGlyph(this);
             break;
         case LO_NEW_LINE:
-            ctx->line.DrawFlush(ctx);
-            ctx->line.AddGlyph(this);
+            ctx->layout.AddGlyph(this);
             break;
         case LO_NEW_PAGE:
-            ctx->line.DrawFlush(ctx);
             ctx->layout.Reset();
             return false;
         default:
@@ -280,19 +281,93 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
 }
 
 bool Graph::SetupJPG(Context* ctx, FILE* fp){
-    ImageOptions global_IO;
-    Image output_image;
+    fclose(fp);
+
+    // Adjust image size in order not to render out side of frame buffer
+    double ratio = (double)req_width / req_height;
+
+    if (req_width > SCREEN_WIDTH - 2 * MARGIN_VERTICAL){
+	req_width = SCREEN_WIDTH - 2 * MARGIN_VERTICAL - IMAGE_GAURD_SIZE;
+	req_height = req_width / ratio;
+	if (req_height > SCREEN_HEIGHT - 2 * MARGIN_HORIZONTAL){
+	    req_height = SCREEN_HEIGHT - 2 * MARGIN_HORIZONTAL - IMAGE_GAURD_SIZE;
+	    req_width = req_height * ratio;
+	}
+    }
+
+    std::string file(file_path);
+    file += file_name;
+
+    strcpy((char*)global_IO.fullname, file.c_str());
+
+    global_IO.exactly =FALSE;
+    global_IO.zoom    = 1;
+    global_IO.smooth  = TRUE;
+    global_IO.width   = req_width; 
+    global_IO.height  = req_height; 
 
     if(loadImage(&global_IO) == ERROR){
         LOG_ERROR("Loading jpg file fails");
         return false;
     }
-    output_image.width = req_width;
-    output_image.height = req_height;
 
     fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
+//    fillImage(output_image.data, 160, 128, 160* 2, 0, 0);
+    ConvertJPG((void**)output_image.data, req_width, req_height);
+//    ConvertJPG((void**)output_image.data, 160, 128);
+
+    freeImage();
+
+    LAYOUT_RET ret;
+    ret = ctx->layout.GetGraphPos(pos, bitmap_w, bitmap_h);
+
+    switch(ret){
+        case LO_OK:
+            ctx->layout.AddGlyph(this);
+            break;
+        case LO_NEW_LINE:
+            ctx->layout.AddGlyph(this);
+            break;
+        case LO_NEW_PAGE:
+            ctx->layout.Reset();
+            return false;
+        default:
+            LOG_ERROR("Unsupported Layout return.");
+            break;
+    }
+
     return true;
 }
+
+void Graph::ConvertJPG(void* bmap, int w, int h){
+    // Convert image from RGB to Grayscale
+
+    bitmap = NULL;
+    int i = 0, j = 0;
+    int channel = 3;
+    int ind;
+    UINT16 color;
+    UINT8  r, g, b;
+    
+    bitmap = new uchar8[w * h * channel];
+    uchar8* nbmap = (uchar8 *)bitmap;
+    
+    for(j = h - 1; j >= 0; j--){
+	for(i = 0; i < w; i ++){
+	    ind = j * w + i;
+	    color = *((uint16*)((uchar8*)bmap + ind * 2));
+	    r = (color & 0x1F)<<3;
+	    g = (color & 0x7E0)>>3;
+	    b = (color & 0xF800)>>8;
+            *(uchar8*)nbmap = (6969 * (long int)r + 23434 * (long int)g + 2365 * (long int)b)/32768;
+            nbmap++;
+        }
+    }
+    bitmap_w = w;
+    bitmap_h = h;
+    LOG_EVENT("Color converted from RGBA to Grayscale.");
+}
+
 
 bool Graph::Draw(RenderMan* render){
     if (bitmap != NULL){
@@ -302,7 +377,7 @@ bool Graph::Draw(RenderMan* render){
         return false;
 }
 
-bool Graph::AdjustPos(int x, int y){
+bool Graph::Relocate(int x, int y){
     return true;
 }
 
