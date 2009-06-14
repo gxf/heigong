@@ -309,8 +309,8 @@ or uncomment below to ignore it, the previous might even crash wv ?
 
 <style name="Normal">
 <character>
-<begin><PropRMark.begin/><DispFldRMark.begin/><animation.begin/><fontstr.begin/><bold.begin/><italic.begin/><strike.begin/><RMarkDel.begin/><outline.begin/><smallcaps.begin/><caps.begin/><vanish.begin/><RMark.begin/><shadow.begin/><lowercase.begin/><emboss.begin/><imprint.begin/><dstrike.begin/><super.begin/><sub.begin/><singleu.begin/><wordu.begin/><doubleu.begin/><dottedu.begin/><hiddenu.begin/><thicku.begin/><dashu.begin/><dotu.begin/><dotdashu.begin/><dotdotdashu.begin/><waveu.begin/></begin>
-<end><waveu.end/><dotdotdashu.end/><dotdashu.end/><dotu.end/><dashu.end/><thicku.end/><hiddenu.end/><dottedu.end/><doubleu.end/><wordu.end/><singleu.end/><sub.end/><super.end/><dstrike.end/><imprint.end/><emboss.end/><lowercase.end/><shadow.end/><RMark.end/><vanish.end/><caps.end/><smallcaps.end/><outline.end/><RMarkDel.end/><strike.end/><italic.end/><bold.end/><fontstr.end/><animation.end/><DispFldRMark.end/><PropRMark.end/></end>
+<begin>&lt;myfont name=&quot;<fontname/>&quot; size=&quot;<fontsize/>&quot;&gt;<PropRMark.begin/><DispFldRMark.begin/><animation.begin/><fontstr.begin/><bold.begin/><italic.begin/><strike.begin/><RMarkDel.begin/><outline.begin/><smallcaps.begin/><caps.begin/><vanish.begin/><RMark.begin/><shadow.begin/><lowercase.begin/><emboss.begin/><imprint.begin/><dstrike.begin/><super.begin/><sub.begin/><singleu.begin/><wordu.begin/><doubleu.begin/><dottedu.begin/><hiddenu.begin/><thicku.begin/><dashu.begin/><dotu.begin/><dotdashu.begin/><dotdotdashu.begin/><waveu.begin/></begin>
+<end><waveu.end/><dotdotdashu.end/><dotdashu.end/><dotu.end/><dashu.end/><thicku.end/><hiddenu.end/><dottedu.end/><doubleu.end/><wordu.end/><singleu.end/><sub.end/><super.end/><dstrike.end/><imprint.end/><emboss.end/><lowercase.end/><shadow.end/><RMark.end/><vanish.end/><caps.end/><smallcaps.end/><outline.end/><RMarkDel.end/><strike.end/><italic.end/><bold.end/><fontstr.end/><animation.end/><DispFldRMark.end/><PropRMark.end/>&lt;/myfont&gt;</end>
 </character>
 
 <!-- Netscape does handle this correctly yet, here is how each different side of the border should work.
@@ -340,7 +340,8 @@ border-bottom: thin <borderbottomstyle/> <borderbottomcolor/>
 <text>	
 <begin>&lt;p&gt;&lt;div name=&quot;<stylename/>&quot; align=&quot;<just/>&quot; style=&quot;<paramargin/> <paraborder/> padding: <mmPadTop/> <mmPadRight/> <mmPadBottom/> <mmPadLeft/>; &quot;&gt; 
 
-&lt;p style=&quot;text-indent: <mmParaLeft1/>; text-align: <just/>; line-height: <mmLineHeight/>; color: <parafgcolor/>; background-color: <parabgcolor/>; &quot;&gt;</begin>
+&lt;p style=&quot;text-indent: <mmParaLeft1/>; text-align: <just/>; line-height: <mmLineHeight/>; color: <parafgcolor/>; background-color: <parabgcolor/>; &quot;&gt;
+</begin>
 
 <end>&lt;/p&gt;&lt;/div&gt;</end>
 </text>
