@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "DocParser.h"
 #include "Glyph.h"
+#include "Table.h"
 //#include "Line.h"
 #include "LayoutManager.h"
 #include <stdlib.h>
@@ -355,6 +356,7 @@ void DocParser::procWord(int & ch){
         }
     }
 }
+
 void DocParser::getMyFont(int &ch){
     skipBlanks(ch);
 
@@ -512,7 +514,7 @@ bool DocParser::match_b(const char* ch){
     return true;
 }
 
-void ParseTable(int & ch){
+void DocParser::ParseTable(int & ch){
     skipBlanks(ch);
 
     Table* tab = new Table(logger);
@@ -521,46 +523,66 @@ void ParseTable(int & ch){
     while('>' != ch){
         docStream >> ch;
         if (match_b("width=")){
-            tab->width = getFloat('\"') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL); 
+            tab->SetWidth((uint32)(getFloat('\"') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL))); 
         }
         else if (match_b("border=")){
-            tab->border = getInteger();
+            tab->SetBorder(getInteger());
         }
         else if (match_b("cols")){
-            tab->col = getInteger();
+            tab->SetCol(getInteger());
         }
         else if (match_b("rows")){
-            tab->row = getInteger();
+            tab->SetRow(getInteger());
         }
     }
 
     // Parse row by row
-    DocStream >> ch;
+    docStream >> ch;
 
     while(match_b("<\\table>")){
         getTR(ch, tab);
     }
+
+    glyphBuffer.push_back(tab);
 }
 
-void getTR(int & ch, Table* tab){
+void DocParser::getTR(int & ch, Table* tab){
     if (match("<tr>")){
+        Table_R * tr = new Table_R(logger, tab->GetWidth());
         while(!match_b("<\\tr>")){
             docStream >> ch;
-            getTD(ch, Table);
+            getTD(ch, tr);
         }
+        tab->AddTR(tr);
     }
 }
 
-void getTD(int &ch, Table* tab){
+void DocParser::getTD(int &ch, Table_R* tab_r){
     if (match("<td")){
+        uint32 width = tab_r->GetWidth();
+        uint32 rowspan = 1;
+        uint32 colspan = 1;
         // Get td attribute
         docStream >> ch;
         while('>' != ch){
-            if(match_b("width")){
+            if (match_b("width=")){
+                double ratio = getFloat('%');
+                width *= ratio;
+            }
+            else if (match_b("rowspan=")){
+                rowspan = getInteger();
+            }
+            else if (match_b("colspan=")){
+                colspan = getInteger();
             }
         }
+        Table_DC * td = new Table_DC(logger, width);
+        // TODO: get all data
+        tab_r->AddTD(td);
     }
 }
+
+/*****************************************************/
 // Auxilary functions
 void DocParser::skipBlanks(int & ch){
     // Skip blank spaces

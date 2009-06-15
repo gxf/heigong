@@ -38,3 +38,4 @@ void Line::DrawFlush(RenderMan* render){
     }
     Clear();
 }
+

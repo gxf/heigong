@@ -10,8 +10,10 @@
 class Logger;
 class Glyph;
 class Char;
-class LayoutManager;
 class Graph;
+class Table_Row;
+class Table;
+class LayoutManager;
 
 class DocParser{
     public:
@@ -55,6 +57,9 @@ class DocParser{
         void skipBlanks(int & ch);
         bool procLabel(int & ch);
         void procWord(int & ch);
+        void ParseTable(int & ch);
+        void getTR(int &ch, Table* tab);
+        void getTD(int &ch, Table_Row* tr);
 
     private:
         long int getInteger();

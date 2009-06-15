@@ -140,22 +140,6 @@ class Graph: public Glyph{
         char* file_path;
 };
 
-class Table: public Glyph{
-    public:
-        Table(Logger* log);
-
-    public:
-        bool Draw(RenderMan*);
-        bool Relocate(int, int);
-        bool Setup(Context* ctx);
-        Glyph* Dup();
-
-    public:
-        uint32 width;
-        uint32 col;
-        uint32 row;
-        uint32 border;
-};
 
 //} // namespace heigong
 
