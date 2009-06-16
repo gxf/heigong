@@ -1,8 +1,9 @@
 #ifndef LAYOUT_MANAGER_H
 #define LAYOUT_MANAGER_H
 
-#include "Line.h"
+#include "Common.h"
 
+class Glyph;
 class Logger;
 class FontsManager;
 class RenderMan;
@@ -16,23 +17,18 @@ enum LAYOUT_RET{
 class LayoutManager{
     public:
         LayoutManager(int w, int h, int m_v, int m_h, 
-                      Logger* log, RenderMan* render,
-                      int ls = 2, int ws = 2);
-        ~LayoutManager();
+                      Logger* log, int ls = 2, int ws = 2):
+            p_width(w), p_height(h), v_m_width(m_v), h_m_width(m_h), 
+            g_line_spacing(ls),g_word_spacing(ws),
+            curPos(m_v, m_h), 
+            curMaxHeight(0), lastMaxHeight(0),
+            curBaseline(0), lastBaseline(0),
+            firstLine(true), logger(log)
+        {}
+        virtual ~LayoutManager(){}
 
     public:
-        enum GLYTH_TYPE{
-            GT_CHAR,
-            GT_BITMAP,
-        };
-
-        // Interfaces
-        const Position GetProperPos(GLYTH_TYPE tp, int width, int height, int bearingY);
-
-        LAYOUT_RET NewLine();
-        void NewPage();
-
-    public:
+        // Accessor
         inline const int GetWidth(){ return p_width; }
         inline void SetWidth(const int wd){ p_width = wd; }
 
@@ -48,14 +44,15 @@ class LayoutManager{
         inline int GetCurBaseLine(){ return curBaseline; }
         inline int GetLastBaseLine(){ return lastBaseline; }
 
-        inline void AddGlyph(Glyph* g){ curLine->AddGlyph(g); }
     public:
-        LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
-        LAYOUT_RET GetGraphPos(Position & pos, int width, int height);
-            
-        void Reset();
+        virtual void AddGlyph(Glyph* g) = 0;
+        virtual LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY) = 0;
+        virtual LAYOUT_RET GetGraphPos(Position & pos, int width, int height) = 0;
+        virtual LAYOUT_RET NewLine() = 0;
+        virtual void NewPage() = 0;
+        virtual void Reset() = 0;
 
-    private:
+    protected:
         // Configuration
         int p_width;        // Page width
         int p_height;       // Page height
@@ -64,7 +61,7 @@ class LayoutManager{
         int g_line_spacing; // Global line spacing
         int g_word_spacing; // Global word spacing
 
-    private:
+    protected:
         // Status
         Position curPos;         // Current raster position
         int      curMaxHeight;   // Max height in one line
@@ -74,11 +71,8 @@ class LayoutManager{
 
         bool     firstLine;
 
-    public:
-        Line *   curLine;
-    private:
-        RenderMan* render;
-        Logger * logger;
+    protected:
+        Logger *    logger;
 };
 
 #endif

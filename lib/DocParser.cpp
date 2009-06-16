@@ -1,10 +1,8 @@
-#include "Common.h"
-#include "Logger.h"
 #include "DocParser.h"
 #include "Glyph.h"
 #include "Table.h"
-//#include "Line.h"
-#include "LayoutManager.h"
+#include "PageLayout.h"
+#include "TableLayout.h"
 #include <stdlib.h>
 #include <cstring>
 #include <cstdlib>
@@ -118,7 +116,12 @@ void DocParser::fillGlyphStream(LayoutManager* layout){
         docStream >> ch;    // EOF exception may throw
         skipBlanks(ch);
     }
-    layout->curLine->SetAttrib(lineAttrib);
+    PageLayout* pl = dynamic_cast<PageLayout *>(layout);
+    if (NULL == pl){
+        // This should not happen
+        exit(0);
+    }
+    pl->curLine->SetAttrib(lineAttrib);
 
     // proc the word content. 
     while(!delayedToken.empty()){
@@ -135,7 +138,7 @@ void DocParser::fillGlyphStream(LayoutManager* layout){
 }
 
 bool DocParser::procLabel(int & ch){
-    // Search label for attribute, image, hyperlink
+    // Search label for attribute, image, table, hyperlink
     docStream >> ch;
     // Only process certain labels
     switch(ch){
@@ -156,6 +159,8 @@ bool DocParser::procLabel(int & ch){
                 Char* c = new Char(logger);
                 c->SetVal('\n');
                 glyphBuffer.push_back(c);
+                while('>' != ch){ docStream >> ch; }
+                return false;   // Return immediately for line processing
             }
             // ignore all left labels start with 'd'
             while('>' != ch){ docStream >> ch; }
@@ -207,7 +212,7 @@ bool DocParser::procLabel(int & ch){
             break;
 	case 'm':
 	    if (match("yfont")){
-                getMyFont(ch);
+                getMyFont(ch, glyphAttrib);
                 break;
 	    }
             while('>' != ch){ docStream >> ch; }
@@ -228,7 +233,7 @@ bool DocParser::procLabel(int & ch){
             }
             else if (match_b("style") && match_b("=") && match("\"")){
                 // <p style="..."> 
-                getStyle(ch);
+                getStyle(ch, lineAttrib);
             }
             // ignore all left labels start with 'p'
             while('>' != ch){ docStream >> ch; }
@@ -258,7 +263,7 @@ bool DocParser::procLabel(int & ch){
                 Char* c = new Char(logger);
                 c->SetVal('\n');
                 glyphBuffer.push_back(c);
-                break;
+                return false;
             }
             if(match("title>")){
                 lineAttrib.Reset();
@@ -357,7 +362,7 @@ void DocParser::procWord(int & ch){
     }
 }
 
-void DocParser::getMyFont(int &ch){
+void DocParser::getMyFont(int &ch, Attrib_Glyph & glyphAttr){
     skipBlanks(ch);
 
     while('>' != ch){
@@ -366,12 +371,12 @@ void DocParser::getMyFont(int &ch){
             case 'n':
                 if (match("ame") && match_b("=")){
                     // TODO: FONT translate
-                    glyphAttrib.font = NULL;
+                    glyphAttr.font = NULL;
                 }
                 break;
             case 's':
                 if (match("ize") && match_b("=")){
-                    glyphAttrib.size = getInteger() / 2;
+                    glyphAttr.size = getInteger() / 2;
 //                    LOG_EVENT_STR2("Got size: ", glyphAttrib.size);
                 }
                 break;
@@ -381,7 +386,7 @@ void DocParser::getMyFont(int &ch){
     }
 }
 
-void DocParser::getStyle(int &ch){
+void DocParser::getStyle(int &ch, Attrib_Line & lineAttr){
     skipBlanks(ch);
 
     while('\"' != ch){
@@ -390,35 +395,35 @@ void DocParser::getStyle(int &ch){
             case 't':
                 if (match("ext-indent:")){
                     if (LM_NONE == listMode){
-                        lineAttrib.indent = getFloat('m') * (DPI) / 25.4;
+                        lineAttr.indent = getFloat('m') * (DPI) / 25.4;
                     }
                 }
                 else if (match("ext-align:")){
                     skipBlanks(ch);
                     char* align = getString(';');
                     if(strcmp(align, "center") == 0){
-                        lineAttrib.align = A_CENTRAL;
+                        lineAttr.align = A_CENTRAL;
                     }
                     else if(strcmp(align, "left") == 0){
-                        lineAttrib.align = A_LEFT;
+                        lineAttr.align = A_LEFT;
                     }
                     else if(strcmp(align, "right") == 0){
-                        lineAttrib.align = A_RIGHT;
+                        lineAttr.align = A_RIGHT;
                     }
                     delete align;
                 }
                 break;
             case 'l':
                 if(match("ine-height:")){
-                    lineAttrib.height = getFloat('m') * (DPI) / 25.4;
+                    lineAttr.height = getFloat('m') * (DPI) / 25.4;
                 }
                 break;
             default:
                 break;
         }
     }
-
 }
+
 void DocParser::getGraphAttrib(int & ch, Graph & img){
     skipBlanks(ch);
 
@@ -461,59 +466,7 @@ void DocParser::getGraphAttrib(int & ch, Graph & img){
     }
 }
 
-bool DocParser::match(char ch){
-    int c;
-    docStream >> c;
-    if (c == ch){
-        return true;
-    }
-    docStream << c;
-    return false;
-}
-
-bool DocParser::match(const char* ch){
-    int c;
-    int i = 0;
-
-    while ('\0' != ch[i]){
-        docStream >> c;
-        if (c != (int)ch[i]){
-            docStream << c;
-            while(--i >= 0){
-                int tmp = (int)ch[i];
-                docStream << tmp;
-            }
-            return false;
-        }
-        i++;
-    }
-    return true;
-}
-
-bool DocParser::match_b(const char* ch){
-    int c;
-    int i = 0;
-
-    int beg = i;
-    while ('\0' != ch[i]){
-        // Skip blank spaces
-        do{
-            docStream >> c;
-        }
-        while(' ' == c || '\t' == c || '\n' == c);
-        if (c != ch[i]){
-            docStream << c;
-            while(--i >= beg){
-                int tmp = (int)ch[i];
-                docStream << tmp;
-            }
-            return false;
-        }
-        i++;
-    }
-    return true;
-}
-
+// Table related
 void DocParser::ParseTable(int & ch){
     skipBlanks(ch);
 
@@ -578,12 +531,285 @@ void DocParser::getTD(int &ch, Table_R* tab_r){
         }
         Table_DC * td = new Table_DC(logger, width);
         // TODO: get all data
-        tab_r->AddTD(td);
+        while(true){
+            docStream  >>  ch;
+            while(ch == '<'){
+                if(false == procTableLabel(ch, td));{ 
+                    tab_r->AddTD(td);
+                    return;
+                }
+            }
+            docStream >> ch;    // EOF exception may throw
+            skipBlanks(ch);
+    
+            // TODO: set line attrib
+            //    layout->curLine->SetAttrib(lineAttrib);
+
+            td->PushDelayedLabel();
+
+            // proc the word content. 
+            while(ch != '<'){
+                procTableWord(ch, td);
+                docStream >> ch;
+            }
+            if (ch == '<'){
+                docStream << ch;
+            }
+        }
     }
 }
 
+bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
+    // Search label for attribute, image, hyperlink
+    docStream >> ch;
+    // Only process certain labels
+    switch(ch){
+        case 'b':
+            if(match("r>")){
+                // interpret <br> to new line
+                Char* c = new Char(logger);
+                c->SetVal('\n');
+                tdc->AddChar(c);
+//                return false;   // Return immediately for line processing
+            }
+            // ignore all left labels start with 'b'
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'd':
+            if(match("iv")){
+                // TODO: <div ...>
+                Char* c = new Char(logger);
+                c->SetVal('\n');
+                tdc->AddChar(c);
+            }
+            // ignore all left labels start with 'd'
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'i':
+            // Image inside of table is not supported 
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'l':
+            if(match("i")){
+                Char* label;
+                switch(listMode){
+                    case LM_ORDER:
+                        if(match_b("value=")){
+                            label = new Char(logger);
+                            // Notice: not larger than 10
+                            label->SetVal('0' + getInteger());
+                            tdc->AddDelayedChar(label);
+                            label = new Char(logger);
+                            label->SetVal('.');
+                            tdc->AddDelayedChar(label);
+                            label = new Char(logger);
+                            label->SetVal(' ');
+                            tdc->AddDelayedChar(label);
+                        }
+                        break;
+                    case LM_UNORDER:
+                        label = new Char(logger);
+                        label->SetVal(' ');
+                        tdc->AddDelayedChar(label);
+                        label = new Char(logger);
+                        label->SetVal('*');
+                        tdc->AddDelayedChar(label);
+                        label = new Char(logger);
+                        label->SetVal(' ');
+                        tdc->AddDelayedChar(label);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'm':
+            if (match("yfont")){
+                getMyFont(ch, tdc->glyphAttrib);
+                break;
+            }
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'o':
+            if(match("l") && match_b(">")){
+                listMode = LM_ORDER;
+                break;
+            }
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'p':
+            if(match(">")){
+                Char* c = new Char(logger);
+                c->SetVal('\n');
+                tdc->AddChar(c);
+                return false;   // Return immediately for line processing
+            }
+            else if (match_b("style") && match_b("=") && match("\"")){
+                // <p style="..."> 
+                getStyle(ch, tdc->lineAttrib);
+            }
+            // ignore all left labels start with 'p'
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 'u':
+            if(match("l") && match_b(">")){
+                listMode = LM_UNORDER;
+                break;
+            }
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case 't':
+            // Table inside of table is not supported
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case '/':
+            if(match("div>")){
+                Char* c = new Char(logger);
+                c->SetVal('\n');
+                tdc->AddChar(c);
+                break;
+            }
+            else if(match("ol>")){
+                listMode = LM_NONE;
+                break;
+            }
+            else if(match("ul>")){
+                listMode = LM_NONE;
+                break;
+            }
+            else if(match("myfont>")){
+                tdc->glyphAttrib.Reset();
+                break;
+            }
+            else if (match("td>")){
+                return false;
+            }
+            while('>' != ch){ docStream >> ch; }
+            break;
+        case '!':
+            if(match("--")){
+                while(!match_b("-->")){
+                    docStream >> ch;
+                }
+                break;
+            }
+            // ignore all left labels start with '!'
+            while('>' != ch){ docStream >> ch; }
+            break;
+        default:
+            // ignore all other labels
+            while('>' != ch){ docStream >> ch; }
+            break;
+    }
+    return true;
+}
+
+void DocParser::procTableWord(int & ch, Table_DC * tdc){ 
+    Char* c = new Char(logger);
+    c->SetAttrib(tdc->glyphAttrib);
+    // But translate special tokens
+    // <    == &lt
+    // >    == &gt  
+    // &    == &amp
+    // "    == &quot
+    // blank == &nbsp
+    // “    == &ldquo
+    // ”    == &rdquo
+    // －   == &mdash
+#define FourBytes(a, b, c, d) (d << 24 | c << 16 | b << 8 | a)
+    if (ch == '&'){
+        if (match("lt;")){ 
+            c->SetVal('<'); 
+        }
+        else if (match("gt;")){ 
+            c->SetVal('>'); 
+        }
+        else if (match("amp;")){ 
+            c->SetVal('&'); 
+        } 
+        else if (match("quot;")){ 
+            c->SetVal('\"'); 
+        }
+        else if (match("nbsp;")){ 
+            c->SetVal(' '); 
+        } 
+        else if (match("ldquo;")){ 
+//            c->SetVal(FourBytes(0xe2, 0x80, 0x9c, 0x00)); 
+            c->SetVal('\"');    // Work around
+        } 
+        else if (match("rdquo;")){ 
+//            c->SetVal(FourBytes(0xe2, 0x80, 0x9d, 0x00)); 
+            c->SetVal('\"');    // Work around
+        } 
+
+        else if (match("mdash;")){ 
+//            c->SetVal(FourBytes(0xef, 0xbc, 0x8d, 0x00)); 
+            c->SetVal('-');    // Work around
+        } 
+    }
+    docStream << ch; 
+    docStream >> *c;
+    tdc->AddChar(c);
+}
+
 /*****************************************************/
-// Auxilary functions
+/*              Auxilary functions                  */
+/*****************************************************/
+
+bool DocParser::match(char ch){
+    int c;
+    docStream >> c;
+    if (c == ch){
+        return true;
+    }
+    docStream << c;
+    return false;
+}
+
+bool DocParser::match(const char* ch){
+    int c;
+    int i = 0;
+
+    while ('\0' != ch[i]){
+        docStream >> c;
+        if (c != (int)ch[i]){
+            docStream << c;
+            while(--i >= 0){
+                int tmp = (int)ch[i];
+                docStream << tmp;
+            }
+            return false;
+        }
+        i++;
+    }
+    return true;
+}
+
+bool DocParser::match_b(const char* ch){
+    int c;
+    int i = 0;
+
+    int beg = i;
+    while ('\0' != ch[i]){
+        // Skip blank spaces
+        do{
+            docStream >> c;
+        }
+        while(' ' == c || '\t' == c || '\n' == c);
+        if (c != ch[i]){
+            docStream << c;
+            while(--i >= beg){
+                int tmp = (int)ch[i];
+                docStream << tmp;
+            }
+            return false;
+        }
+        i++;
+    }
+    return true;
+}
+
 void DocParser::skipBlanks(int & ch){
     // Skip blank spaces
     while(' ' == ch || '\t' == ch || '\n' == ch){

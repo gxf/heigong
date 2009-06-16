@@ -11,6 +11,7 @@ class Logger;
 class Glyph;
 class Char;
 class Graph;
+class Table_Data_Cell;
 class Table_Row;
 class Table;
 class LayoutManager;
@@ -51,22 +52,26 @@ class DocParser{
 
     private:
         void fillGlyphStream(LayoutManager* layout);
-        void getStyle(int & ch);
+        void getStyle(int & ch, Attrib_Line & la);
         void getGraphAttrib(int & ch, Graph & img);
-       	void getMyFont(int &ch);
+       	void getMyFont(int &ch, Attrib_Glyph & ga);
         void skipBlanks(int & ch);
         bool procLabel(int & ch);
         void procWord(int & ch);
+
+        // Table related
         void ParseTable(int & ch);
         void getTR(int &ch, Table* tab);
         void getTD(int &ch, Table_Row* tr);
+        bool procTableLabel(int & ch, Table_Data_Cell * tdc);
+        void procTableWord(int & ch, Table_Data_Cell * tdc);
 
-    private:
+    protected:
         long int getInteger();
         double getFloat(int term);
         char* getString(int term);
 
-    private:
+    protected:
         enum LIST_MODE{
             LM_NONE,
             LM_DIR,      // <dir>, directory list

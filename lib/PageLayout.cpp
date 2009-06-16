@@ -1,45 +1,22 @@
 #include "Common.h"
 #include "Line.h"
 #include "Logger.h"
-#include "LayoutManager.h"
+#include "PageLayout.h"
 #include "FontsManager.h"
 #include "RenderMan.h"
 
-LayoutManager::LayoutManager(int w, int h, int mv, int mh, 
-                             Logger* log, RenderMan * r, int ls, int ws):
-    p_width(w), p_height(h), 
-    v_m_width(mv), h_m_width(mh), 
-    g_line_spacing(ls),g_word_spacing(ws),
-    curPos(mv, mh), 
-    curMaxHeight(0), lastMaxHeight(0),
-    curBaseline(0), lastBaseline(0),
-    firstLine(true),
-    render(r), logger(log)
+PageLayout::PageLayout(int w, int h, int mv, int mh, 
+                       Logger* log, RenderMan * r, int ls, int ws):
+    LayoutManager(w, h, mv, mh, log, ls, ws), render(r)
 {
     curLine = new Line(log, this, w, mv);
 }
 
-LayoutManager::~LayoutManager(){}
-
-const Position LayoutManager::GetProperPos(GLYTH_TYPE tp, int width, int height, int bearingY){
-    Position pos(0, 0);
-
-    switch(tp){
-        case GT_CHAR:
-            GetCharPos(pos, width, height, bearingY);
-            break;
-        case GT_BITMAP:
-            GetGraphPos(pos, width, height);
-            break;
-        default:
-            LOG_ERROR("Unsupported glyth type.");
-            break;
-    }
-
-    return pos;
+PageLayout::~PageLayout(){
+    delete curLine;
 }
 
-LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int bearingY){
+LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bearingY){
     // Setting up baseline and maxheight
     curBaseline =  (curBaseline > bearingY) ? curBaseline : bearingY;
     int delta = height - bearingY;
@@ -114,7 +91,7 @@ LAYOUT_RET LayoutManager::GetCharPos(Position & pos, int width, int height, int 
     }
 }
 
-LAYOUT_RET LayoutManager::GetGraphPos(Position & pos, int width, int height){
+LAYOUT_RET PageLayout::GetGraphPos(Position & pos, int width, int height){
     curMaxHeight = (curMaxHeight > height) ? curMaxHeight : height;
     int Xoff;
     if (firstLine){
@@ -185,7 +162,7 @@ LAYOUT_RET LayoutManager::GetGraphPos(Position & pos, int width, int height){
     }
 }
 
-LAYOUT_RET LayoutManager::NewLine(){
+LAYOUT_RET PageLayout::NewLine(){
     firstLine = true;
 
     int Yoff = g_line_spacing;
@@ -232,7 +209,7 @@ LAYOUT_RET LayoutManager::NewLine(){
 
 }
 
-void LayoutManager::NewPage(){
+void PageLayout::NewPage(){
     curPos.x = v_m_width;
     curPos.y = h_m_width;
     uint32 Yoff = g_line_spacing + curMaxHeight;
@@ -249,7 +226,7 @@ void LayoutManager::NewPage(){
     curBaseline     = 0;
 }
 
-void LayoutManager::Reset(){
+void PageLayout::Reset(){
     curPos.x = v_m_width;
     curPos.y = h_m_width;
 

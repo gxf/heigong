@@ -2,6 +2,7 @@
 #define HG_TABLE_H
 
 #include "Glyph.h"
+#include "TableLayout.h"
 #include <vector>
 #include <queue>
 #include <deque>
@@ -9,6 +10,7 @@
 typedef class Table_Data_Cell: public Glyph{
     public:
         Table_Data_Cell(Logger* log, uint32 w);
+        ~Table_Data_Cell();
 
     public:
         bool Draw(RenderMan*);
@@ -17,25 +19,39 @@ typedef class Table_Data_Cell: public Glyph{
         Glyph* Dup();
 
     public:
+        inline void AddChar(Char* ch){ glyphBuffer.push_back(ch); }
+        inline void AddDelayedChar(Char* label){ delayedToken.push(label); }
+        inline void PushDelayedLabel(){ 
+            while(!delayedToken.empty()){
+                glyphBuffer.push_back(delayedToken.front());
+                delayedToken.pop();
+            }
+        }
+
+    public:
         inline uint32 GetHeight(){ return height; }
 
     public:
         uint32 width;
         uint32 height;
 
+    public:
+        Attrib_Glyph        glyphAttrib;
+        Attrib_Line         lineAttrib;
+
+    public:
+        TableLayout rowLayout;
+
     private:
         std::queue<Glyph*>  delayedToken;
         std::deque<Glyph*>  glyphBuffer;
-
-    private:
-        Attrib_Glyph        glyphAttrib;
-        Attrib_Line         lineAttrib;
 
 }Table_DC;
 
 typedef class Table_Row: public Glyph{
     public:
         Table_Row(Logger* log, uint32 w);
+        ~Table_Row();
 
     public:
         bool Draw(RenderMan*);
@@ -52,6 +68,7 @@ typedef class Table_Row: public Glyph{
         uint32 width;
         uint32 height;
 
+
     public:
         std::vector<Table_DC*> dataCells;
 
@@ -60,6 +77,7 @@ typedef class Table_Row: public Glyph{
 class Table: public Glyph{
     public:
         Table(Logger* log);
+        ~Table();
 
     public:
         bool Draw(RenderMan*);
@@ -71,7 +89,7 @@ class Table: public Glyph{
         inline uint32 GetWidth(){ return width; }
         inline void SetWidth(uint32 w){ width = w; }
         inline void SetCol(uint32 c){ col = c; }
-        inline void SetRow(uint32 r){ row = w; }
+        inline void SetRow(uint32 r){ row = r; }
         inline void SetBorder(uint32 b){ border = b; }
         inline void AddTR(Table_R * tr){ rows.push_back(tr); }
 

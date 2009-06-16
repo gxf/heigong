@@ -2,6 +2,7 @@
 #define DOC_STREAM_H
 
 #include "Common.h"
+#include <stdio.h>
 
 class Char;
 class Logger;

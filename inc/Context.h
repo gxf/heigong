@@ -1,22 +1,18 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 
-#include "Common.h"
-#include "Logger.h"
 #include "RenderMan.h"
 #include "FontsManager.h"
 #include "FontsCache.h"
-#include "LayoutManager.h"
+#include "PageLayout.h"
 #include "DocParser.h"
-#include "Glyph.h"
-#include "Line.h"
 #include "PageManager.h"
 
 class Context{
     public:
         FontsManager    fonts;
         RenderMan       render;
-        LayoutManager   layout;
+        PageLayout      layout;
         FontsCache      ftCache;
         DocParser       docParse;
         PageManager     pgMgr;

@@ -91,6 +91,9 @@ enum ENCODING_MODE{
 #define MARGIN_VERTICAL     30
 #define MARGIN_HORIZONTAL   30
 
+#define TABLE_MARGIN_VERTICAL     3
+#define TABLE_MARGIN_HORIZONTAL   3
+
 #define IMAGE_GAURD_SIZE    40
 
 #define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-droid/DroidSansFallback.ttf"

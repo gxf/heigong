@@ -1,5 +1,6 @@
 #include "Logger.h"
-#include "LayoutManager.h"
+#include "PageLayout.h"
+#include "RenderMan.h"
 
 void Line::AddGlyph(Glyph* glyph){
     glyphs.push_back(glyph);

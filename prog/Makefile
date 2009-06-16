@@ -8,16 +8,25 @@ VPATH=$(INC_DIR):$(BUILD_DIR)
 
 TARGETS=libprog.a
 
-OBJECTS=hgMaster.o
+CPP_SRC_FILES=$(shell ls *.cpp)
+SRC_FILES=$(CPP_SRC_FILES)
+OBJ_FILES=$(subst .cpp,.o,$(CPP_SRC_FILES))
+DEP_FILES=$(addprefix $(BUILD_DIR)/,$(subst .cpp,.d,$(CPP_SRC_FILES)))	\
+		  $(addprefix $(BUILD_DIR)/,$(subst .c,.d,$(C_SRC_FILES)))
 
 all: $(TARGETS)
 
-libprog.a: hgMaster.o
+libprog.a: $(OBJ_FILES)
 	$(AR) $(BUILD_DIR)/$@  $(addprefix $(BUILD_DIR)/,$^)
 
-hgMaster.o: hgMaster.cpp MayTwelfth.h Logger.h RenderMan.h FontsManager.h LayoutManager.h DocParser.h Common.h Glyph.h Line.h Page.h PageCache.h PageManager.h
-	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(BUILD_DIR)/$@
+-include $(DEP_FILES)
+
+$(BUILD_DIR)/%.d: %.cpp
+	@set -e; rm -f $(BUILD_DIR)/$@; \
+	$(CC) -MM $(CPPFLAGS) $< | sed 's,\($*\)\.o[ :]*,\1.o $(BUILD_DIR)/$@ : ,g' > $(BUILD_DIR)/$@; \
+	echo "	$(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(subst .d,.o,$@) " >> $(BUILD_DIR)/$@
 
 clean:
-	$(RM) $(addprefix $(BUILD_DIR)/,$(OBJECTS))
+	$(RM) $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
+	$(RM) $(DEP_FILES)
 	$(RM) $(BUILD_DIR)/$(TARGETS)
