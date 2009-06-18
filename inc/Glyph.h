@@ -12,7 +12,7 @@ class LayoutManager;
 class PageManager;
 class Logger;
 class FontsCache;
-class Context;
+class FontsManager;
 
 class Glyph{
     public:
@@ -24,9 +24,9 @@ class Glyph{
         virtual ~Glyph(){}
 
     public:
-        virtual bool Draw(RenderMan*) = 0;
+        virtual bool Draw(RenderMan&) = 0;
         virtual bool Relocate(int x, int y) = 0;
-        virtual bool Setup(Context* ctx) = 0;
+        virtual bool Setup(LayoutManager& lo) = 0;
         virtual Glyph * Dup() = 0;
 
     public:
@@ -82,9 +82,9 @@ class Char: public Glyph{
 
     public:
         unsigned int GetVal(ENCODING_MODE em = EM_UTF_8);
-        bool Draw(RenderMan*);
+        bool Draw(RenderMan&);
         bool Relocate(int, int);
-        bool Setup(Context* ctx);
+        bool Setup(LayoutManager& lo);
         Glyph* Dup();
 
     public:
@@ -98,6 +98,7 @@ class Char: public Glyph{
 
     private:
         static FontsCache ftCache;
+        static FontsManager ftMgr;
 };
 
 class Graph: public Glyph{
@@ -114,9 +115,9 @@ class Graph: public Glyph{
         }IF_T;
 
     public:
-        bool Draw(RenderMan*);
+        bool Draw(RenderMan&);
         bool Relocate(int, int);
-        bool Setup(Context* ctx);
+        bool Setup(LayoutManager& lo);
         Glyph* Dup();
 
     public:
@@ -125,8 +126,8 @@ class Graph: public Glyph{
         void SetSrcFile(const char* src);
 
     protected:
-        bool SetupPNG(Context* ctx, FILE* fp);
-        bool SetupJPG(Context* ctx, FILE* fp);
+        bool SetupPNG(LayoutManager& lo, FILE* fp);
+        bool SetupJPG(LayoutManager& lo, FILE* fp);
         IF_T DetectFormat(const char*, FILE * fp);
         void Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 b_depth, int channel);
         void ConvertJPG(void* bmap, int w, int h);

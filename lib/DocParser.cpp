@@ -1,8 +1,7 @@
-#include "DocParser.h"
-#include "Glyph.h"
 #include "Table.h"
 #include "PageLayout.h"
 #include "TableLayout.h"
+#include "DocParser.h"
 #include <stdlib.h>
 #include <cstring>
 #include <cstdlib>
@@ -42,7 +41,7 @@ void DocParser::ClearGlyphStream(){
 DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph, LayoutManager * layout){
     // Retrieve first when glyphBuffer is not empty
     if (!(glyphBuffer.empty())){
-        *glyph = glyphBuffer.front();
+        *glyph = glyphBuffer.front(); 
         glyphBuffer.pop_front();
         return DP_OK;
     }
@@ -500,17 +499,18 @@ void DocParser::ParseTable(int & ch){
 }
 
 void DocParser::getTR(int & ch, Table* tab){
+    uint32 xoffset = 0;
     if (match("<tr>")){
         Table_R * tr = new Table_R(logger, tab->GetWidth());
         while(!match_b("<\\tr>")){
             docStream >> ch;
-            getTD(ch, tr);
+            getTD(ch, tr, xoffset);
         }
         tab->AddTR(tr);
     }
 }
 
-void DocParser::getTD(int &ch, Table_R* tab_r){
+void DocParser::getTD(int &ch, Table_R* tab_r, uint32 &off){
     if (match("<td")){
         uint32 width = tab_r->GetWidth();
         uint32 rowspan = 1;
@@ -529,7 +529,9 @@ void DocParser::getTD(int &ch, Table_R* tab_r){
                 colspan = getInteger();
             }
         }
-        Table_DC * td = new Table_DC(logger, width);
+        Table_DC * td = new Table_DC(logger, width, off);
+        off += width;
+
         // TODO: get all data
         while(true){
             docStream  >>  ch;
@@ -539,11 +541,13 @@ void DocParser::getTD(int &ch, Table_R* tab_r){
                     return;
                 }
             }
-            docStream >> ch;    // EOF exception may throw
+            // If wvWare works fine, the EOF will not throw
+            // No handle to EOF
+            docStream >> ch;    
             skipBlanks(ch);
     
-            // TODO: set line attrib
-            //    layout->curLine->SetAttrib(lineAttrib);
+            // set line attrib
+            td->cellLayout.curLine->SetAttrib(lineAttrib);
 
             td->PushDelayedLabel();
 

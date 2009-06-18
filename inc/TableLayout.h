@@ -1,7 +1,10 @@
 #ifndef TABLE_LAYOUT_H
 #define TABLE_LAYOUT_H
 
+#include "Line.h"
 #include "LayoutManager.h"
+
+class Line;
 
 class TableLayout : public LayoutManager{
     public:
@@ -10,14 +13,22 @@ class TableLayout : public LayoutManager{
         ~TableLayout();
 
     public:
-        void AddGlyph(Glyph* g){}
+        // Interfaces
+        void AddGlyph(Glyph* g){ curLine->AddGlyph(g); }
         LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
         LAYOUT_RET GetGraphPos(Position & pos, int width, int height){
+            // Not supported yet
             return LO_OK;
-        } // Not supported yet
+        }
         LAYOUT_RET NewLine();
         void NewPage(){}
         void Reset();
+
+    public:
+        int GetMaxHeight(){ return curPos.y + curMaxHeight; }
+
+    public:
+        Line* curLine;
 
 };
 

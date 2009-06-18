@@ -25,7 +25,6 @@ May12th::~May12th(){
 void May12th::Init(uint32 fontSize){
     ctx->layout.NewPage();
     ctx->layout.SetLineSpacing(fontSize/4);
-    ctx->fonts.SetFontSize(fontSize);
 }
 
 void May12th::Display(int page_num){
@@ -71,7 +70,7 @@ void May12th::Display(int page_num){
 
         switch(dp_ret){
             case DocParser::DP_OK:
-                if(false == glyph->Setup(ctx)){
+                if(false == glyph->Setup(ctx->layout)){
                     ctx->render.Flush();
                     ctx->pgMgr.EndPage(page_num, &ctx->render);
                     return;

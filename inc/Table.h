@@ -9,13 +9,13 @@
 
 typedef class Table_Data_Cell: public Glyph{
     public:
-        Table_Data_Cell(Logger* log, uint32 w);
+        Table_Data_Cell(Logger* log, uint32 w, uint32 o);
         ~Table_Data_Cell();
 
     public:
-        bool Draw(RenderMan*);
+        bool Draw(RenderMan&);
         bool Relocate(int, int);
-        bool Setup(Context* ctx);
+        bool Setup(LayoutManager& lo);
         Glyph* Dup();
 
     public:
@@ -29,18 +29,18 @@ typedef class Table_Data_Cell: public Glyph{
         }
 
     public:
-        inline uint32 GetHeight(){ return height; }
+        inline uint32 GetHeight(){ return cellLayout.GetMaxHeight(); }
 
     public:
         uint32 width;
-        uint32 height;
+        uint32 xoff;
 
     public:
         Attrib_Glyph        glyphAttrib;
         Attrib_Line         lineAttrib;
 
     public:
-        TableLayout rowLayout;
+        TableLayout cellLayout;
 
     private:
         std::queue<Glyph*>  delayedToken;
@@ -54,9 +54,9 @@ typedef class Table_Row: public Glyph{
         ~Table_Row();
 
     public:
-        bool Draw(RenderMan*);
+        bool Draw(RenderMan&);
         bool Relocate(int, int);
-        bool Setup(Context* ctx);
+        bool Setup(LayoutManager& lo);
         Glyph* Dup();
 
     public:
@@ -67,7 +67,6 @@ typedef class Table_Row: public Glyph{
     public:
         uint32 width;
         uint32 height;
-
 
     public:
         std::vector<Table_DC*> dataCells;
@@ -80,9 +79,9 @@ class Table: public Glyph{
         ~Table();
 
     public:
-        bool Draw(RenderMan*);
+        bool Draw(RenderMan&);
         bool Relocate(int, int);
-        bool Setup(Context* ctx);
+        bool Setup(LayoutManager& lo);
         Glyph* Dup();
 
     public:

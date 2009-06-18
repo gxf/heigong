@@ -2,9 +2,9 @@
 #include "TableLayout.h"
 #include "RenderMan.h"
 
-Table_Data_Cell::Table_Data_Cell(Logger * log, uint32 w):
-    Glyph(log), width(w), rowLayout(w, 0, TABLE_MARGIN_VERTICAL, TABLE_MARGIN_HORIZONTAL, log)
-{
+Table_Data_Cell::Table_Data_Cell(Logger * log, uint32 w, uint32 o):
+    Glyph(log), width(w), xoff(o),
+    cellLayout(w, 0, TABLE_MARGIN_VERTICAL, TABLE_MARGIN_HORIZONTAL, log){
 }
 
 Table_Data_Cell::~Table_Data_Cell(){
@@ -25,15 +25,31 @@ Table::Table(Logger* log):
 Table::~Table(){
 }
 
-bool Table_Data_Cell::Setup(Context * ctx){
+/*************************************/
+// Table data cell 
+/*************************************/
+
+bool Table_Data_Cell::Setup(LayoutManager& lo){
+    std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
+    while(itr != glyphBuffer.end()){
+        (*itr) -> Setup(lo);
+    }
     return true;
 }
 
-bool Table_Data_Cell::Draw(RenderMan* render){
+bool Table_Data_Cell::Draw(RenderMan& render){
+    std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
+    while(itr != glyphBuffer.end()){
+        (*itr)->Draw(render);
+    }
     return true;
 }
 
 bool Table_Data_Cell::Relocate(int x, int y){
+    std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
+    while(itr != glyphBuffer.end()){
+        (*itr)->Relocate(x + xoff, y);
+    }
     return true;
 }
 
@@ -41,15 +57,30 @@ Glyph* Table_Data_Cell::Dup(){
     return NULL;
 }
 
-bool Table_Row::Setup(Context * ctx){
+/*************************************/
+// Table rows
+/*************************************/
+bool Table_Row::Setup(LayoutManager& lo){
+    std::vector<Table_DC*>::iterator itr = dataCells.begin();
+    while(itr != dataCells.end()){
+        (*itr) -> Setup((*itr)->cellLayout);
+    }
     return true;
 }
 
-bool Table_Row::Draw(RenderMan* render){
+bool Table_Row::Draw(RenderMan& render){
+    std::vector<Table_DC*>::iterator itr = dataCells.begin();
+    while(itr != dataCells.end()){
+        (*itr)->Draw(render);
+    }
     return true;
 }
 
 bool Table_Row::Relocate(int x, int y){
+    std::vector<Table_DC*>::iterator itr = dataCells.begin();
+    while(itr != dataCells.end()){
+        (*itr)->Relocate(x, y);
+    }
     return true;
 }
 
@@ -57,7 +88,7 @@ Glyph* Table_Row::Dup(){
     return NULL;
 }
 
-bool Table::Draw(RenderMan* render){
+bool Table::Draw(RenderMan& render){
     std::vector<Table_Row *>::iterator itr = rows.begin();
     while(itr != rows.end()){
         if (false == (*itr) -> Draw(render)){
@@ -77,7 +108,13 @@ bool Table::Relocate(int x, int y){
     return true;
 }
 
-bool Table::Setup(Context * ctx){
+bool Table::Setup(LayoutManager& lo){
+    std::vector<Table_Row *>::iterator itr = rows.begin();
+    while(itr != rows.end()){
+        if (false == (*itr) -> Setup(lo)){
+            return false;
+        }
+    }
     return true;
 }
 

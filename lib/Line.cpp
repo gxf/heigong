@@ -14,7 +14,7 @@ void Line::Clear(){
     curWidth = margin;
 }
 
-void Line::DrawFlush(RenderMan* render){
+void Line::RelocLine(){
     int baseline = layout->GetLastBaseLine();
     int xShift = 0;
     switch(attrib.align){
@@ -34,7 +34,15 @@ void Line::DrawFlush(RenderMan* render){
     std::vector<Glyph*>::iterator itr = glyphs.begin();
     while (itr != glyphs.end()){
         (*itr)->Relocate(xShift, baseline);
-        (*itr)->Draw(render);
+        ++itr;
+    }
+}
+
+void Line::DrawFlush(RenderMan* render){
+    RelocLine();
+    std::vector<Glyph*>::iterator itr = glyphs.begin();
+    while (itr != glyphs.end()){
+        (*itr)->Draw(*render);
         ++itr;
     }
     Clear();

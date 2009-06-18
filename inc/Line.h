@@ -30,6 +30,7 @@ class Line{
 
         void Clear();
         void DrawFlush(RenderMan* render);
+        void RelocLine();
 
     public:
         inline void SetLeftAligned(){ attrib.align = A_LEFT; }

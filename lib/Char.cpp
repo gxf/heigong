@@ -1,9 +1,16 @@
-#include "Context.h"
+#include "Logger.h"
+#include "Glyph.h"
+#include "FontsCache.h"
+#include "FontsManager.h"
+#include "LayoutManager.h"
+#include "RenderMan.h"
 #include "utf8.h"
 #include <vector>
 
 //using namespace heigong;
+static Logger ftlogger;
 FontsCache Char::ftCache;
+FontsManager Char::ftMgr(&ftlogger);
 
 Char::Char(Logger* log, int bl, ID cid):
     Glyph(log), baseline(bl), 
@@ -50,17 +57,17 @@ bool Char::Relocate(int align, int bl){
     return true;
 }
 
-bool Char::Draw(RenderMan * render){
-    return render->RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
+bool Char::Draw(RenderMan & render){
+    return render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
 }
 
-bool Char::Setup(Context* ctx){
+bool Char::Setup(LayoutManager& layout){
     if ('\n' == GetVal()){
-        switch(ctx->layout.NewLine()){
+        switch(layout.NewLine()){
             case LO_OK:
                 return true;
             case LO_NEW_PAGE:
-                ctx->layout.Reset();
+                layout.Reset();
                 return false;
             default:
                 LOG_ERROR("Unsupported Layout Newline return.");
@@ -70,28 +77,28 @@ bool Char::Setup(Context* ctx){
     FT_GlyphSlot glyphSlot;
 
     if (0 == attrib.size || 
-        false == ctx->fonts.SetFontSize(attrib.size)){
-        ctx->fonts.SetFontSize(DEFAULT_FONT_SIZE);
+        false == ftMgr.SetFontSize(attrib.size)){
+        ftMgr.SetFontSize(DEFAULT_FONT_SIZE);
     }
-    ctx->fonts.GetGlyphSlot((FT_ULong)GetVal(EM_UTF_32), &glyphSlot);
+    ftMgr.GetGlyphSlot((FT_ULong)GetVal(EM_UTF_32), &glyphSlot);
     baseline = ((glyphSlot->metrics.horiBearingY) >> 6);
     ftCache.CacheFont(this, 
             glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
             glyphSlot->bitmap.buffer);
-    ctx->fonts.SetFontSize(DEFAULT_FONT_SIZE);
+    ftMgr.SetFontSize(DEFAULT_FONT_SIZE);
     LAYOUT_RET ret = 
-        ctx->layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
-                               glyphSlot->bitmap.rows, baseline);
+        layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
+                          glyphSlot->bitmap.rows, baseline);
     pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
     switch(ret){
         case LO_OK:
-            ctx->layout.AddGlyph(this);
+            layout.AddGlyph(this);
             break;
         case LO_NEW_LINE:
-            ctx->layout.AddGlyph(this);
+            layout.AddGlyph(this);
             break;
         case LO_NEW_PAGE:
-            ctx->layout.Reset();
+            layout.Reset();
             return false;
         default:
             LOG_ERROR("Unsupported Layout return.");

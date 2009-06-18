@@ -32,7 +32,7 @@ void Graph::SetSrcFile(const char* src) {
     std::memcpy(file_name, src, std::strlen(src) + 1);
 }
 
-bool Graph::Setup(Context* ctx){
+bool Graph::Setup(LayoutManager& layout){
     std::string file(file_path);
     file += file_name;
 
@@ -51,10 +51,10 @@ bool Graph::Setup(Context* ctx){
             return false;
         case IF_PNG:
             LOG_EVENT("Png file is detected.");
-            return SetupPNG(ctx, fp);
+            return SetupPNG(layout, fp);
         case IF_JPG:
             LOG_EVENT("JPG file is detected.");
-            return SetupJPG(ctx, fp);
+            return SetupJPG(layout, fp);
             break;
         case IF_EMF:
             break;
@@ -95,7 +95,7 @@ Graph::IF_T Graph::DetectFormat(const char * str, FILE * fp){
     return IF_NONE;
 }
 
-bool Graph::SetupPNG(Context* ctx, FILE* fp){
+bool Graph::SetupPNG(LayoutManager& layout, FILE* fp){
     png_structp png_ptr = 
         png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
     if (!png_ptr){
@@ -175,17 +175,18 @@ bool Graph::SetupPNG(Context* ctx, FILE* fp){
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 
     LAYOUT_RET ret;
-    ret = ctx->layout.GetGraphPos(pos, bitmap_w, bitmap_h);
+    ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
 
+    printf("graph pos: x=%d, y=%d\n", pos.x, pos.y);
     switch(ret){
         case LO_OK:
-            ctx->layout.AddGlyph(this);
+            layout.AddGlyph(this);
             break;
         case LO_NEW_LINE:
-            ctx->layout.AddGlyph(this);
+            layout.AddGlyph(this);
             break;
         case LO_NEW_PAGE:
-            ctx->layout.Reset();
+            layout.Reset();
             return false;
         default:
             LOG_ERROR("Unsupported Layout return.");
@@ -280,7 +281,7 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
     }
 }
 
-bool Graph::SetupJPG(Context* ctx, FILE* fp){
+bool Graph::SetupJPG(LayoutManager& layout, FILE* fp){
     fclose(fp);
 
     // Adjust image size in order not to render out side of frame buffer
@@ -319,17 +320,17 @@ bool Graph::SetupJPG(Context* ctx, FILE* fp){
     freeImage();
 
     LAYOUT_RET ret;
-    ret = ctx->layout.GetGraphPos(pos, bitmap_w, bitmap_h);
+    ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
 
     switch(ret){
         case LO_OK:
-            ctx->layout.AddGlyph(this);
+            layout.AddGlyph(this);
             break;
         case LO_NEW_LINE:
-            ctx->layout.AddGlyph(this);
+            layout.AddGlyph(this);
             break;
         case LO_NEW_PAGE:
-            ctx->layout.Reset();
+            layout.Reset();
             return false;
         default:
             LOG_ERROR("Unsupported Layout return.");
@@ -369,9 +370,9 @@ void Graph::ConvertJPG(void* bmap, int w, int h){
 }
 
 
-bool Graph::Draw(RenderMan* render){
+bool Graph::Draw(RenderMan& render){
     if (bitmap != NULL){
-        return render->RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
+        return render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
     }
     else
         return false;

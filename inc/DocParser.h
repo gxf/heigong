@@ -62,7 +62,7 @@ class DocParser{
         // Table related
         void ParseTable(int & ch);
         void getTR(int &ch, Table* tab);
-        void getTD(int &ch, Table_Row* tr);
+        void getTD(int &ch, Table_Row* tr, uint32 & off);
         bool procTableLabel(int & ch, Table_Data_Cell * tdc);
         void procTableWord(int & ch, Table_Data_Cell * tdc);
 

@@ -25,6 +25,9 @@ class PageLayout : public LayoutManager{
         void Reset();
 
     public:
+        uint32      imageConp;
+
+    public:
         RenderMan*  render;
         Line *      curLine;
 };

@@ -7,7 +7,7 @@
 
 PageLayout::PageLayout(int w, int h, int mv, int mh, 
                        Logger* log, RenderMan * r, int ls, int ws):
-    LayoutManager(w, h, mv, mh, log, ls, ws), render(r)
+    LayoutManager(w, h, mv, mh, log, ls, ws), imageConp(0), render(r)
 {
     curLine = new Line(log, this, w, mv);
 }
@@ -47,6 +47,7 @@ LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bea
             curMaxHeight    = 0;
             pos.x           = -1;
             pos.y           = -1;
+            imageConp       = 0;
 
             curLine->DrawFlush(render);
             Line* lastLine = curLine;
@@ -59,13 +60,14 @@ LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bea
             // Return position of new line head
             curPos.x        = h_m_width;
             curPos.y        += Yoff;
-            lastBaseline    = curBaseline;
+            lastBaseline    = curBaseline - imageConp;
             curBaseline     = bearingY;
             lastMaxHeight   = curMaxHeight;
             curMaxHeight    = height;
             pos             = curPos;
             pos.y           += height;
             curPos.x        += width + g_word_spacing;
+            imageConp       = 0;
 
             firstLine= false;
 
@@ -92,7 +94,10 @@ LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bea
 }
 
 LAYOUT_RET PageLayout::GetGraphPos(Position & pos, int width, int height){
-    curMaxHeight = (curMaxHeight > height) ? curMaxHeight : height;
+    if (curMaxHeight < height){
+        imageConp = height - curMaxHeight;
+        curMaxHeight = height;
+    }
     int Xoff;
     if (firstLine){
         Xoff = curLine->GetIndent() + g_word_spacing + width;
@@ -103,50 +108,56 @@ LAYOUT_RET PageLayout::GetGraphPos(Position & pos, int width, int height){
     int Yoff = g_line_spacing + curMaxHeight;
     Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
 
-    if (curPos.x + Xoff >= p_width - h_m_width){
+    if (curPos.y + Yoff + curMaxHeight >= p_height - v_m_width){
+        // & current page is over for use
+        // Return invalid position
+        char buf[100];
+        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
+        LOG_EVENT(buf);
+
+        curPos.x        = v_m_width;
+        curPos.y        = h_m_width;
+        lastBaseline    = curBaseline;
+        curBaseline     = 0;
+        curMaxHeight    = 0;
+        pos.x           = -1;
+        pos.y           = -1;
+        imageConp       = 0;
+//        pos             = curPos;
+
+        curLine->DrawFlush(render);
+        Line* lastLine = curLine;
+        curLine = lastLine->Dup();
+        delete lastLine;
+
+        return LO_NEW_PAGE;
+    }
+    else if (curPos.x + Xoff >= p_width - h_m_width){
         // Current line is over for use
         char buf[100];
         sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
         LOG_EVENT(buf);
-        if (curPos.y + Yoff + curMaxHeight >= p_height - v_m_width){
-            // & current page is over for use
-            // Return invalid position
-            curPos.x        = v_m_width;
-            curPos.y        = h_m_width;
-            lastBaseline    = curBaseline;
-            curBaseline     = 0;
-            curMaxHeight    = 0;
-            pos.x           = -1;
-            pos.y           = -1;
+        
+        // Return position of new line head
+        curPos.x        = h_m_width;
+        curPos.y        += Yoff;
+        lastBaseline    = curBaseline;
+        curBaseline     = 0;
+        lastMaxHeight   = curMaxHeight - imageConp;
+        curMaxHeight    = height;
+        pos             = curPos;
+        pos.y           += height;
+        curPos.x        += width + g_word_spacing;
+        imageConp       = 0;
 
-            curLine->DrawFlush(render);
-            Line* lastLine = curLine;
-            curLine = lastLine->Dup();
-            delete lastLine;
+        firstLine= false;
 
-            return LO_NEW_PAGE;
-        }
-        else{
-            // Return position of new line head
-            curPos.x        = h_m_width;
-            curPos.y        += Yoff;
-            lastBaseline    = curBaseline;
-            curBaseline     = 0;
-            lastMaxHeight   = curMaxHeight;
-            curMaxHeight    = height;
-            pos             = curPos;
-            pos.y           += height;
-            curPos.x        += width + g_word_spacing;
+        curLine->DrawFlush(render);
+        Line* lastLine = curLine;
+        curLine = lastLine->Dup();
+        delete lastLine;
 
-            firstLine= false;
-
-            curLine->DrawFlush(render);
-            Line* lastLine = curLine;
-            curLine = lastLine->Dup();
-            delete lastLine;
-
-            return LO_NEW_LINE;
-        }
+        return LO_NEW_LINE;
     }
     else
     {
@@ -188,15 +199,17 @@ LAYOUT_RET PageLayout::NewLine(){
         lastBaseline    = curBaseline;
         curBaseline     = 0;
         curMaxHeight    = 0;
+        imageConp       = 0;
        
         ret = LO_NEW_PAGE;
     }
     else{
         curPos.x = h_m_width;
-        lastMaxHeight   = curMaxHeight;
+        lastMaxHeight   = curMaxHeight - imageConp;
         curMaxHeight    = 0;
         lastBaseline    = curBaseline;
         curBaseline     = 0;
+        imageConp       = 0;
        
         ret = LO_OK;
     }
@@ -206,27 +219,28 @@ LAYOUT_RET PageLayout::NewLine(){
     delete lastLine;
 
     return ret;
-
 }
 
 void PageLayout::NewPage(){
     curPos.x = v_m_width;
     curPos.y = h_m_width;
-    uint32 Yoff = g_line_spacing + curMaxHeight;
+    uint32 Yoff = g_line_spacing + curMaxHeight - imageConp;
     Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine ->GetHeight();
     if (0 == curMaxHeight){
         curPos.y += Yoff;
     }
     else{
         curPos.y += Yoff;
-        lastMaxHeight   = curMaxHeight;
+        lastMaxHeight   = curMaxHeight - imageConp;
         curMaxHeight    = 0;
+        imageConp       = 0;
     }
     lastBaseline    = curBaseline;
     curBaseline     = 0;
 }
 
 void PageLayout::Reset(){
+    imageConp= 0;
     curPos.x = v_m_width;
     curPos.y = h_m_width;
 
