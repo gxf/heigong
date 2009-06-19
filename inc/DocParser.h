@@ -42,6 +42,9 @@ class DocParser{
         HDocState ShadowDocState();
         bool RestoreDocState(HDocState hState);
 
+    public:
+        DocParser & operator<<(Glyph * g);
+
     private:
         void ClearGlyphStream();
         

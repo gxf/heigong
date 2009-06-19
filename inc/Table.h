@@ -17,6 +17,7 @@ typedef class Table_Data_Cell: public Glyph{
         bool Relocate(int, int);
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
+        Glyph* UngetSet();
 
     public:
         inline void AddChar(Char* ch){ glyphBuffer.push_back(ch); }
@@ -58,6 +59,7 @@ typedef class Table_Row: public Glyph{
         bool Relocate(int, int);
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
+        Glyph* UngetSet();
 
     public:
         inline uint32 GetHeight(){ return height; }
@@ -83,6 +85,7 @@ class Table: public Glyph{
         bool Relocate(int, int);
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
+        Glyph* UngetSet();
 
     public:
         inline uint32 GetWidth(){ return width; }

@@ -38,7 +38,8 @@ void DocParser::ClearGlyphStream(){
     glyphBuffer.clear();
 }
 
-DocParser::DP_RET_T DocParser::GetNextGlyph(Glyph** glyph, LayoutManager * layout){
+DocParser::DP_RET_T 
+DocParser::GetNextGlyph(Glyph** glyph, LayoutManager * layout){
     // Retrieve first when glyphBuffer is not empty
     if (!(glyphBuffer.empty())){
         *glyph = glyphBuffer.front(); 
@@ -865,5 +866,11 @@ char* DocParser::getString(int term){
     char* cstr = new char[str.size() + 1];
     std::strcpy(cstr, str.c_str());
     return cstr;
+}
+
+
+DocParser & DocParser::operator<<(Glyph * g){
+    glyphBuffer.push_front(g);
+    return *this;
 }
 

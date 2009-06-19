@@ -113,6 +113,17 @@ bool Char::Setup(LayoutManager& layout){
     return true;
 }
 
+Glyph * Char::UngetSet(){
+    // Mark for deleting
+    valid = false;
+    Char* ch = new Char(logger);
+    ch->encodeMode  = this->encodeMode;
+    ch->val         = this->val;
+    ch->charLen     = this->charLen;
+    ch->id          = this->id;
+    return ch;
+}
+
 Glyph* Char::Dup(){
     Char* ch = new Char(logger);
 

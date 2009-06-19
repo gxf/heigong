@@ -28,6 +28,7 @@ class Glyph{
         virtual bool Relocate(int x, int y) = 0;
         virtual bool Setup(LayoutManager& lo) = 0;
         virtual Glyph * Dup() = 0;
+        virtual Glyph * UngetSet() = 0;
 
     public:
         Position        pos;        // Left-bottom position
@@ -86,6 +87,7 @@ class Char: public Glyph{
         bool Draw(RenderMan&);
         bool Relocate(int, int);
         bool Setup(LayoutManager& lo);
+        Glyph* UngetSet();
         Glyph* Dup();
 
     public:
@@ -120,6 +122,7 @@ class Graph: public Glyph{
         bool Relocate(int, int);
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
+        Glyph* UngetSet();
 
     public:
         inline void SetReqWidth(uint32 w) { req_width = w; }

@@ -28,6 +28,7 @@ void May12th::Init(uint32 fontSize){
 }
 
 void May12th::Display(int page_num){
+    bool newPage;
     if (page_num > ctx->pgMgr.GetToWorkPageNum()){
         // TODO: forward search
         LOG_ERROR("Forward search is not supported yet.");
@@ -38,6 +39,7 @@ void May12th::Display(int page_num){
         sprintf(buf, "Render a new page: %d", page_num);
         LOG_EVENT(buf);
         ctx->pgMgr.StartPage();
+        newPage = true;
     }
     else if (page_num < ctx->pgMgr.GetToWorkPageNum()){
         char buf[100];
@@ -58,6 +60,7 @@ void May12th::Display(int page_num){
         ctx->layout.Reset();
         ctx->pgMgr.RestorePage(page_num);
 #endif
+        newPage = false;
     }
 
     ctx->render.Clear();
@@ -71,6 +74,9 @@ void May12th::Display(int page_num){
         switch(dp_ret){
             case DocParser::DP_OK:
                 if(false == glyph->Setup(ctx->layout)){
+                    if(true == newPage){
+                        ctx->docParse << glyph->UngetSet();
+                    }
                     ctx->render.Flush();
                     ctx->pgMgr.EndPage(page_num, &ctx->render);
                     return;

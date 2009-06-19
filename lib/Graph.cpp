@@ -382,6 +382,14 @@ bool Graph::Relocate(int x, int y){
     return true;
 }
 
+Glyph* Graph::UngetSet(){
+    delete [] (uint8 *)bitmap;
+    bitmap = NULL;
+    bitmap_w = 0;
+    bitmap_h = 0;
+    return this;
+}
+
 Glyph* Graph::Dup(){
     Graph* img = new Graph(logger);
 
@@ -394,5 +402,5 @@ Glyph* Graph::Dup(){
     std::memcpy(img->file_name, file_name, std::strlen(file_name) + 1);
     img->file_path  = this->file_path;
 
-    return NULL;
+    return img;
 }

@@ -67,7 +67,7 @@ void FontsCache::CacheFont2(Char* ch, int width, int height, void* bitmap){
 
 void FontsCache::DelChar(Char * ch){
     ReleaseMem((char*)ch->GetBitmap());
-    delete(ch);
+    delete ch;
 }
 
 void * FontsCache::AquireMem(int size){

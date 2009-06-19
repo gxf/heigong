@@ -56,6 +56,10 @@ bool Table_Data_Cell::Relocate(int x, int y){
     return true;
 }
 
+Glyph* Table_Data_Cell::UngetSet(){
+    return this;
+}
+
 Glyph* Table_Data_Cell::Dup(){
     return NULL;
 }
@@ -90,6 +94,10 @@ bool Table_Row::Relocate(int x, int y){
         ++itr;
     }
     return true;
+}
+
+Glyph* Table_Row::UngetSet(){
+    return this;
 }
 
 Glyph* Table_Row::Dup(){
@@ -132,6 +140,10 @@ bool Table::Setup(LayoutManager& lo){
         ++itr;
     }
     return true;
+}
+
+Glyph* Table::UngetSet(){
+    return this;
 }
 
 Glyph* Table::Dup(){

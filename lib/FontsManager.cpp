@@ -176,3 +176,4 @@ FT_Face FontsManager::FindFont(const char* path){
     }
     return NULL;
 }
+
