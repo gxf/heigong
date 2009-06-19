@@ -55,12 +55,13 @@ class Char: public Glyph{
         };
 
     public:
-        Char(Logger* log, int bl = 0, ID id = ID(0, 0));
+        Char(Logger* log);
+        Char(Logger* log, uint32 v);
         ~Char();
 
     public:
-        inline void SetVal(unsigned int v) { val = v; }
-        inline void SetCharLength(unsigned int len) { charLen = len; }
+        inline void SetVal(uint32 v) { val = v; }
+        inline void SetCharLength(uint32 len) { charLen = len; }
         inline void SetPos(const Position & p){ pos = p; }
         inline void SetBitmap(int bw, int bh, void* b){
             bitmap_w = bw;
@@ -90,8 +91,8 @@ class Char: public Glyph{
     public:
         int             baseline;
         ENCODING_MODE   encodeMode;
-        unsigned int    val;
-        unsigned int    charLen;
+        uint32          val;
+        uint32          charLen;
         ID              id;
         bool            valid;      // If the char still need to exist in mem
         Attrib_Glyph    attrib;

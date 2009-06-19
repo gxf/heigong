@@ -473,25 +473,25 @@ void DocParser::ParseTable(int & ch){
 
     // Parse table attributes
     while('>' != ch){
-        docStream >> ch;
         if (match_b("width=")){
-            tab->SetWidth((uint32)(getFloat('\"') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL))); 
+            tab->SetWidth((uint32)(getFloat('\"') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL) / 100)); 
         }
         else if (match_b("border=")){
             tab->SetBorder(getInteger());
         }
-        else if (match_b("cols")){
+        else if (match_b("cols=")){
             tab->SetCol(getInteger());
         }
-        else if (match_b("rows")){
+        else if (match_b("rows=")){
             tab->SetRow(getInteger());
+        }
+        else{
+            docStream >> ch;
         }
     }
 
     // Parse row by row
-    docStream >> ch;
-
-    while(match_b("<\\table>")){
+    while(!match_b("</table>")){
         getTR(ch, tab);
     }
 
@@ -500,11 +500,13 @@ void DocParser::ParseTable(int & ch){
 
 void DocParser::getTR(int & ch, Table* tab){
     uint32 xoffset = 0;
-    if (match("<tr>")){
+    if (match_b("<tr>")){
         Table_R * tr = new Table_R(logger, tab->GetWidth());
-        while(!match_b("<\\tr>")){
-            docStream >> ch;
+        while(!match_b("</tr>")){
             getTD(ch, tr, xoffset);
+            // Work around
+            match_b("<myfont>");
+            match_b("</myfont>");
         }
         tab->AddTR(tr);
     }
@@ -515,11 +517,12 @@ void DocParser::getTD(int &ch, Table_R* tab_r, uint32 &off){
         uint32 width = tab_r->GetWidth();
         uint32 rowspan = 1;
         uint32 colspan = 1;
-        // Get td attribute
+
         docStream >> ch;
+        // Get td attribute
         while('>' != ch){
             if (match_b("width=")){
-                double ratio = getFloat('%');
+                double ratio = getFloat('%') / 100;
                 width *= ratio;
             }
             else if (match_b("rowspan=")){
@@ -528,25 +531,31 @@ void DocParser::getTD(int &ch, Table_R* tab_r, uint32 &off){
             else if (match_b("colspan=")){
                 colspan = getInteger();
             }
+            else{
+                docStream >> ch;
+            }
         }
         Table_DC * td = new Table_DC(logger, width, off);
         off += width;
 
-        // TODO: get all data
+        // Parse all data segments
         while(true){
             docStream  >>  ch;
             while(ch == '<'){
-                if(false == procTableLabel(ch, td));{ 
+                if(false == procTableLabel(ch, td)){ 
                     tab_r->AddTD(td);
+                    if (ch == '<'){
+                        docStream << ch;
+                    }
                     return;
                 }
+                // If wvWare works fine, the EOF will not throw
+                docStream >> ch;
+                skipBlanks(ch);
             }
-            // If wvWare works fine, the EOF will not throw
-            // No handle to EOF
-            docStream >> ch;    
-            skipBlanks(ch);
     
             // set line attrib
+            // For convinience, only the last set affect the total cell
             td->cellLayout.curLine->SetAttrib(lineAttrib);
 
             td->PushDelayedLabel();
@@ -559,6 +568,7 @@ void DocParser::getTD(int &ch, Table_R* tab_r, uint32 &off){
             if (ch == '<'){
                 docStream << ch;
             }
+//            td->Setup(td->cellLayout);
         }
     }
 }
@@ -571,10 +581,8 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
         case 'b':
             if(match("r>")){
                 // interpret <br> to new line
-                Char* c = new Char(logger);
-                c->SetVal('\n');
-                tdc->AddChar(c);
-//                return false;   // Return immediately for line processing
+                tdc->AddChar(new Char(logger, '\n'));
+                break;
             }
             // ignore all left labels start with 'b'
             while('>' != ch){ docStream >> ch; }
@@ -582,9 +590,7 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
         case 'd':
             if(match("iv")){
                 // TODO: <div ...>
-                Char* c = new Char(logger);
-                c->SetVal('\n');
-                tdc->AddChar(c);
+                tdc->AddChar(new Char(logger, '\n'));
             }
             // ignore all left labels start with 'd'
             while('>' != ch){ docStream >> ch; }
@@ -595,32 +601,19 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
             break;
         case 'l':
             if(match("i")){
-                Char* label;
                 switch(listMode){
                     case LM_ORDER:
                         if(match_b("value=")){
-                            label = new Char(logger);
                             // Notice: not larger than 10
-                            label->SetVal('0' + getInteger());
-                            tdc->AddDelayedChar(label);
-                            label = new Char(logger);
-                            label->SetVal('.');
-                            tdc->AddDelayedChar(label);
-                            label = new Char(logger);
-                            label->SetVal(' ');
-                            tdc->AddDelayedChar(label);
+                            tdc->AddDelayedChar(new Char(logger, '0' + getInteger()));
+                            tdc->AddDelayedChar(new Char(logger, '.'));
+                            tdc->AddDelayedChar(new Char(logger, ' '));
                         }
                         break;
                     case LM_UNORDER:
-                        label = new Char(logger);
-                        label->SetVal(' ');
-                        tdc->AddDelayedChar(label);
-                        label = new Char(logger);
-                        label->SetVal('*');
-                        tdc->AddDelayedChar(label);
-                        label = new Char(logger);
-                        label->SetVal(' ');
-                        tdc->AddDelayedChar(label);
+                        tdc->AddDelayedChar(new Char(logger, ' '));
+                        tdc->AddDelayedChar(new Char(logger, '*'));
+                        tdc->AddDelayedChar(new Char(logger, ' '));
                         break;
                     default:
                         break;
@@ -644,10 +637,8 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
             break;
         case 'p':
             if(match(">")){
-                Char* c = new Char(logger);
-                c->SetVal('\n');
-                tdc->AddChar(c);
-                return false;   // Return immediately for line processing
+                tdc->AddChar(new Char(logger, '\n'));
+                break;
             }
             else if (match_b("style") && match_b("=") && match("\"")){
                 // <p style="..."> 
@@ -669,9 +660,7 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
             break;
         case '/':
             if(match("div>")){
-                Char* c = new Char(logger);
-                c->SetVal('\n');
-                tdc->AddChar(c);
+                tdc->AddChar(new Char(logger, '\n'));
                 break;
             }
             else if(match("ol>")){

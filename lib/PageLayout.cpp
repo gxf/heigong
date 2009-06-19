@@ -173,6 +173,85 @@ LAYOUT_RET PageLayout::GetGraphPos(Position & pos, int width, int height){
     }
 }
 
+LAYOUT_RET PageLayout::GetTablePos(Position & pos, int width, int height){
+    if (curMaxHeight < height){
+        imageConp = height - curMaxHeight;
+        curMaxHeight = height;
+    }
+    int Xoff;
+    if (firstLine){
+        Xoff = curLine->GetIndent() + g_word_spacing + width;
+    }
+    else{
+        Xoff = g_word_spacing + width;
+    }
+    int Yoff = g_line_spacing + curMaxHeight;
+    Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
+
+    if (curPos.y + Yoff + curMaxHeight >= p_height - v_m_width){
+        // & current page is over for use
+        // Return invalid position
+        char buf[100];
+        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
+        LOG_EVENT(buf);
+
+        curPos.x        = v_m_width;
+        curPos.y        = h_m_width;
+        lastBaseline    = curBaseline;
+        curBaseline     = 0;
+        curMaxHeight    = 0;
+        pos.x           = -1;
+        pos.y           = -1;
+        imageConp       = 0;
+//        pos             = curPos;
+
+        curLine->DrawFlush(render);
+        Line* lastLine = curLine;
+        curLine = lastLine->Dup();
+        delete lastLine;
+
+        return LO_NEW_PAGE;
+    }
+    else if (curPos.x + Xoff >= p_width - h_m_width){
+        // Current line is over for use
+        char buf[100];
+        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
+        LOG_EVENT(buf);
+        
+        // Return position of new line head
+        curPos.x        = h_m_width;
+        curPos.y        += Yoff;
+        lastBaseline    = curBaseline;
+        curBaseline     = 0;
+        lastMaxHeight   = curMaxHeight - imageConp;
+        curMaxHeight    = height;
+        pos             = curPos;
+        pos.y           += height;
+        curPos.x        += width + g_word_spacing;
+        imageConp       = 0;
+
+        firstLine= false;
+
+        curLine->DrawFlush(render);
+        Line* lastLine = curLine;
+        curLine = lastLine->Dup();
+        delete lastLine;
+
+        return LO_NEW_LINE;
+    }
+    else
+    {
+        // Current line still have space, return curPos
+        pos      = curPos;
+        if (firstLine){
+            // Append indent offset
+            pos.x += curLine->GetIndent();
+        }
+        pos.y    += height;
+        curPos.x += width + g_word_spacing;
+        return LO_OK;
+    }
+}
 LAYOUT_RET PageLayout::NewLine(){
     firstLine = true;
 

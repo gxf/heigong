@@ -12,12 +12,17 @@ static Logger ftlogger;
 FontsCache Char::ftCache;
 FontsManager Char::ftMgr(&ftlogger);
 
-Char::Char(Logger* log, int bl, ID cid):
-    Glyph(log), baseline(bl), 
+Char::Char(Logger* log):
+    Glyph(log), baseline(0), 
     encodeMode(EM_UTF_8), val(0), charLen(1),
-    id(cid), valid(true)
-{
-}
+    id(NULL, 0), valid(true)
+{}
+
+Char::Char(Logger* log, uint32 v):
+    Glyph(log), baseline(0), 
+    encodeMode(EM_UTF_8), val(v), charLen(1),
+    id(NULL, 0), valid(true)
+{}
 
 Char::~Char(){
     valid = false;

@@ -21,6 +21,7 @@ class PageLayout : public LayoutManager{
     public:
         LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
         LAYOUT_RET GetGraphPos(Position & pos, int width, int height);
+        LAYOUT_RET GetTablePos(Position & pos, int width, int height);
             
         void Reset();
 
