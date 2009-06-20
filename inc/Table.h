@@ -55,7 +55,7 @@ typedef class Table_Data_Cell: public Glyph{
 
 typedef class Table_Row: public Glyph{
     public:
-        Table_Row(Logger* log, uint32 w);
+        Table_Row(Logger* log, uint32 w, uint32 o);
         ~Table_Row();
 
     public:
@@ -69,6 +69,9 @@ typedef class Table_Row: public Glyph{
         inline uint32 GetHeight(){ return height; }
         inline uint32 GetWidth(){ return width; }
         inline void AddTD(Table_DC * td){ dataCells.push_back(td); }
+
+    public:
+        uint32 xoff;
 
     public:
         uint32 width;
@@ -92,6 +95,8 @@ class Table: public Glyph{
         Glyph* UngetSet();
 
     public:
+        inline void SetOffset(uint32 o){ xoff = o; }
+        inline uint32 GetOffset(){ return xoff; }
         inline uint32 GetWidth(){ return width; }
         inline void SetWidth(uint32 w){ width = w; }
         inline void SetCol(uint32 c){ col = c; }
@@ -100,6 +105,7 @@ class Table: public Glyph{
         inline void AddTR(Table_R * tr){ rows.push_back(tr); }
 
     public:
+        uint32 xoff;
         uint32 width;
         uint32 col;
         uint32 row;

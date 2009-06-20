@@ -475,7 +475,9 @@ void DocParser::ParseTable(int & ch){
     // Parse table attributes
     while('>' != ch){
         if (match_b("width=")){
-            tab->SetWidth((uint32)(getFloat('\"') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL) / 100)); 
+            uint32 tab_width = (uint32)(getFloat('\"') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL) / 100);
+            tab->SetWidth(tab_width); 
+            tab->SetOffset((SCREEN_WIDTH - 2 * MARGIN_VERTICAL -tab_width) / 2);
         }
         else if (match_b("border=")){
             tab->SetBorder(getInteger());
@@ -502,7 +504,7 @@ void DocParser::ParseTable(int & ch){
 void DocParser::getTR(int & ch, Table* tab){
     uint32 xoffset = 0;
     if (match_b("<tr>")){
-        Table_R * tr = new Table_R(logger, tab->GetWidth());
+        Table_R * tr = new Table_R(logger, tab->GetWidth(), tab->GetOffset());
         while(!match_b("</tr>")){
             getTD(ch, tr, xoffset);
             // Work around

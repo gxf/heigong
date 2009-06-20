@@ -13,8 +13,8 @@ Table_Data_Cell::Table_Data_Cell(Logger * log, uint32 w, uint32 o):
 Table_Data_Cell::~Table_Data_Cell(){
 }
 
-Table_Row::Table_Row(Logger * log, uint32 w):
-    Glyph(log), width(w), height(0)
+Table_Row::Table_Row(Logger * log, uint32 w, uint32 o):
+    Glyph(log), xoff(o), width(w), height(0)
 {
 }
 
@@ -22,7 +22,7 @@ Table_Row::~Table_Row(){
 }
 
 Table::Table(Logger* log):
-    Glyph(log), 
+    Glyph(log), xoff(0),
     width(0), col(0), row(0), border(1),
     height(0), rowSplit(0)
 {}
@@ -109,7 +109,7 @@ bool Table_Row::Setup(LayoutManager& lo){
     }
     else{
         LOG_EVENT_STR3("Get table row at position: ", pos.x, pos.y);
-        Relocate(pos.x, pos.y);
+        Relocate(pos.x + xoff, pos.y);
         return true;
     }
 }
@@ -126,7 +126,8 @@ bool Table_Row::Draw(RenderMan& render){
 bool Table_Row::Relocate(int x, int y){
     std::vector<Table_DC*>::iterator itr = dataCells.begin();
     while(itr != dataCells.end()){
-        (*itr)->Relocate(x, y);
+//        (*itr)->Relocate(xoff + x, y);
+        (*itr)->Relocate( x, y);
         ++itr;
     }
     return true;
@@ -142,9 +143,10 @@ Glyph* Table_Row::UngetSet(){
 }
 
 Glyph* Table_Row::Dup(){
-    Table_R * tr = new Table_R(logger, width);
+    Table_R * tr = new Table_R(logger, xoff, width);
 //    tr->height   = this -> height;
-    tr->height   = 0;
+    tr->xoff    = this->xoff;
+    tr->height  = 0;
 
     std::vector<Table_DC*>::iterator itr= dataCells.begin();
     while(dataCells.end() != itr){
@@ -220,6 +222,7 @@ Glyph* Table::UngetSet(){
 Glyph* Table::Dup(){
     Table *t = new Table(logger);
 
+    t->xoff     = this->xoff;
     t->width    = this->width;
     t->col      = this->col;
     t->row      = this->row;
