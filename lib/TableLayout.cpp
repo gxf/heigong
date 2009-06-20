@@ -20,6 +20,9 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
     curMaxHeight = (curMaxHeight > curBaseline + delta) ? curMaxHeight : curBaseline + delta;
 
 #if 0
+    if (this == &lo){
+        return *this;
+    }
     int Xoff;
     if (firstLine){
         Xoff = curLine->GetIndent() + g_word_spacing + width;
@@ -64,6 +67,9 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
     {
         // Current line still have space, return curPos
         pos      = curPos;
+        char buf[100];
+        sprintf(buf, "[TABLELAYOUT]Current x: %d, y: %d, max height: %d", curPos.x, curPos.y, p_height - v_m_width);
+        LOG_EVENT(buf);
 #if 0
         if (firstLine){
             // Append indent offset
@@ -122,6 +128,10 @@ void TableLayout::Reset(){
 }
 
 TableLayout & TableLayout::operator=(TableLayout & tlo){
+    if (this == &tlo){
+        return *this;
+    }
+    LayoutManager::operator=(tlo);
     this->curLine = tlo.curLine->Dup();
     return *this;
 }

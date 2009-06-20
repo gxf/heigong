@@ -52,6 +52,28 @@ class LayoutManager{
         virtual void NewPage() = 0;
         virtual void Reset() = 0;
 
+    public:
+#if 0
+        LayoutManager & operator=(LayoutManger &lo){
+            if (this == &lo){
+                return *this;
+            }
+            this->p_width   = lo.p_width;
+            this->p_height  = lo.p_height;
+            this->v_m_width = lo.v_m_width;
+            this->h_m_width = lo.h_m_width;
+            this->g_line_spacing = lo.g_line_spacing;
+            this->g_word_spacing = lo.g_word_spacing;
+            this->curPos    = lo.curPos;
+            this->curMaxHeight = lo.curMaxHeight;
+            this->lastMaxHeight = lo.lastMaxHeight;
+            this->curBaseline = lo.curBaseline;
+            this->lastBaseline = lo.lastBaseline;
+            this->firstLine = lo.firstLine; 
+            this->logger = lo.logger;
+        }
+#endif
+
     protected:
         // Configuration
         int p_width;        // Page width

@@ -62,22 +62,31 @@ bool Table_Data_Cell::Relocate(int x, int y){
 }
 
 Glyph* Table_Data_Cell::UngetSet(){
+//    cellLayout.Reset();
     return this;
 }
 
 Glyph* Table_Data_Cell::Dup(){
+#if 0
     Table_DC * tdc = new Table_DC(logger, width, xoff);
     tdc->glyphAttrib = this->glyphAttrib;
     tdc->lineAttrib  = this->lineAttrib;
-    tdc->cellLayout  = this->cellLayout;
+//    tdc->cellLayout  = this->cellLayout;
     while(!(this->delayedToken.empty())){
-        tdc->delayedToken.push(this->delayedToken.front());
+        tdc->delayedToken.push(this->delayedToken.front()->UngetSet());
         this->delayedToken.pop();
     }
     std::copy(this->glyphBuffer.begin(), 
               this->glyphBuffer.end(), 
               tdc->glyphBuffer.begin());
+    while(!(glyphBuffer.empty())){
+        tdc->glyphBuffer.push_back(this->glyphBuffer.front()->UngetSet());
+        this->glyphBuffer.pop_front();
+    }
     return tdc;
+#endif
+    cellLayout.Reset();
+    return this;
 }
 
 /*************************************/
@@ -124,16 +133,23 @@ bool Table_Row::Relocate(int x, int y){
 }
 
 Glyph* Table_Row::UngetSet(){
+    std::vector<Table_DC*>::iterator itr= dataCells.begin();
+    while(dataCells.end() != itr){
+        (*itr)->UngetSet();
+        ++itr;
+    }
     return this;
 }
 
 Glyph* Table_Row::Dup(){
     Table_R * tr = new Table_R(logger, width);
-    tr->height   = this -> height;
+//    tr->height   = this -> height;
+    tr->height   = 0;
 
     std::vector<Table_DC*>::iterator itr= dataCells.begin();
     while(dataCells.end() != itr){
-        tr->AddTD(*itr);
+        tr->AddTD(dynamic_cast<Table_DC*>((*itr)->Dup()));
+//        tr->AddTD(*itr);
         ++itr;
     }
 
