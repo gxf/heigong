@@ -19,6 +19,7 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
     int delta = height - bearingY;
     curMaxHeight = (curMaxHeight > curBaseline + delta) ? curMaxHeight : curBaseline + delta;
 
+#if 0
     int Xoff;
     if (firstLine){
         Xoff = curLine->GetIndent() + g_word_spacing + width;
@@ -26,13 +27,16 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
     else{
         Xoff = g_word_spacing + width;
     }
+#else
+    int Xoff = g_word_spacing + width;
+#endif
     int Yoff = g_line_spacing + curMaxHeight;
     Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
 
     if (curPos.x + Xoff >= p_width - h_m_width){
         // Current line is over for use
         char buf[100];
-        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
+        sprintf(buf, "[TABLELAYOUT]Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
         LOG_EVENT(buf);
         // Return position of new line head
         curPos.x        = h_m_width;
@@ -52,6 +56,7 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
 
         Line* lastLine = curLine;
         curLine = lastLine->Dup();
+        delete lastLine;
 
         return LO_NEW_LINE;
     }
@@ -59,14 +64,28 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
     {
         // Current line still have space, return curPos
         pos      = curPos;
+#if 0
         if (firstLine){
             // Append indent offset
             pos.x += curLine->GetIndent();
         }
+#endif
         pos.y    += height;
         curPos.x += width + g_word_spacing;
         return LO_OK;
     }
+}
+
+int TableLayout::GetMaxHeight(){ 
+    int Yoff = g_line_spacing;
+    if (0 == curMaxHeight){ 
+        Yoff += lastMaxHeight; 
+    }
+    else{ 
+        Yoff += curMaxHeight; 
+        Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
+    }
+    return curPos.y + Yoff;
 }
 
 LAYOUT_RET TableLayout::NewLine(){
@@ -100,4 +119,9 @@ void TableLayout::Reset(){
     lastMaxHeight= 0;
     curBaseline  = 0;
     lastBaseline = 0;
+}
+
+TableLayout & TableLayout::operator=(TableLayout & tlo){
+    this->curLine = tlo.curLine->Dup();
+    return *this;
 }

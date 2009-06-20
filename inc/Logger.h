@@ -70,4 +70,9 @@ class Logger{
     std::memset(logger->GetBuf(), 0x0, 200); \
     sprintf(logger->GetBuf(), str "%d", val); \
     logger->LogEvent(logger->GetBuf(), Logger::EVENT);
+
+#define LOG_EVENT_STR3(str, val, val2)  \
+    std::memset(logger->GetBuf(), 0x0, 200); \
+    sprintf(logger->GetBuf(), str "%d, %d", val, val2); \
+    logger->LogEvent(logger->GetBuf(), Logger::EVENT);
 #endif

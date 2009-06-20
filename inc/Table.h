@@ -1,6 +1,7 @@
 #ifndef HG_TABLE_H
 #define HG_TABLE_H
 
+#include "Logger.h"
 #include "Glyph.h"
 #include "TableLayout.h"
 #include <vector>
@@ -30,7 +31,10 @@ typedef class Table_Data_Cell: public Glyph{
         }
 
     public:
-        inline uint32 GetHeight(){ return cellLayout.GetMaxHeight(); }
+        inline uint32 GetHeight(){ 
+            LOG_EVENT_STR2("[TDC] cell height", cellLayout.GetMaxHeight());
+            return cellLayout.GetMaxHeight(); 
+        }
 
     public:
         uint32 width;
@@ -43,7 +47,7 @@ typedef class Table_Data_Cell: public Glyph{
     public:
         TableLayout cellLayout;
 
-    private:
+    public:
         std::queue<Glyph*>  delayedToken;
         std::deque<Glyph*>  glyphBuffer;
 
@@ -103,6 +107,7 @@ class Table: public Glyph{
 
     public:
         uint32 height;
+        uint32 rowSplit;
 
     public:
         std::vector<Table_R*> rows;

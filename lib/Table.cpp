@@ -1,6 +1,9 @@
+#include "Logger.h"
 #include "Table.h"
 #include "TableLayout.h"
+#include "PageLayout.h"
 #include "RenderMan.h"
+#include <algorithm>
 
 Table_Data_Cell::Table_Data_Cell(Logger * log, uint32 w, uint32 o):
     Glyph(log), width(w), xoff(o),
@@ -11,7 +14,7 @@ Table_Data_Cell::~Table_Data_Cell(){
 }
 
 Table_Row::Table_Row(Logger * log, uint32 w):
-    Glyph(log), width(w)
+    Glyph(log), width(w), height(0)
 {
 }
 
@@ -19,7 +22,9 @@ Table_Row::~Table_Row(){
 }
 
 Table::Table(Logger* log):
-    Glyph(log), width(0)
+    Glyph(log), 
+    width(0), col(0), row(0), border(1),
+    height(0), rowSplit(0)
 {}
 
 Table::~Table(){
@@ -61,7 +66,18 @@ Glyph* Table_Data_Cell::UngetSet(){
 }
 
 Glyph* Table_Data_Cell::Dup(){
-    return NULL;
+    Table_DC * tdc = new Table_DC(logger, width, xoff);
+    tdc->glyphAttrib = this->glyphAttrib;
+    tdc->lineAttrib  = this->lineAttrib;
+    tdc->cellLayout  = this->cellLayout;
+    while(!(this->delayedToken.empty())){
+        tdc->delayedToken.push(this->delayedToken.front());
+        this->delayedToken.pop();
+    }
+    std::copy(this->glyphBuffer.begin(), 
+              this->glyphBuffer.end(), 
+              tdc->glyphBuffer.begin());
+    return tdc;
 }
 
 /*************************************/
@@ -75,7 +91,18 @@ bool Table_Row::Setup(LayoutManager& lo){
                   height : (*itr)->GetHeight();
         ++itr;
     }
-    return true;
+    LOG_EVENT_STR2("[TABLE_ROW] Row height: ", height);
+    Position pos;
+    PageLayout & plo = dynamic_cast<PageLayout &>(lo);
+    if (LO_NEW_PAGE == plo.GetTablePos(pos, height)){
+        LOG_EVENT_STR3("Get table row at position: ", pos.x, pos.y);
+        return false;
+    }
+    else{
+        LOG_EVENT_STR3("Get table row at position: ", pos.x, pos.y);
+        Relocate(pos.x, pos.y);
+        return true;
+    }
 }
 
 bool Table_Row::Draw(RenderMan& render){
@@ -101,52 +128,94 @@ Glyph* Table_Row::UngetSet(){
 }
 
 Glyph* Table_Row::Dup(){
-    return NULL;
+    Table_R * tr = new Table_R(logger, width);
+    tr->height   = this -> height;
+
+    std::vector<Table_DC*>::iterator itr= dataCells.begin();
+    while(dataCells.end() != itr){
+        tr->AddTD(*itr);
+        ++itr;
+    }
+
+    return tr;
 }
 
 /*************************************/
 // Table
 /*************************************/
 bool Table::Draw(RenderMan& render){
+    uint32 r = 0;
     std::vector<Table_Row *>::iterator itr = rows.begin();
-    while(itr != rows.end()){
+    while(++r <= rowSplit && itr != rows.end()){
         if (false == (*itr) -> Draw(render)){
             return false;
         }
+        LOG_EVENT("[TABLE] Draw called.");
         ++itr;
     }
     return true;
 }
 
 bool Table::Relocate(int x, int y){
+    uint32 r = 0;
     std::vector<Table_Row *>::iterator itr = rows.begin();
-    while(itr != rows.end()){
-        if (false == (*itr) -> Relocate(x, y)){
-            return false;
-        }
+    while(++r <= rowSplit && itr != rows.end()){
+        (*itr) -> Relocate(x, y);
         ++itr;
     }
     return true;
 }
 
 bool Table::Setup(LayoutManager& lo){
+    // Break rows into two pages if it is too long
     std::vector<Table_Row *>::iterator itr = rows.begin();
     while(itr != rows.end()){
         if (false == (*itr) -> Setup(lo)){
+            --rowSplit;
+            LOG_EVENT_STR2("[TABLE] Page ends.Row is splitted @ ", rowSplit);
             return false;
         }
-        height = (height > (*itr)->height) ? 
-                  height : (*itr)->height;
+        height = (height > (*itr)->height) ? height : (*itr)->height;
         ++itr;
+        ++rowSplit;
     }
     return true;
 }
 
 Glyph* Table::UngetSet(){
-    return this;
+    uint32 r = 0;
+    std::vector<Table_Row *>::iterator itr = rows.begin();
+    while(r++ < rowSplit){
+        ++itr;
+    }
+    Table *t = new Table(logger);
+
+    std::vector<Table_Row *>::iterator itra(itr);
+    while(itr != rows.end()){
+        t -> AddTR(*itr);
+        (*itr) -> UngetSet();
+        ++itr;
+    }
+    rows.erase(itra, rows.end());
+
+    return t;
 }
 
 Glyph* Table::Dup(){
-    return NULL;
+    Table *t = new Table(logger);
+
+    t->width    = this->width;
+    t->col      = this->col;
+    t->row      = this->row;
+    t->border   = this->border;
+    t->height   = this->height;
+    t->rowSplit = this->rowSplit;
+
+    std::vector<Table_Row *>::iterator itr = rows.begin();
+    while(itr != rows.end()){
+        t -> AddTR(dynamic_cast<Table_R *>((*itr)->Dup()));
+        ++itr;
+    }
+    return t;
 }
 

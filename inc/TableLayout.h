@@ -14,7 +14,7 @@ class TableLayout : public LayoutManager{
 
     public:
         // Interfaces
-        void AddGlyph(Glyph* g){ curLine->AddGlyph(g); }
+        void AddGlyph(Glyph* g){ }
         LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
         LAYOUT_RET GetGraphPos(Position & pos, int width, int height){
             // Not supported yet
@@ -25,7 +25,9 @@ class TableLayout : public LayoutManager{
         void Reset();
 
     public:
-        int GetMaxHeight(){ return curPos.y + curMaxHeight; }
+        int GetMaxHeight();
+
+        TableLayout & operator=(TableLayout & tlo);
 
     public:
         Line* curLine;

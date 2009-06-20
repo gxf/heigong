@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "MayTwelfth.h"
+#include "Table.h"
 #include <cstdlib>
 #include <cstring>
 
@@ -74,12 +75,23 @@ void May12th::Display(int page_num){
         switch(dp_ret){
             case DocParser::DP_OK:
                 if(false == glyph->Setup(ctx->layout)){
+                    Table* tab = dynamic_cast<Table *>(glyph);
+                    LOG_EVENT_STR2("tab = ", (int)tab);
+                    if (tab){
+                        tab->Draw(ctx->render);
+                    }
                     if(true == newPage){
                         ctx->docParse << glyph->UngetSet();
                     }
                     ctx->render.Flush();
                     ctx->pgMgr.EndPage(page_num, &ctx->render);
                     return;
+                }
+                else{
+                    Table* tab = dynamic_cast<Table *>(glyph);
+                    if (tab){
+                        tab->Draw(ctx->render);
+                    }
                 }
                 break;
             case DocParser::DP_EOF:

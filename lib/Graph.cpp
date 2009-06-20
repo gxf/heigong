@@ -379,6 +379,7 @@ bool Graph::Draw(RenderMan& render){
 }
 
 bool Graph::Relocate(int x, int y){
+    pos.x += x;
     return true;
 }
 
