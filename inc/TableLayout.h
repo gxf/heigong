@@ -14,7 +14,7 @@ class TableLayout : public LayoutManager{
 
     public:
         // Interfaces
-        void AddGlyph(Glyph* g){ }
+        void AddGlyph(Glyph* g){ curLine->AddGlyph(g); }
         LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
         LAYOUT_RET GetGraphPos(Position & pos, int width, int height){
             // Not supported yet

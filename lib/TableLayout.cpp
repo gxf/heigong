@@ -20,9 +20,6 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
     curMaxHeight = (curMaxHeight > curBaseline + delta) ? curMaxHeight : curBaseline + delta;
 
 #if 0
-    if (this == &lo){
-        return *this;
-    }
     int Xoff;
     if (firstLine){
         Xoff = curLine->GetIndent() + g_word_spacing + width;
@@ -39,7 +36,7 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
     if (curPos.x + Xoff >= p_width - h_m_width){
         // Current line is over for use
         char buf[100];
-        sprintf(buf, "[TABLELAYOUT]Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, p_height - v_m_width);
+        sprintf(buf, "[TABLELAYOUT]Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, curMaxHeight);
         LOG_EVENT(buf);
         // Return position of new line head
         curPos.x        = h_m_width;
@@ -68,7 +65,7 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
         // Current line still have space, return curPos
         pos      = curPos;
         char buf[100];
-        sprintf(buf, "[TABLELAYOUT]Current x: %d, y: %d, max height: %d", curPos.x, curPos.y, p_height - v_m_width);
+        sprintf(buf, "[TABLELAYOUT]Current x: %d, y: %d, max height: %d", curPos.x, curPos.y, curMaxHeight);
         LOG_EVENT(buf);
 #if 0
         if (firstLine){
@@ -114,6 +111,13 @@ LAYOUT_RET TableLayout::NewLine(){
     lastBaseline    = curBaseline;
     curBaseline     = 0;
        
+    curLine->RelocLine();
+    curLine->Clear();
+
+    Line* lastLine = curLine;
+    curLine = lastLine->Dup();
+    delete lastLine;
+
     return LO_OK;
 }
 

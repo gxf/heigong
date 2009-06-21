@@ -53,12 +53,17 @@ unsigned int Char::GetVal(ENCODING_MODE em){
     }
 }
 
-bool Char::Relocate(int align, int bl){
+bool Char::Adjust2Baseline(int bl){
     int delta = bl - baseline;
     if (delta < 0)
         return false;
     pos.y += delta;
-    pos.x += align;
+    return true;
+}
+
+bool Char::Relocate(int x, int y){
+    pos.x += x;
+    pos.y += y;
     return true;
 }
 

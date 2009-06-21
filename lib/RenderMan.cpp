@@ -97,10 +97,12 @@ void RenderMan::Clear(){
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-bool RenderMan::RenderPoint(int x, int y, int size, Color & col){
+bool RenderMan::RenderPoint(int x, int y, uint32 size, Color & col){
+#if 0
     char buf[100];
     sprintf(buf, "render point to (%d , %d), size %d", x, y, size);
     LOG_EVENT(buf);
+#endif
 
     char point[size * size];
     memset(point, 0xffffffff, sizeof(point));
@@ -113,30 +115,44 @@ bool RenderMan::RenderPoint(int x, int y, int size, Color & col){
     return true;
 }
 
-bool RenderMan::RenderLine(int x, int y, int width, int length, Color & col){
+bool RenderMan::RenderHorizLine(int x, int y, uint32 width, uint32 length, Color & col){
+#if 0
     char buf[100];
-    sprintf(buf, "render line to (%d , %d), width: %d, length: %d", x, y, width, length);
+    sprintf(buf, "render horizontal line to (%d , %d), width: %d, length: %d", x, y, width, length);
     LOG_EVENT(buf);
-    //
+#endif
 
-    char line[width * length];
-    memset(line, 0xffffffff, sizeof(line));
+    uint8 line[width * length];
+    memset(line, 0xff, sizeof(line));
 
     glColor3b(col.R, col.G, col.B);
-    glWindowPos2i(x, y);
-    glBitmap(width, length, 0, 0, width, 0, (GLubyte*)line);
+    glWindowPos2i(x, SCREEN_HEIGHT - y);
+    glBitmap(length, width, 0, 0, 0, 0, (GLubyte*)line);
     glFinish();
 
     return true;
 }
 
-bool RenderMan::RenderLine2(int start_x, int start_y, int end_x, int end_y, 
-                            int width, Color & col)
-{
+bool RenderMan::RenderVerticLine(int x, int y, uint32 width, uint32 length, Color & col){
+#if 0
     char buf[100];
-    sprintf(buf, "render line from (%d, %d) to (%d , %d), width: %d", start_x, start_y, end_x, end_y, width);
-
+    sprintf(buf, "render vertical line from (%d, %d) width: %d, length: %d.", x, y, width, length);
     LOG_EVENT(buf);
+#endif
+
+    uint8 line[width * length];
+    memset(line, 0xffffffff, sizeof(line));
+
+    glColor3b(col.R, col.G, col.B);
+    glWindowPos2i(x, SCREEN_HEIGHT - (y + length));
+    glBitmap(width, length, 0, 0, 0, 0, (GLubyte*)line);
+    glFinish();
+#if 0
+    uint32 i;
+    for(i = 0; i < length; i++){
+        RenderPoint(x, y + i, width, col);
+    }
+#endif
     return true;
 }
 

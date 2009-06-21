@@ -26,6 +26,7 @@ class Glyph{
     public:
         virtual bool Draw(RenderMan&) = 0;
         virtual bool Relocate(int x, int y) = 0;
+        virtual bool Adjust2Baseline(int baseline) = 0;
         virtual bool Setup(LayoutManager& lo) = 0;
         virtual Glyph * Dup() = 0;
         virtual Glyph * UngetSet() = 0;
@@ -86,6 +87,7 @@ class Char: public Glyph{
         unsigned int GetVal(ENCODING_MODE em = EM_UTF_8);
         bool Draw(RenderMan&);
         bool Relocate(int, int);
+        bool Adjust2Baseline(int baseline);
         bool Setup(LayoutManager& lo);
         Glyph* UngetSet();
         Glyph* Dup();
@@ -120,6 +122,7 @@ class Graph: public Glyph{
     public:
         bool Draw(RenderMan&);
         bool Relocate(int, int);
+        bool Adjust2Baseline(int baseline){  return true; }
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();

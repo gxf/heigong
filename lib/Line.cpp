@@ -16,6 +16,7 @@ void Line::Clear(){
 
 void Line::RelocLine(){
     int baseline = layout->GetLastBaseLine();
+    LOG_EVENT_STR2("[LINE] Reloc: Current baseline", baseline);
     int xShift = 0;
     switch(attrib.align){
         case A_LEFT:
@@ -33,7 +34,9 @@ void Line::RelocLine(){
     }
     std::vector<Glyph*>::iterator itr = glyphs.begin();
     while (itr != glyphs.end()){
-        (*itr)->Relocate(xShift, baseline);
+        (*itr)->Adjust2Baseline(baseline);
+        (*itr)->Relocate(xShift, 0);
+//        (*itr)->Relocate(xShift, baseline);
         ++itr;
     }
 }

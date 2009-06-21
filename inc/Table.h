@@ -15,7 +15,9 @@ typedef class Table_Data_Cell: public Glyph{
 
     public:
         bool Draw(RenderMan&);
+        bool DrawBorder(RenderMan&);
         bool Relocate(int, int);
+        bool Adjust2Baseline(int baseline){ return true; };
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
@@ -32,13 +34,15 @@ typedef class Table_Data_Cell: public Glyph{
 
     public:
         inline uint32 GetHeight(){ 
-            LOG_EVENT_STR2("[TDC] cell height", cellLayout.GetMaxHeight());
+//            LOG_EVENT_STR2("[TDC] cell height: ", cellLayout.GetMaxHeight());
             return cellLayout.GetMaxHeight(); 
         }
 
     public:
         uint32 width;
         uint32 xoff;
+        Position borderPos;
+        uint32 borderSize;
 
     public:
         Attrib_Glyph        glyphAttrib;
@@ -60,7 +64,9 @@ typedef class Table_Row: public Glyph{
 
     public:
         bool Draw(RenderMan&);
+        bool DrawBorder(RenderMan&);
         bool Relocate(int, int);
+        bool Adjust2Baseline(int baseline){ return true; };
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
@@ -76,6 +82,8 @@ typedef class Table_Row: public Glyph{
     public:
         uint32 width;
         uint32 height;
+        Position borderPos;
+        uint32 borderSize;
 
     public:
         std::vector<Table_DC*> dataCells;
@@ -90,6 +98,7 @@ class Table: public Glyph{
     public:
         bool Draw(RenderMan&);
         bool Relocate(int, int);
+        bool Adjust2Baseline(int baseline){ return true; };
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();

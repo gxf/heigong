@@ -3,6 +3,7 @@
 #define RENDER_MAN_H
 
 #include "SDL/SDL.h"
+#include "Common.h"
 
 class Logger;
 class Color;
@@ -16,10 +17,9 @@ class RenderMan{
     public:
         void Init();
 
-        bool RenderPoint(int x, int y, int size, Color& col);
-        bool RenderLine(int x, int y, int width, int length, Color& col);
-        bool RenderLine2(int start_x, int start_y, int end_x, int end_y, 
-                         int width, Color & col);
+        bool RenderPoint(int x, int y, uint32 size, Color& col);
+        bool RenderHorizLine(int x, int y, uint32 width, uint32 length, Color & col);
+        bool RenderVerticLine(int x, int y, uint32 width, uint32 length, Color& col);
         bool RenderRectangle(int x, int y, int width, int height, Color & col);
         bool RenderBitMap(int x, int y, int width, int height, void* ptr);
         bool RenderGrayMap(int x, int y, int width, int height, void* ptr);

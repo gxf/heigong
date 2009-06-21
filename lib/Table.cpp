@@ -1,4 +1,5 @@
 #include "Logger.h"
+#include "Color.h"
 #include "Table.h"
 #include "TableLayout.h"
 #include "PageLayout.h"
@@ -7,6 +8,7 @@
 
 Table_Data_Cell::Table_Data_Cell(Logger * log, uint32 w, uint32 o):
     Glyph(log), width(w), xoff(o),
+    borderPos(0, 0), borderSize(1),
     cellLayout(w, 0, TABLE_MARGIN_VERTICAL, TABLE_MARGIN_HORIZONTAL, log){
 }
 
@@ -14,7 +16,8 @@ Table_Data_Cell::~Table_Data_Cell(){
 }
 
 Table_Row::Table_Row(Logger * log, uint32 w, uint32 o):
-    Glyph(log), xoff(o), width(w), height(0)
+    Glyph(log), xoff(o), width(w), height(0),
+    borderPos(0, 0), borderSize(1)
 {
 }
 
@@ -40,10 +43,13 @@ bool Table_Data_Cell::Setup(LayoutManager& lo){
         (*itr) -> Setup(lo);
         ++itr;
     }
+    TableLayout & tlo = dynamic_cast<TableLayout &>(lo);
+    tlo.curLine->RelocLine();
     return true;
 }
 
 bool Table_Data_Cell::Draw(RenderMan& render){
+    DrawBorder(render);
     std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
     while(itr != glyphBuffer.end()){
         (*itr)->Draw(render);
@@ -52,8 +58,20 @@ bool Table_Data_Cell::Draw(RenderMan& render){
     return true;
 }
 
+bool Table_Data_Cell::DrawBorder(RenderMan& render){
+    // Render column seperator
+    Color col(255, 255, 255);
+    render.RenderVerticLine(borderPos.x, borderPos.y, borderSize, GetHeight(), col);
+    render.RenderVerticLine(borderPos.x + width, borderPos.y, borderSize, GetHeight(), col);
+    return true;
+}
+
 bool Table_Data_Cell::Relocate(int x, int y){
+    borderPos.x = x + xoff;
+    borderPos.y = y;
+
     std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
+    LOG_EVENT_STR3("[TDC] Relocate to pos: ", x + xoff, y);
     while(itr != glyphBuffer.end()){
         (*itr)->Relocate(x + xoff, y);
         ++itr;
@@ -104,17 +122,20 @@ bool Table_Row::Setup(LayoutManager& lo){
     Position pos;
     PageLayout & plo = dynamic_cast<PageLayout &>(lo);
     if (LO_NEW_PAGE == plo.GetTablePos(pos, height)){
-        LOG_EVENT_STR3("Get table row at position: ", pos.x, pos.y);
+        LOG_EVENT_STR3("[TABLE_ROW] Get table row at position: ", pos.x, pos.y);
         return false;
     }
     else{
-        LOG_EVENT_STR3("Get table row at position: ", pos.x, pos.y);
+        LOG_EVENT_STR3("[TABLE_ROW] Get table row at position: ", pos.x, pos.y);
         Relocate(pos.x + xoff, pos.y);
+        borderPos.x = pos.x + xoff;
+        borderPos.y = pos.y;
         return true;
     }
 }
 
 bool Table_Row::Draw(RenderMan& render){
+    DrawBorder(render);
     std::vector<Table_DC*>::iterator itr = dataCells.begin();
     while(itr != dataCells.end()){
         (*itr)->Draw(render);
@@ -123,11 +144,18 @@ bool Table_Row::Draw(RenderMan& render){
     return true;
 }
 
+bool Table_Row::DrawBorder(RenderMan& render){
+    // Render row seperator
+    Color col(255, 255, 255);
+    render.RenderHorizLine(borderPos.x, borderPos.y, borderSize, width, col);
+    render.RenderHorizLine(borderPos.x, borderPos.y + (int)height, borderSize, width, col);
+    return true;
+}
+
 bool Table_Row::Relocate(int x, int y){
     std::vector<Table_DC*>::iterator itr = dataCells.begin();
     while(itr != dataCells.end()){
-//        (*itr)->Relocate(xoff + x, y);
-        (*itr)->Relocate( x, y);
+        (*itr)->Relocate(x, y);
         ++itr;
     }
     return true;
@@ -175,12 +203,14 @@ bool Table::Draw(RenderMan& render){
 }
 
 bool Table::Relocate(int x, int y){
+#if 0
     uint32 r = 0;
     std::vector<Table_Row *>::iterator itr = rows.begin();
     while(++r <= rowSplit && itr != rows.end()){
         (*itr) -> Relocate(x, y);
         ++itr;
     }
+#endif
     return true;
 }
 
