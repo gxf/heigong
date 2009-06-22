@@ -34,8 +34,10 @@ typedef class Table_Data_Cell: public Glyph{
 
     public:
         inline uint32 GetHeight(){ 
-//            LOG_EVENT_STR2("[TDC] cell height: ", cellLayout.GetMaxHeight());
             return cellLayout.GetMaxHeight(); 
+        }
+        inline void SetBorderHeight(uint32 bh){
+            borderHeight = bh;
         }
 
     public:
@@ -43,6 +45,7 @@ typedef class Table_Data_Cell: public Glyph{
         uint32 xoff;
         Position borderPos;
         uint32 borderSize;
+        uint32 borderHeight;
 
     public:
         Attrib_Glyph        glyphAttrib;

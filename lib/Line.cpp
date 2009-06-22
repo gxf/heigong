@@ -16,7 +16,7 @@ void Line::Clear(){
 
 void Line::RelocLine(){
     int baseline = layout->GetLastBaseLine();
-    LOG_EVENT_STR2("[LINE] Reloc: Current baseline", baseline);
+//    LOG_EVENT_STR2("[LINE] Reloc: Current baseline", baseline);
     int xShift = 0;
     switch(attrib.align){
         case A_LEFT:

@@ -7,6 +7,7 @@ TableLayout::TableLayout(int w, int h, int mv, int mh,
     LayoutManager(w, h, mv, mh, log, ls, ws)
 {
     curLine = new Line(log, this, w, mv);
+    curPos.x += TABLE_MARGIN_HORIZONTAL;
 }
 
 TableLayout::~TableLayout(){
@@ -35,9 +36,11 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
 
     if (curPos.x + Xoff >= p_width - h_m_width){
         // Current line is over for use
+#if 0
         char buf[100];
         sprintf(buf, "[TABLELAYOUT]Current x: %d, y: %d, max height: %d", curPos.x + Xoff, curPos.y + Yoff, curMaxHeight);
         LOG_EVENT(buf);
+#endif
         // Return position of new line head
         curPos.x        = h_m_width;
         curPos.y        += Yoff;
@@ -64,10 +67,10 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
     {
         // Current line still have space, return curPos
         pos      = curPos;
+#if 0
         char buf[100];
         sprintf(buf, "[TABLELAYOUT]Current x: %d, y: %d, max height: %d", curPos.x, curPos.y, curMaxHeight);
         LOG_EVENT(buf);
-#if 0
         if (firstLine){
             // Append indent offset
             pos.x += curLine->GetIndent();
@@ -80,15 +83,7 @@ LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int be
 }
 
 int TableLayout::GetMaxHeight(){ 
-    int Yoff = g_line_spacing;
-    if (0 == curMaxHeight){ 
-        Yoff += lastMaxHeight; 
-    }
-    else{ 
-        Yoff += curMaxHeight; 
-        Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
-    }
-    return curPos.y + Yoff;
+    return curPos.y + curMaxHeight; 
 }
 
 LAYOUT_RET TableLayout::NewLine(){

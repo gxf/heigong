@@ -198,8 +198,9 @@ LAYOUT_RET PageLayout::GetTablePos(Position & pos, int height){
     }
     else{
         // Always jump to next line
-        curPos.y += height + TABLE_MARGIN_VERTICAL;
         pos      = curPos;
+        curPos.y += height + TABLE_MARGIN_VERTICAL;
+        curMaxHeight = 0;
         if (firstLine){
             // Append indent offset
             pos.x += curLine->GetIndent();

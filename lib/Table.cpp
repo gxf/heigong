@@ -49,20 +49,19 @@ bool Table_Data_Cell::Setup(LayoutManager& lo){
 }
 
 bool Table_Data_Cell::Draw(RenderMan& render){
-    DrawBorder(render);
     std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
     while(itr != glyphBuffer.end()){
         (*itr)->Draw(render);
         ++itr;
     }
-    return true;
+    return DrawBorder(render);
 }
 
 bool Table_Data_Cell::DrawBorder(RenderMan& render){
     // Render column seperator
     Color col(255, 255, 255);
-    render.RenderVerticLine(borderPos.x, borderPos.y, borderSize, GetHeight(), col);
-    render.RenderVerticLine(borderPos.x + width, borderPos.y, borderSize, GetHeight(), col);
+    render.RenderVerticLine(borderPos.x, borderPos.y, borderSize, borderHeight, col);
+    render.RenderVerticLine(borderPos.x + width, borderPos.y, borderSize, borderHeight, col);
     return true;
 }
 
@@ -71,7 +70,7 @@ bool Table_Data_Cell::Relocate(int x, int y){
     borderPos.y = y;
 
     std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
-    LOG_EVENT_STR3("[TDC] Relocate to pos: ", x + xoff, y);
+//    LOG_EVENT_STR3("[TDC] Relocate to pos: ", x + xoff, y);
     while(itr != glyphBuffer.end()){
         (*itr)->Relocate(x + xoff, y);
         ++itr;
@@ -118,15 +117,18 @@ bool Table_Row::Setup(LayoutManager& lo){
                   height : (*itr)->GetHeight();
         ++itr;
     }
-    LOG_EVENT_STR2("[TABLE_ROW] Row height: ", height);
+    for(itr = dataCells.begin(); itr != dataCells.end();++itr){
+        (*itr) -> SetBorderHeight(height);
+    }
+
+//    LOG_EVENT_STR2("[TABLE_ROW] Row height: ", height);
     Position pos;
     PageLayout & plo = dynamic_cast<PageLayout &>(lo);
     if (LO_NEW_PAGE == plo.GetTablePos(pos, height)){
-        LOG_EVENT_STR3("[TABLE_ROW] Get table row at position: ", pos.x, pos.y);
         return false;
     }
     else{
-        LOG_EVENT_STR3("[TABLE_ROW] Get table row at position: ", pos.x, pos.y);
+//        LOG_EVENT_STR3("[TABLE_ROW] Get table row at position: ", pos.x, pos.y);
         Relocate(pos.x + xoff, pos.y);
         borderPos.x = pos.x + xoff;
         borderPos.y = pos.y;
@@ -135,13 +137,12 @@ bool Table_Row::Setup(LayoutManager& lo){
 }
 
 bool Table_Row::Draw(RenderMan& render){
-    DrawBorder(render);
     std::vector<Table_DC*>::iterator itr = dataCells.begin();
     while(itr != dataCells.end()){
         (*itr)->Draw(render);
         ++itr;
     }
-    return true;
+    return DrawBorder(render);
 }
 
 bool Table_Row::DrawBorder(RenderMan& render){
@@ -174,6 +175,7 @@ Glyph* Table_Row::Dup(){
     Table_R * tr = new Table_R(logger, xoff, width);
 //    tr->height   = this -> height;
     tr->xoff    = this->xoff;
+    tr->width   = this->width;
     tr->height  = 0;
 
     std::vector<Table_DC*>::iterator itr= dataCells.begin();
@@ -196,7 +198,7 @@ bool Table::Draw(RenderMan& render){
         if (false == (*itr) -> Draw(render)){
             return false;
         }
-        LOG_EVENT("[TABLE] Draw called.");
+//        LOG_EVENT("[TABLE] Draw called.");
         ++itr;
     }
     return true;
@@ -220,7 +222,7 @@ bool Table::Setup(LayoutManager& lo){
     while(itr != rows.end()){
         if (false == (*itr) -> Setup(lo)){
             --rowSplit;
-            LOG_EVENT_STR2("[TABLE] Page ends.Row is splitted @ ", rowSplit);
+//            LOG_EVENT_STR2("[TABLE] Page ends.Row is splitted @ ", rowSplit);
             return false;
         }
         height = (height > (*itr)->height) ? height : (*itr)->height;
