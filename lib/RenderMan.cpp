@@ -227,7 +227,8 @@ void RenderMan::Flush(){
     fb.GetFB(&pFb, &width, &height);
 
 #ifndef RENDER2FILE
-    glWindowPos2i(0, 0);
+//    glWindowPos2i(0, 0);
+    glRasterPos2i(-1, -1);
     glColor3f(1.0f, 1.0f, 0.0f);
 
     char buf[100];
