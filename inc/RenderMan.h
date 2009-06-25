@@ -4,6 +4,7 @@
 
 #include "SDL/SDL.h"
 #include "Common.h"
+#include "FrameBuffer.h"
 
 class Logger;
 class Color;
@@ -44,6 +45,7 @@ class RenderMan{
         int screen_bpp;
 
     private:
+        FrameBuffer fb;
         Logger* logger;
 };
 

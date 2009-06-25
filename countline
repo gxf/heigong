@@ -1,0 +1,1 @@
+wc -l lib/*.cpp lib/*.c inc/*.h prog/*.cpp

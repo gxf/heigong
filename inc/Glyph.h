@@ -3,6 +3,7 @@
 
 //namespace heigong{
 #include "Common.h"
+#include "Serializer.h"
 #include <stdio.h>
 
 class Position;
@@ -14,7 +15,7 @@ class Logger;
 class FontsCache;
 class FontsManager;
 
-class Glyph{
+class Glyph {//: public Serializer{
     public:
         Glyph(Logger* log): 
             pos(0, 0), 

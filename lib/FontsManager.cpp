@@ -2,6 +2,14 @@
 #include "Logger.h"
 #include "FontsManager.h"
 
+FontsTab::fTabEntry FontsTab::fontsTab[] = {
+    { "宋体", "./fonts/simsun.ttc"},
+    { "仿宋", "./fonts/simfang.ttf"},
+    { "黑体", "./fonts/simhei.ttf"},
+    { "楷体", "./fonts/simkai.ttf"},
+    { "DroidSansFallBack", ""},
+};
+
 const char* FontsManager::dftFontPath = DEFAULT_FONT;
 
 FontsManager::FontsManager(Logger* log):

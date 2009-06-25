@@ -84,6 +84,7 @@ enum ENCODING_MODE{
     EM_UTF_32,
 };
 
+
 #define DPI             96
 #define SCREEN_WIDTH    600
 #define SCREEN_HEIGHT   800

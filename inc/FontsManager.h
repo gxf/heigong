@@ -12,6 +12,31 @@
 class Logger;
 class Position;
 
+class FontsTab{
+    public:
+        inline static 
+        const char* GetFontPath(const char* fontName){
+            uint32 i;
+            uint32 size = sizeof(fontsTab)/sizeof(fTabEntry);
+            for(i = 0; i < size; i++){
+                if(!(std::strcmp(fontsTab[i].f_name, fontName))){
+                    return fontsTab[i].f_path;
+                }
+            }
+            // Fallback to first 
+            return fontsTab[i].f_name;
+        }
+
+    public:
+        typedef struct fontsTable_Rec{
+            const char* f_name;
+            const char* f_path;
+        }fTabEntry;
+
+    private: 
+        static fTabEntry fontsTab[5];
+};
+
 class FontsManager{
     public:
         FontsManager(Logger *log);
@@ -60,6 +85,9 @@ class FontsManager{
         FT_Face curFont;
 
         int     dpi;
+
+    private:
+        FontsTab fontsTab;
 
     private:
         Logger* logger;
