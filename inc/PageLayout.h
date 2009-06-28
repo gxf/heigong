@@ -26,7 +26,7 @@ class PageLayout : public LayoutManager{
         void Reset();
 
     public:
-        uint32      imageConp;
+        int      imageConp;
 
     public:
         RenderMan*  render;

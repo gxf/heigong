@@ -28,6 +28,7 @@ class PageManager{
 
     public:
         inline void SetMaxPageNum(int num){ maxPageNum = num;}
+        inline int GetMaxPageNum(){ return maxPageNum; }
         inline int GetToWorkPageNum(){ return numToRender; }
         inline int GetLastPageNum(){ return numLastRendered; }
 

@@ -79,9 +79,9 @@ DocParser::GetNextGlyph(Glyph** glyph, LayoutManager * layout){
     }
 }
 
-DocParser::HDocState DocParser::ShadowDocState(){
+HDocState DocParser::ShadowDocState(){
     // Shadow docStream offset and glyphBuffer
-    HDocState shadowState = new DocState;
+    HDocState shadowState = new DocState(logger);
     std::deque<Glyph*>::iterator itr= glyphBuffer.begin();
     while(itr != glyphBuffer.end()){
         shadowState->buffer.push_back((*itr)->Dup());
@@ -91,7 +91,7 @@ DocParser::HDocState DocParser::ShadowDocState(){
     return shadowState;
 }
 
-bool DocParser::RestoreDocState(DocParser::HDocState hState){
+bool DocParser::RestoreDocState(HDocState hState){
     // Restore the docStream offset and glyphBuffer
     ClearGlyphStream();
     std::deque<Glyph*>::iterator itr= hState->buffer.begin();
@@ -371,7 +371,7 @@ void DocParser::getMyFont(int &ch, Attrib_Glyph & glyphAttr){
             case 'n':
                 if (match("ame") && match_b("=")){
                     // TODO: FONT translate
-                    glyphAttr.font = NULL;
+                    glyphAttr.font = "";
                 }
                 break;
             case 's':

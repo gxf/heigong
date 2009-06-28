@@ -6,6 +6,10 @@
 #include "RenderMan.h"
 #include <algorithm>
 
+uint32 Table_Data_Cell::magic_num = 't' + 'r';
+uint32 Table_Row::magic_num = 't' + 'd' + 'c';
+uint32 Table::magic_num = 't' + 'a' + 'b' + 'l' + 'e';
+
 Table_Data_Cell::Table_Data_Cell(Logger * log, uint32 w, uint32 o):
     Glyph(log), width(w), xoff(o),
     borderPos(0, 0), borderSize(1),
@@ -36,6 +40,9 @@ Table::~Table(){
 /*************************************/
 // Table data cell 
 /*************************************/
+
+uint32 Table_Data_Cell::term_magic_delay = 't' + 'e' + 'r' + 'm' + 't' + 'd' + 'c' + 'd' + 'e' + 'l' + 'a' + 'y';
+uint32 Table_Data_Cell::term_magic = 't' + 'e' + 'r' + 'm' + 't' + 'd' + 'c';
 
 bool Table_Data_Cell::Setup(LayoutManager& lo){
     std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
@@ -106,9 +113,95 @@ Glyph* Table_Data_Cell::Dup(){
     return this;
 }
 
+void Table_Data_Cell::Serialize(std::ofstream & ofs){
+    SER_OBJ(magic_num);
+    SER_OBJ(width);
+    SER_OBJ(xoff);
+    SER_OBJ(borderPos);
+    SER_OBJ(borderSize);
+    SER_OBJ(borderHeight);
+    SER_OBJ(glyphAttrib);
+    SER_OBJ(lineAttrib);
+
+    std::queue<Glyph*> tmpQueue(delayedToken);
+    while(!tmpQueue.empty()){
+        tmpQueue.front()->Serialize(ofs);
+        tmpQueue.pop();
+    }
+    
+    SER_OBJ(term_magic_delay);
+
+    std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
+    while (itr != glyphBuffer.end()){
+        (*itr) -> Serialize(ofs);
+        ++itr;
+    }
+    SER_OBJ(term_magic);
+}
+
+void Table_Data_Cell::Deserialize(std::ifstream & ifs){
+    DESER_OBJ(width);
+    DESER_OBJ(xoff);
+    DESER_OBJ(borderPos);
+    DESER_OBJ(borderSize);
+    DESER_OBJ(borderHeight);
+    DESER_OBJ(glyphAttrib);
+    DESER_OBJ(lineAttrib);
+
+    // Dummy objects
+    Char ch(logger);
+    Graph g(logger);
+
+    bool finished = false;
+
+    uint32 magic;
+    while(!finished){
+        DESER_OBJ(magic);
+        if (magic == term_magic_delay){
+            finished = true;
+        }
+        else if (magic == ch.GetMagic()){
+            Char* pch = new Char(logger);
+            delayedToken.push(pch);
+            pch->Deserialize(ifs);
+        }
+        else if (magic == g.GetMagic()){
+            Graph* pg = new Graph(logger);
+            delayedToken.push(pg);
+            pg->Deserialize(ifs);
+        }
+        else{
+            LOG_ERROR("Unsupported class magic.");
+        }
+    }
+
+    finished = false;
+    while(!finished){
+        DESER_OBJ(magic);
+        if (magic == term_magic){
+            finished = true;
+        }
+        else if (magic == ch.GetMagic()){
+            Char* pch = new Char(logger);
+            glyphBuffer.push_back(pch);
+            pch->Deserialize(ifs);
+        }
+        else if (magic == g.GetMagic()){
+            Graph* pg = new Graph(logger);
+            glyphBuffer.push_back(pg);
+            pg->Deserialize(ifs);
+        }
+        else{
+            LOG_ERROR("Unsupported class magic.");
+        }
+    }
+}
+
 /*************************************/
 // Table rows
 /*************************************/
+uint32 Table_Row::term_magic = 't' + 'e' + 'r' + 'm' + 't' + 'a' + 'b' + 'l' + 'e' + 'r' + 'o' + 'w';
+
 bool Table_Row::Setup(LayoutManager& lo){
     std::vector<Table_DC*>::iterator itr = dataCells.begin();
     while(itr != dataCells.end()){
@@ -188,9 +281,57 @@ Glyph* Table_Row::Dup(){
     return tr;
 }
 
+void Table_Row::Serialize(std::ofstream & ofs){
+    SER_OBJ(magic_num);
+    SER_OBJ(xoff);
+    SER_OBJ(width);
+    SER_OBJ(height);
+    SER_OBJ(borderPos);
+    SER_OBJ(borderSize);
+
+    Table_R tdc(logger, width, xoff);
+    std::vector<Table_DC*>::iterator itr= dataCells.begin();
+    while(dataCells.end() != itr){
+        (*itr)->Serialize(ofs);
+        ++itr;
+    }
+    SER_OBJ(term_magic);
+}
+
+void Table_Row::Deserialize(std::ifstream & ifs){
+    DESER_OBJ(xoff);
+    DESER_OBJ(width);
+    DESER_OBJ(height);
+    DESER_OBJ(borderPos);
+    DESER_OBJ(borderSize);
+
+    uint32 magic;
+
+    Table_DC tdc(logger, width, xoff);
+
+    bool finished = false;
+
+    while(!finished){
+        DESER_OBJ(magic);
+        if (magic == term_magic){
+            finished = true;
+        }
+        else if(magic == tdc.GetMagic()){
+            Table_DC * ptdc = new Table_DC(logger, width, xoff);
+            ptdc -> Deserialize(ifs);
+            AddTD(ptdc);
+        }
+        else{
+            LOG_ERROR("Unsupported table magic value.");
+        }
+    }
+}
+
 /*************************************/
 // Table
 /*************************************/
+uint32 Table::term_magic = 't' + 'e' + 'r' + 'm' + 't' + 'a' + 'b' + 'l' + 'e';
+
 bool Table::Draw(RenderMan& render){
     uint32 r = 0;
     std::vector<Table_Row *>::iterator itr = rows.begin();
@@ -268,5 +409,54 @@ Glyph* Table::Dup(){
         ++itr;
     }
     return t;
+}
+
+void Table::Serialize(std::ofstream & ofs){
+    SER_OBJ(magic_num);
+    SER_OBJ(xoff);
+    SER_OBJ(width);
+    SER_OBJ(col);
+    SER_OBJ(row);
+    SER_OBJ(border);
+    SER_OBJ(height);
+    SER_OBJ(rowSplit);
+
+    std::vector<Table_Row *>::iterator itr = rows.begin();
+    while(itr != rows.end()){
+        (*itr) -> Serialize(ofs);
+        ++itr;
+    }
+
+    SER_OBJ(term_magic);
+}
+
+void Table::Deserialize(std::ifstream & ifs){
+    DESER_OBJ(xoff);
+    DESER_OBJ(width);
+    DESER_OBJ(col);
+    DESER_OBJ(row);
+    DESER_OBJ(border);
+    DESER_OBJ(height);
+    DESER_OBJ(rowSplit);
+
+    Table_R tr(logger, width, xoff);
+
+    uint32 magic;
+    bool finished = false;
+
+    while(!finished){
+        DESER_OBJ(magic);
+        if (magic == term_magic){
+            finished = true;
+        }
+        else if (magic == tr.GetMagic()){
+            Table_R * ptr = new Table_R(logger, width, xoff);
+            ptr -> Deserialize(ifs);
+            AddTR(ptr);
+        }
+        else{
+            LOG_ERROR("Unsupported table magic value.");
+        }
+    }
 }
 

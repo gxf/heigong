@@ -23,6 +23,11 @@ typedef class Table_Data_Cell: public Glyph{
         Glyph* UngetSet();
 
     public:
+        void Serialize(std::ofstream & ofs);
+        void Deserialize(std::ifstream & ifs); 
+        uint32 GetMagic(){ return magic_num; }
+
+    public:
         inline void AddChar(Char* ch){ glyphBuffer.push_back(ch); }
         inline void AddDelayedChar(Char* label){ delayedToken.push(label); }
         inline void PushDelayedLabel(){ 
@@ -58,6 +63,11 @@ typedef class Table_Data_Cell: public Glyph{
         std::queue<Glyph*>  delayedToken;
         std::deque<Glyph*>  glyphBuffer;
 
+    public:
+        static uint32 term_magic;
+        static uint32 term_magic_delay;
+        static uint32 magic_num;
+
 }Table_DC;
 
 typedef class Table_Row: public Glyph{
@@ -73,6 +83,11 @@ typedef class Table_Row: public Glyph{
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
+
+    public:
+        void Serialize(std::ofstream & ofs);
+        void Deserialize(std::ifstream & ifs);
+        uint32 GetMagic(){ return magic_num; }
 
     public:
         inline uint32 GetHeight(){ return height; }
@@ -91,6 +106,10 @@ typedef class Table_Row: public Glyph{
     public:
         std::vector<Table_DC*> dataCells;
 
+    public:
+        static uint32 term_magic;
+        static uint32 magic_num;
+
 }Table_R;
 
 class Table: public Glyph{
@@ -105,6 +124,11 @@ class Table: public Glyph{
         bool Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
+
+    public:
+        void Serialize(std::ofstream & ofs);
+        void Deserialize(std::ifstream & ifs);
+        uint32 GetMagic(){ return magic_num; }
 
     public:
         inline void SetOffset(uint32 o){ xoff = o; }
@@ -129,6 +153,10 @@ class Table: public Glyph{
 
     public:
         std::vector<Table_R*> rows;
+
+    public:
+        static uint32 term_magic;
+        static uint32 magic_num;
 };
 
 #endif

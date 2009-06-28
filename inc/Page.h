@@ -10,7 +10,7 @@ class PageCache;
 // Page class
 class Page{
     public:
-        Page(int n = 0, DocParser::HDocState hState = (DocParser::HDocState)0):
+        Page(int n = 0, HDocState hState = (HDocState)0):
             num(n), hPState(hState),
             pFb(NULL), fbWidth(0), fbHeight(0),
             valid(false)
@@ -18,7 +18,7 @@ class Page{
 
         ~Page(){}
 
-        inline DocParser::HDocState GetParserState(){ return hPState; }
+        inline HDocState GetParserState(){ return hPState; }
         inline int GetNum() { return num; }
         inline int CachedFB(){ return valid; }
         inline void SetSize(int w, int h){
@@ -33,8 +33,8 @@ class Page{
         friend class PageCache;
         
     private:
-        int                     num;        // Page Number
-        DocParser::HDocState    hPState;     // Parser state at page start
+        int         num;        // Page Number
+        HDocState   hPState;    // Parser state at page start
 
     private:
         void*       pFb;        // The content of framebuffer

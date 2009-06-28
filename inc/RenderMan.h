@@ -2,7 +2,10 @@
 #ifndef RENDER_MAN_H
 #define RENDER_MAN_H
 
+#ifndef RENDER2FILE
 #include "SDL/SDL.h"
+#endif
+
 #include "Common.h"
 #include "FrameBuffer.h"
 
@@ -32,13 +35,18 @@ class RenderMan{
         void Flush();
 
         void Quit();
+
+#ifndef RENDER2FILE
     private:
         void InitGL();
+#endif
 
     private:
+#ifndef RENDER2FILE
         int                     videoFlags;// Flags to pass to SDL_SetVideoMode
         const SDL_VideoInfo*    videoInfo; // holds some info about our display
         SDL_Surface *           surface;   // SDL surface
+#endif
 
         int screen_width;
         int screen_height;

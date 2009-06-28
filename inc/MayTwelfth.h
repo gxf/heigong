@@ -22,6 +22,9 @@ class May12th{
 
         inline Context* GetContext(){ return ctx; }
 
+    public:
+        void RenderAll();
+
     private:
         void Init(uint32 fontSize);
 //        bool RenderChar(Char &);

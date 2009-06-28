@@ -1,14 +1,18 @@
 # Compile & Linking 
-CC=g++
-LD=g++
+CC=arm-linux-uclibc-g++
+LD=arm-linux-uclibc-g++
+#CC=g++
+#LD=g++
 AR=ar -r
 #CFLAGS=-g -Wall -O3
-CFLAGS=-g -Wall -O0
+#CFLAGS=-g -Wall -O0 -DRENDER2FILE
+CFLAGS= -Wall -DRENDER2FILE
 LDFLAGS=
 INC=/usr/include/GL /usr/include/freetype2 $(HG_ROOT)/inc
 #INC_PATH=$(addprefix -I,$(INC))
 INC_PATH=-I/usr/include/GL -I/usr/include/freetype2 -I$(HG_ROOT)/inc
-LIBS=-lGL -lGLU -lGLEW -lSDL -lfreetype -lpng -ljpeg
+#LIBS=-lGL -lGLU -lGLEW -lSDL -lfreetype -lpng -ljpeg
+LIBS=-lfreetype -lpng -ljpeg
 LIB_PATH=
 
 CPPFLAGS=$(CFLAGS) $(INC_PATH)

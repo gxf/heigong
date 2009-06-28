@@ -1,6 +1,9 @@
 
 #include <cstdio>
+
+#ifndef RENDER2FILE
 #include <GL/glew.h>
+#endif
 
 #include "Common.h"
 #include "Logger.h"
@@ -20,6 +23,7 @@ RenderMan::~RenderMan(){
 }
 
 void RenderMan::Init(){
+#ifndef RENDER2FILE
     /* initialize SDL */
     if (SDL_Init(SDL_INIT_VIDEO) < 0){
         fprintf(stderr, "Video initialization failed: %s\n", SDL_GetError());
@@ -61,8 +65,10 @@ void RenderMan::Init(){
     }
     
     InitGL();
+#endif
 }
 
+#ifndef RENDER2FILE
 void RenderMan::InitGL()     // Create Some Everyday Functions
 { 
     LOG_EVENT("Initializing GL.");
@@ -85,16 +91,17 @@ void RenderMan::InitGL()     // Create Some Everyday Functions
     glClear(GL_COLOR_BUFFER_BIT);
     glFlush();
 }
+#endif
 
 void RenderMan::Quit(){
     LOG_EVENT("Render terminated.");
 
+#ifndef RENDER2FILE
     SDL_Quit();
-//    exit(0);
+#endif
 }
 
 void RenderMan::Clear(){
-//    glClear(GL_COLOR_BUFFER_BIT);
     fb.Clear();
 }
 
@@ -185,39 +192,16 @@ bool RenderMan::RenderPixMap(int x, int y, int width, int height, void* pixmap){
     return true;
 }
 
+#ifdef RENDER2FILE
 static void RenderToFile(void* pFb, uint32 width, uint32 height, const char* filen){
     std::ofstream of(filen);
-    uint32 i, j;
-//    uint32 start = 0;
-    uint8* p = (uint8*)pFb;
-    for(i = 0; i < height; i++){
-        for(j = 0; j < width; j += 4){
-            uint32 buf = (uint32)(*p & 0xf0) >> 4       | 
-                         (uint32)(*(p + 1) & 0xf0)      | 
-                         (uint32)(*(p + 2) & 0xf0) << 4 | 
-                         (uint32)(*(p + 3) & 0xf0) << 8;
-            of << buf;
-            p += 4;
-        }
-        // Not necessary
-#if 0
-        j = start;
-        for(j = 0; j < width; j += 2){
-            uint8 buf = (uint32)(*p & 0xf0) >> 4  | 
-                         (uint32)(*(p + 1) & 0xf0);
-            of << buf;
-            p += 2;
-        }
-        if ( j == width){
-            start = 1;
-        }
-        else{
-            start = 0;
-        }
-#endif
-    }
+    char header[100];
+    sprintf(header, "P5 %d %d 255 \n", width, height);
+    of << header;
+    of.write((char*)pFb, width * height);
     of.close();
 }
+#endif
 
 void RenderMan::Flush(){
 //    LOG_EVENT("Flush to buffer");
@@ -239,7 +223,7 @@ void RenderMan::Flush(){
     glFlush();
     SDL_GL_SwapBuffers();
 #else
-    RenderToFile(pFb, width, height, "framebuffer.fb");
+    RenderToFile(pFb, width, height, "framebuffer.pgm");
 #endif
 }
 
@@ -248,8 +232,10 @@ void RenderMan::GetFBSize(Page* pg){
 }
 
 void RenderMan::GetFrameBuffer(Page* pg){
+#ifndef RENDER2FILE
     glFlush();
 //    glReadBuffer(GL_FRONT);
     glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_LUMINANCE, GL_UNSIGNED_BYTE, pg -> GetFB());
+#endif
 }
 

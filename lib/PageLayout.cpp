@@ -17,6 +17,7 @@ PageLayout::~PageLayout(){
 }
 
 LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bearingY){
+    LOG_EVENT("Rendering Char");
     // Setting up baseline and maxheight
     curBaseline =  (curBaseline > bearingY) ? curBaseline : bearingY;
     int delta = height - bearingY;
@@ -24,13 +25,13 @@ LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bea
 
     int Xoff;
     if (firstLine){
-        Xoff = curLine->GetIndent() + g_word_spacing + width;
+        Xoff = (int)curLine->GetIndent() + g_word_spacing + width;
     }
     else{
         Xoff = g_word_spacing + width;
     }
     int Yoff = g_line_spacing + curMaxHeight;
-    Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
+//    Yoff = (Yoff > (int)curLine->GetHeight()) ? Yoff : (int)curLine->GetHeight();
 
     if (curPos.x + Xoff >= p_width - h_m_width){
         // Current line is over for use
@@ -83,9 +84,12 @@ LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bea
     {
         // Current line still have space, return curPos
         pos      = curPos;
+        char buf[100];
+        sprintf(buf, "Current x: %d, y: %d, max height: %d", curPos.x, curPos.y, p_height - v_m_width);
+        LOG_EVENT(buf);
         if (firstLine){
             // Append indent offset
-            pos.x += curLine->GetIndent();
+            pos.x += (int)curLine->GetIndent();
         }
         pos.y    += height;
         curPos.x += width + g_word_spacing;
@@ -94,19 +98,20 @@ LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bea
 }
 
 LAYOUT_RET PageLayout::GetGraphPos(Position & pos, int width, int height){
+    LOG_EVENT("Rendering Graph");
     if (curMaxHeight < height){
         imageConp = height - curMaxHeight;
         curMaxHeight = height;
     }
     int Xoff;
     if (firstLine){
-        Xoff = curLine->GetIndent() + g_word_spacing + width;
+        Xoff = (int)curLine->GetIndent() + g_word_spacing + width;
     }
     else{
         Xoff = g_word_spacing + width;
     }
     int Yoff = g_line_spacing + curMaxHeight;
-    Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
+//    Yoff = (Yoff > (int)curLine->GetHeight()) ? Yoff : (int)curLine->GetHeight();
 
     if (curPos.y + Yoff + curMaxHeight >= p_height - v_m_width){
         // & current page is over for use
@@ -164,7 +169,7 @@ LAYOUT_RET PageLayout::GetGraphPos(Position & pos, int width, int height){
         pos      = curPos;
         if (firstLine){
             // Append indent offset
-            pos.x += curLine->GetIndent();
+            pos.x += (int)curLine->GetIndent();
         }
         pos.y    += height;
         curPos.x += width + g_word_spacing;
@@ -173,6 +178,7 @@ LAYOUT_RET PageLayout::GetGraphPos(Position & pos, int width, int height){
 }
 
 LAYOUT_RET PageLayout::GetTablePos(Position & pos, int height){
+    LOG_EVENT("Rendering Table");
     if (curPos.y + height >= p_height - v_m_width){
         // & current page is over for use
         // Return invalid position
@@ -203,23 +209,26 @@ LAYOUT_RET PageLayout::GetTablePos(Position & pos, int height){
         curMaxHeight = 0;
         if (firstLine){
             // Append indent offset
-            pos.x += curLine->GetIndent();
+            pos.x += (int)curLine->GetIndent();
         }
         return LO_OK;
     }
 }
 
 LAYOUT_RET PageLayout::NewLine(){
+    LOG_EVENT("Rendering Newline");
     firstLine = true;
 
     int Yoff = g_line_spacing;
+    printf("curMaxHeight: %d, Yoff: %d, curLine->GetHeight: %d", curMaxHeight, Yoff, (int)curLine->GetHeight());
     if (0 == curMaxHeight){ 
         Yoff += lastMaxHeight; 
     }
     else{ 
         Yoff += curMaxHeight; 
-        Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine->GetHeight();
+//        Yoff = (Yoff > (int)curLine->GetHeight()) ? Yoff : (int)curLine->GetHeight();
     }
+    printf("curMaxHeight: %d, Yoff: %d, curLine->GetHeight: %d", curMaxHeight, Yoff, (int)curLine->GetHeight());
     curPos.y += Yoff;
 
     LAYOUT_RET ret = LO_OK;
@@ -258,10 +267,11 @@ LAYOUT_RET PageLayout::NewLine(){
 }
 
 void PageLayout::NewPage(){
+    LOG_EVENT("Rendering NewPage");
     curPos.x = v_m_width;
     curPos.y = h_m_width;
     uint32 Yoff = g_line_spacing + curMaxHeight - imageConp;
-    Yoff = (Yoff > curLine->GetHeight()) ? Yoff : curLine ->GetHeight();
+//    Yoff = (Yoff > (int)curLine->GetHeight()) ? Yoff : (int)curLine ->GetHeight();
     if (0 == curMaxHeight){
         curPos.y += Yoff;
     }

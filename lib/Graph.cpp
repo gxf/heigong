@@ -9,6 +9,8 @@
 ImageOptions global_IO;
 Image output_image;
 
+uint32 Graph::magic_num = 'g' + 'r' + 'a' + 'p' + 'h';
+
 Graph::Graph(Logger* log):
     Glyph(log), file_name(NULL), file_path(NULL)
 {
@@ -405,3 +407,27 @@ Glyph* Graph::Dup(){
 
     return img;
 }
+
+void Graph::Serialize(std::ofstream & ofs){
+//    ofs << GetMagic();
+
+    SER_OBJ(magic_num);
+    SER_OBJ(file_name);
+#if 0
+    uint32 file_name_len = std::strlen(file_name) + 1;
+
+    // Set file name length
+    ofs << file_name_len;
+    uint32 i;
+    for (i = 0; i < file_name_len - 1; i++){
+        ofs << file_name[i];
+    }
+    ofs << '\0';
+#endif
+}
+
+void Graph::Deserialize(std::ifstream & ifs){
+    DESER_OBJ(file_name);
+
+}
+

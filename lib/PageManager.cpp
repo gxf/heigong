@@ -1,10 +1,12 @@
 #include "PageManager.h"
+#include "DocState.h"
 #include "DocStream.h"
 #include "RenderMan.h"
+#include <cstring>
 
 
 PageManager::PageManager(Logger* log, DocParser & parse):
-    curPageNum(0), maxPageNum(0xffffff),
+    curPageNum(0), maxPageNum(MAX_UINT32),
     numToRender(0), numLastRendered(0),
     docParser(parse), logger(log)
 {
@@ -41,9 +43,17 @@ int PageManager::RepeatPage(){
 }
 
 void PageManager::StartPage(){
-    DocParser::HDocState docState = docParser.ShadowDocState();
+    HDocState docState = docParser.ShadowDocState();
+    static char dbuf[100];
+    sprintf(dbuf, "%d\0", numToRender);
+    std::string pers_page(dbuf);
+    pers_page += ".pg";
+    docState->StoreState(pers_page.c_str());
+    
+#if 0
     curPage = new Page(numToRender, docState);
     pages.push_back(curPage);
+#endif
     char buf[100];
     sprintf(buf, "Start page %d. CurPage: %d", numToRender, (uint32)curPage);
     LOG_EVENT(buf);
@@ -67,6 +77,15 @@ void PageManager::EndPage(int page_num, RenderMan* render){
 }
 
 bool PageManager::RestorePage(int page_num){
+    HDocState hds = new DocState(logger);
+    static char dbuf[100];
+    sprintf(dbuf, "%d\0", page_num);
+    std::string pers_page(dbuf);
+    pers_page +=  ".pg";
+    hds ->RecoverState(pers_page.c_str());
+    docParser.RestoreDocState(hds);
+    return true;
+#if 0
     // Notice: Can only get the page already exists.
     std::vector<Page*>::iterator itr = pages.begin();
     while(itr != pages.end()){
@@ -76,11 +95,12 @@ bool PageManager::RestorePage(int page_num){
         ++itr;
     }
     if (itr != pages.end()){
-        docParser.RestoreDocState((*itr)->GetParserState());
+//        docParser.RestoreDocState((*itr)->GetParserState());
         return true;
     }
     LOG_ERROR("Fail to look for page.");
     return false;
+#endif
 }
 
 bool PageManager::CachedRender(int page_num, RenderMan* render){

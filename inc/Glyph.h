@@ -4,7 +4,9 @@
 //namespace heigong{
 #include "Common.h"
 #include "Serializer.h"
-#include <stdio.h>
+#include <cstdio>
+#include <fstream>
+#include <string>
 
 class Position;
 class RenderMan;
@@ -15,7 +17,7 @@ class Logger;
 class FontsCache;
 class FontsManager;
 
-class Glyph {//: public Serializer{
+class Glyph : public Serializer{
     public:
         Glyph(Logger* log): 
             pos(0, 0), 
@@ -33,6 +35,11 @@ class Glyph {//: public Serializer{
         virtual Glyph * UngetSet() = 0;
 
     public:
+        virtual uint32 GetMagic() = 0;
+        void Serialize(std::ofstream & ofs);
+        void Deserialize(std::ifstream & ifs);
+
+    public:
         Position        pos;        // Left-bottom position
         int             bitmap_w;   // Bitmap width
         int             bitmap_h;   // Bitmap height
@@ -48,13 +55,37 @@ class Char: public Glyph{
         class ID{
             public:
                 ID(const char * n, int size):
-                    name(n), pt(size)
-                {}
-                // Trivial copy constructor & assigment operator
+                    pt(size)
+                {
+                    if (NULL != n){
+                        name = std::string(n);
+                    }
+                }
+            public:
+                ID(ID & id){
+                    name    = id.name;
+                    pt      = id.pt;
+                }
+
+                ID & operator=(const ID & id){
+                    if (this != &id){
+                        name    = id.name;
+                        pt      = id.pt;
+                    }
+                    return *this;
+                }
+                    
+                friend std::ifstream & operator>>(std::ifstream &ifs, ID & id);
+                
+                friend std::ofstream & operator<<(std::ofstream &ofs, ID & id);
 
             public:
-                const char* name;   // Pointer to static data
+                std::string name;   // key to name
                 int         pt;
+
+            private:
+                
+
         };
 
     public:
@@ -74,7 +105,7 @@ class Char: public Glyph{
         inline void SetBaseline(int b){ baseline = b; }
         inline void SetID(ID cid){ id = cid; }
         inline void SetSize(int s){ id.pt = s; }
-        inline void SetFont(const char* n) { id.name = n; }
+        inline void SetFont(const char* n) { id.name = std::string(n); }
         inline void SetAttrib(Attrib_Glyph & attr){ attrib = attr; }
 
         inline void* GetBitmap() { return bitmap; }
@@ -94,6 +125,11 @@ class Char: public Glyph{
         Glyph* Dup();
 
     public:
+        void Serialize(std::ofstream & ofs);
+        void Deserialize(std::ifstream & ifs);
+        uint32 GetMagic(){ return magic_num; }
+
+    public:
         int             baseline;
         ENCODING_MODE   encodeMode;
         uint32          val;
@@ -105,6 +141,9 @@ class Char: public Glyph{
     private:
         static FontsCache ftCache;
         static FontsManager ftMgr;
+
+    private:
+        static uint32 magic_num;
 };
 
 class Graph: public Glyph{
@@ -133,6 +172,11 @@ class Graph: public Glyph{
         inline void SetReqHeight(uint32 h) { req_height = h; }
         void SetSrcFile(const char* src);
 
+    public:
+        void Serialize(std::ofstream & ofs);
+        void Deserialize(std::ifstream & ifs);
+        uint32 GetMagic(){ return magic_num; }
+
     protected:
         bool SetupPNG(LayoutManager& lo, FILE* fp);
         bool SetupJPG(LayoutManager& lo, FILE* fp);
@@ -147,6 +191,9 @@ class Graph: public Glyph{
     public:
         char* file_name;
         char* file_path;
+
+    private:
+        static uint32 magic_num;
 };
 
 

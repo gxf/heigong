@@ -4,6 +4,7 @@
 #include <string.h>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 class Logger{
     public:

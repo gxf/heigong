@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "Logger.h"
 #include "Glyph.h"
 #include "FontsCache.h"
@@ -11,6 +12,20 @@
 static Logger ftlogger;
 FontsCache Char::ftCache;
 FontsManager Char::ftMgr(&ftlogger);
+
+uint32 Char::magic_num = 'c' + 'h' + 'a' + 'r';
+
+std::ifstream & operator>>(std::ifstream &ifs, Char::ID & id){
+    ifs >> id.name;
+    ifs >> id.pt;
+    return ifs;
+}
+
+std::ofstream & operator<<(std::ofstream &ofs, Char::ID & id){ 
+    ofs << id.name; 
+    ofs << id.pt;
+    return ofs;
+}
 
 Char::Char(Logger* log):
     Glyph(log), baseline(0), 
@@ -136,7 +151,12 @@ Glyph* Char::Dup(){
     ch->bitmap_w    = this->bitmap_w;
     ch->bitmap_h    = this->bitmap_h;
     // Always let the cache assign memory
-    ftCache.CacheFont(ch, bitmap_w , bitmap_h, bitmap);
+    if (bitmap != NULL){
+        ftCache.CacheFont(ch, bitmap_w , bitmap_h, bitmap);
+    }
+    else{
+        ch->bitmap = NULL;
+    }
     ch->baseline    = this->baseline;
     ch->encodeMode  = this->encodeMode;
     ch->val         = this->val;
@@ -145,5 +165,26 @@ Glyph* Char::Dup(){
     ch->valid       = this->valid;
 
     return ch;
+}
+
+void Char::Serialize(std::ofstream & ofs){
+
+    SER_OBJ(magic_num);
+    SER_OBJ(encodeMode);
+    SER_OBJ(val);
+    SER_OBJ(charLen);
+    SER_OBJ(id);
+    SER_OBJ(attrib);
+//    ofs << id;
+}
+
+void Char::Deserialize(std::ifstream & ifs){
+//    DESER_OBJ(valid);
+    DESER_OBJ(encodeMode);
+    DESER_OBJ(val);
+    DESER_OBJ(charLen);
+    DESER_OBJ(id);
+    DESER_OBJ(attrib);
+//    ifs >> id;
 }
 

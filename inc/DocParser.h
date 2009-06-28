@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include "DocStream.h"
+#include "DocState.h"
 #include <deque>
 #include <queue>
 #include <stdio.h>
@@ -28,11 +29,6 @@ class DocParser{
             DP_INVALID,     // Current stream is invalid
             DP_ERROR,       // Internal parse error
         }DP_RET_T;
-
-        typedef struct DocState_Rec{
-            std::deque<Glyph*>  buffer;
-            long int            offset;
-        }DocState, *HDocState;
 
     public:
         bool Init(const char* filen);

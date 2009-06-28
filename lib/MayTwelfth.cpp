@@ -28,6 +28,13 @@ void May12th::Init(uint32 fontSize){
     ctx->layout.SetLineSpacing(fontSize/4);
 }
 
+void May12th::RenderAll(){
+    int i = 0;
+    for (i = 0; i < ctx->pgMgr.GetMaxPageNum(); i++){
+        Display(i);
+    }
+}
+
 void May12th::Display(int page_num){
     bool newPage;
     if (page_num > ctx->pgMgr.GetToWorkPageNum()){
@@ -114,6 +121,7 @@ void May12th::Display(int page_num){
 }
 
 void May12th::MainLoop(){
+#ifndef RENDER2FILE
     int done = false;
     SDL_Event event;
 
@@ -151,5 +159,6 @@ void May12th::MainLoop(){
             }
         }
     } 
+#endif
 }
 
