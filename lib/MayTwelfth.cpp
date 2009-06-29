@@ -76,45 +76,60 @@ void May12th::Display(int page_num){
     Glyph* glyph;
     DocParser::DP_RET_T dp_ret = DocParser::DP_OK;
 
-    while(DocParser::DP_OK == dp_ret){
+    bool finished = false;
+    while(!finished){
         dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->layout);
-
+        Glyph::GY_ST_RET gy_ret = Glyph::GY_OK; 
+        Table* tab = NULL;
         switch(dp_ret){
             case DocParser::DP_OK:
-                if(false == glyph->Setup(ctx->layout)){
-                    Table* tab = dynamic_cast<Table *>(glyph);
-                    LOG_EVENT_STR2("tab = ", (int)tab);
-                    if (tab){
-                        tab->Draw(ctx->render);
-                    }
-                    if(true == newPage){
-                        ctx->docParse << glyph->UngetSet();
-                    }
-                    ctx->render.Flush();
-                    ctx->pgMgr.EndPage(page_num, &ctx->render);
-                    return;
+                gy_ret = glyph->Setup(ctx->layout);
+                tab = dynamic_cast<Table *>(glyph);
+                switch(gy_ret){
+                    case Glyph::GY_OK:
+                        // Table render is trigered here
+                        if (tab){ tab->Draw(ctx->render); }
+                        break;
+                    case Glyph::GY_NEW_PAGE:
+                        // Table render is trigered here
+                        if (tab){ tab->Draw(ctx->render); }
+                        if(true == newPage){
+                            ctx->docParse << glyph->UngetSet();
+                        }
+                        ctx->render.Flush();
+                        ctx->pgMgr.EndPage(page_num, &ctx->render);
+                        finished = true;
+                        break;
+                    case Glyph::GY_EOF:
+                        ctx->pgMgr.SetMaxPageNum(page_num);
+                        ctx->layout.curLine->DrawFlush(&ctx->render);
+                        ctx->render.Flush();
+                        ctx->pgMgr.EndPage(page_num, &ctx->render);
+                        finished = true;
+                        break;
+                    case Glyph::GY_ERROR:
+                        LOG_ERROR("Internal error.");
+//                        finished = true;
+                        break;
+                    default:
+                        LOG_ERROR("Unsupported setting up return value of glyph.");
+                        finished = true;
+                        break;
                 }
-                else{
-                    Table* tab = dynamic_cast<Table *>(glyph);
-                    if (tab){
-                        tab->Draw(ctx->render);
-                    }
-                }
-                break;
             case DocParser::DP_EOF:
-                ctx->pgMgr.SetMaxPageNum(page_num);
-                ctx->layout.curLine->DrawFlush(&ctx->render);
-                ctx->render.Flush();
-                ctx->pgMgr.EndPage(page_num, &ctx->render);
+//                finished = true;
                 break;
             case DocParser::DP_INVALID:
                 LOG_ERROR("DocParser return invalid stream!");
+//                finished = true;
                 break;
             case DocParser::DP_ERROR:
                 LOG_ERROR("DocParser return parse error!");
+//                finished = true;
                 break;
             default:
                 LOG_ERROR("Unsupported DocParser return type!");
+//                finished = true;
                 break;
         }
     }

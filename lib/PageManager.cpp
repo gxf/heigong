@@ -6,7 +6,7 @@
 
 
 PageManager::PageManager(Logger* log, DocParser & parse):
-    curPageNum(0), maxPageNum(MAX_UINT32),
+    curPageNum(0), maxPageNum(MAX_INT32),
     numToRender(0), numLastRendered(0),
     docParser(parse), logger(log)
 {
@@ -55,7 +55,7 @@ void PageManager::StartPage(){
     pages.push_back(curPage);
 #endif
     char buf[100];
-    sprintf(buf, "Start page %d. CurPage: %d", numToRender, (uint32)curPage);
+    sprintf(buf, "Start page %d. CurPage: %d", numToRender, curPageNum);
     LOG_EVENT(buf);
 }
 
@@ -63,7 +63,7 @@ void PageManager::EndPage(int page_num, RenderMan* render){
     if (page_num == numToRender){
         numLastRendered = numToRender++;
         char buf[100];
-        sprintf(buf, "End page %d. CurPage: %d", numLastRendered, (uint32)curPage);
+        sprintf(buf, "End page %d. CurPage: %d", numLastRendered, (uint32)curPageNum);
         LOG_EVENT(buf);
 
 #ifdef PAGE_CACHED_RENDER

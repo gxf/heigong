@@ -86,17 +86,17 @@ bool Char::Draw(RenderMan & render){
     return render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
 }
 
-bool Char::Setup(LayoutManager& layout){
+Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
     if ('\n' == GetVal()){
         switch(layout.NewLine()){
             case LO_OK:
-                return true;
+                return GY_OK;
             case LO_NEW_PAGE:
                 layout.Reset();
-                return false;
+                return GY_NEW_PAGE;
             default:
                 LOG_ERROR("Unsupported Layout Newline return.");
-                return false;
+                return GY_ERROR;
         }
     }
     FT_GlyphSlot glyphSlot;
@@ -124,13 +124,13 @@ bool Char::Setup(LayoutManager& layout){
             break;
         case LO_NEW_PAGE:
             layout.Reset();
-            return false;
+            return GY_NEW_PAGE;
         default:
             LOG_ERROR("Unsupported Layout return.");
             break;
     }
 
-    return true;
+    return GY_OK;
 }
 
 Glyph * Char::UngetSet(){
@@ -163,6 +163,7 @@ Glyph* Char::Dup(){
     ch->charLen     = this->charLen;
     ch->id          = this->id;
     ch->valid       = this->valid;
+    ch->attrib      = this->attrib;
 
     return ch;
 }

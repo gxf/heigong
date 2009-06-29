@@ -18,7 +18,7 @@ typedef class Table_Data_Cell: public Glyph{
         bool DrawBorder(RenderMan&);
         bool Relocate(int, int);
         bool Adjust2Baseline(int baseline){ return true; };
-        bool Setup(LayoutManager& lo);
+        GY_ST_RET Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
 
@@ -80,7 +80,7 @@ typedef class Table_Row: public Glyph{
         bool DrawBorder(RenderMan&);
         bool Relocate(int, int);
         bool Adjust2Baseline(int baseline){ return true; };
-        bool Setup(LayoutManager& lo);
+        GY_ST_RET Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
 
@@ -121,7 +121,7 @@ class Table: public Glyph{
         bool Draw(RenderMan&);
         bool Relocate(int, int);
         bool Adjust2Baseline(int baseline){ return true; };
-        bool Setup(LayoutManager& lo);
+        GY_ST_RET Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
 

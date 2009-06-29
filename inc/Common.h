@@ -14,7 +14,8 @@ typedef unsigned short  uint16;
 typedef unsigned char   uchar8; 
 typedef uchar8          uint8; 
 
-#define MAX_UINT32   ((1 << sizeof(uint32)) - 1) 
+#define MAX_UINT32   ((uint32)-1) 
+#define MAX_INT32   ((1 << (sizeof(int32) << 3) - 1) - 1) 
 
 class Except_EOF{};         // EOF is met
 class Except_Parse_Err{};   // parse error
@@ -109,10 +110,13 @@ enum ENCODING_MODE{
 #define MARGIN_VERTICAL     30
 #define MARGIN_HORIZONTAL   30
 
+#define PAGE_WIDTH (SCREEN_WIDTH - 2 * MARGIN_HORIZONTAL)
+#define PAGE_HEIGHT (SCREEN_HEIGHT - 2 * MARGIN_VERTICAL)
+
 #define TABLE_MARGIN_VERTICAL     0
 #define TABLE_MARGIN_HORIZONTAL   2
 
-#define IMAGE_GAURD_SIZE    40
+#define IMAGE_GUARD_SIZE    40
 
 #define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-droid/DroidSansFallback.ttf"
 #define DEFAULT_FONT_SIZE   12

@@ -50,9 +50,10 @@ void DocState::Serialize(std::ofstream & ofs){
 
 void DocState::Deserialize(std::ifstream & ifs){
     // Dummy objects
-    Char ch(logger);
-    Graph g(logger);
-    Table t(logger);
+    Char    ch(logger);
+    Graph   g(logger);
+    Table   t(logger);
+    Eof     e(logger);
 
     uint32 magic;
     while(!ifs.eof()){
@@ -61,6 +62,11 @@ void DocState::Deserialize(std::ifstream & ifs){
             // offset is placed at the end of the serialized record
             DESER_OBJ(offset);
             return;
+        }
+        else if (magic == e.GetMagic()){
+            Eof * pe = new Eof(logger);
+            buffer.push_back(pe);
+            pe->Deserialize(ifs);
         }
         else if (magic == ch.GetMagic()){
             Char* pch = new Char(logger);

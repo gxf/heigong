@@ -57,15 +57,11 @@ DocParser::GetNextGlyph(Glyph** glyph, LayoutManager * layout){
         fillGlyphStream(layout);
     }
     catch(Except_EOF &){
-        if (!(glyphBuffer.empty())){
-            *glyph = glyphBuffer.front();
-            glyphBuffer.pop_front();
-            return DP_OK;
-        }
-        else{
-            *glyph = NULL;
-            return DP_EOF;
-        }
+        glyphBuffer.push_back(new Eof(logger));
+        *glyph = glyphBuffer.front();
+        glyphBuffer.pop_front();
+        return DP_OK;
+//        return DP_EOF;
     }
 
     if (glyphBuffer.empty()){
@@ -315,6 +311,7 @@ void DocParser::procWord(int & ch){
     // “    == &ldquo
     // ”    == &rdquo
     // －   == &mdash
+    // .    == &hellip
 #define FourBytes(a, b, c, d) (d << 24 | c << 16 | b << 8 | a)
     if (ch == '&'){
         if (match("lt;")){ 
@@ -345,6 +342,9 @@ void DocParser::procWord(int & ch){
 //            c->SetVal(FourBytes(0xef, 0xbc, 0x8d, 0x00)); 
             c->SetVal('-');    // Work around
         } 
+        else if (match("hellip;")){
+            c->SetVal('.');
+        }
         else{ 
             docStream << ch; 
             docStream >> *c;
@@ -743,6 +743,9 @@ void DocParser::procTableWord(int & ch, Table_DC * tdc){
 //            c->SetVal(FourBytes(0xef, 0xbc, 0x8d, 0x00)); 
             c->SetVal('-');    // Work around
         } 
+        else if (match("hellip;")){
+            c->SetVal('.');
+        }
     }
     docStream << ch; 
     docStream >> *c;

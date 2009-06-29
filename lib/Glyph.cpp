@@ -13,3 +13,5 @@ void Glyph::Deserialize(std::ifstream & ifs){
     DESER_OBJ(bitmap_h);
     // Do not deal with bitmap memory directly
 }
+
+uint32 Eof::magic_num = 'e' + 'o' + 'f';

@@ -44,7 +44,7 @@ Table::~Table(){
 uint32 Table_Data_Cell::term_magic_delay = 't' + 'e' + 'r' + 'm' + 't' + 'd' + 'c' + 'd' + 'e' + 'l' + 'a' + 'y';
 uint32 Table_Data_Cell::term_magic = 't' + 'e' + 'r' + 'm' + 't' + 'd' + 'c';
 
-bool Table_Data_Cell::Setup(LayoutManager& lo){
+Glyph::GY_ST_RET Table_Data_Cell::Setup(LayoutManager& lo){
     std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
     while(itr != glyphBuffer.end()){
         (*itr) -> Setup(lo);
@@ -52,7 +52,7 @@ bool Table_Data_Cell::Setup(LayoutManager& lo){
     }
     TableLayout & tlo = dynamic_cast<TableLayout &>(lo);
     tlo.curLine->RelocLine();
-    return true;
+    return GY_OK;
 }
 
 bool Table_Data_Cell::Draw(RenderMan& render){
@@ -149,8 +149,9 @@ void Table_Data_Cell::Deserialize(std::ifstream & ifs){
     DESER_OBJ(lineAttrib);
 
     // Dummy objects
-    Char ch(logger);
-    Graph g(logger);
+    Char    ch(logger);
+    Graph   g(logger);
+    Eof     e(logger);
 
     bool finished = false;
 
@@ -159,6 +160,11 @@ void Table_Data_Cell::Deserialize(std::ifstream & ifs){
         DESER_OBJ(magic);
         if (magic == term_magic_delay){
             finished = true;
+        }
+        else if (magic == e.GetMagic()){
+            Eof * pe = new Eof(logger);
+            delayedToken.push(pe);
+            pe->Deserialize(ifs);
         }
         else if (magic == ch.GetMagic()){
             Char* pch = new Char(logger);
@@ -181,6 +187,11 @@ void Table_Data_Cell::Deserialize(std::ifstream & ifs){
         if (magic == term_magic){
             finished = true;
         }
+        else if (magic == e.GetMagic()){
+            Eof * pe = new Eof(logger);
+            glyphBuffer.push_back(pe);
+            pe->Deserialize(ifs);
+        }
         else if (magic == ch.GetMagic()){
             Char* pch = new Char(logger);
             glyphBuffer.push_back(pch);
@@ -202,7 +213,7 @@ void Table_Data_Cell::Deserialize(std::ifstream & ifs){
 /*************************************/
 uint32 Table_Row::term_magic = 't' + 'e' + 'r' + 'm' + 't' + 'a' + 'b' + 'l' + 'e' + 'r' + 'o' + 'w';
 
-bool Table_Row::Setup(LayoutManager& lo){
+Glyph::GY_ST_RET Table_Row::Setup(LayoutManager& lo){
     std::vector<Table_DC*>::iterator itr = dataCells.begin();
     while(itr != dataCells.end()){
         (*itr) -> Setup((*itr)->cellLayout);
@@ -218,14 +229,14 @@ bool Table_Row::Setup(LayoutManager& lo){
     Position pos;
     PageLayout & plo = dynamic_cast<PageLayout &>(lo);
     if (LO_NEW_PAGE == plo.GetTablePos(pos, height)){
-        return false;
+        return GY_NEW_PAGE;
     }
     else{
 //        LOG_EVENT_STR3("[TABLE_ROW] Get table row at position: ", pos.x, pos.y);
         Relocate(pos.x + xoff, pos.y);
         borderPos.x = pos.x + xoff;
         borderPos.y = pos.y;
-        return true;
+        return GY_OK;
     }
 }
 
@@ -357,20 +368,20 @@ bool Table::Relocate(int x, int y){
     return true;
 }
 
-bool Table::Setup(LayoutManager& lo){
+Glyph::GY_ST_RET Table::Setup(LayoutManager& lo){
     // Break rows into two pages if it is too long
     std::vector<Table_Row *>::iterator itr = rows.begin();
     while(itr != rows.end()){
-        if (false == (*itr) -> Setup(lo)){
+        if (GY_NEW_PAGE == (*itr) -> Setup(lo)){
             --rowSplit;
 //            LOG_EVENT_STR2("[TABLE] Page ends.Row is splitted @ ", rowSplit);
-            return false;
+            return GY_NEW_PAGE;
         }
         height = (height > (*itr)->height) ? height : (*itr)->height;
         ++itr;
         ++rowSplit;
     }
-    return true;
+    return GY_OK;
 }
 
 Glyph* Table::UngetSet(){

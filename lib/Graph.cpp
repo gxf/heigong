@@ -5,6 +5,7 @@
 #include "Context.h"
 #include "image.h"
 #include <string>
+#include <cassert>
 
 ImageOptions global_IO;
 Image output_image;
@@ -34,7 +35,7 @@ void Graph::SetSrcFile(const char* src) {
     std::memcpy(file_name, src, std::strlen(src) + 1);
 }
 
-bool Graph::Setup(LayoutManager& layout){
+Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
     std::string file(file_path);
     file += file_name;
 
@@ -43,18 +44,20 @@ bool Graph::Setup(LayoutManager& layout){
         char info[100];
         sprintf(info, "Fail to open file %s", file.c_str());
         LOG_ERROR(info);
-        return false;
+        return GY_ERROR;
     } 
 
     IF_T type = DetectFormat(file.c_str(), fp);
 
     switch(type){
         case IF_NONE:
-            return false;
+            LOG_WARNING("Unknow image format.");
+            break;
         case IF_PNG:
             LOG_EVENT("Png file is detected.");
             return SetupPNG(layout, fp);
         case IF_JPG:
+//            if (req_width == 0) assert(0);
             LOG_EVENT("JPG file is detected.");
             return SetupJPG(layout, fp);
             break;
@@ -64,7 +67,7 @@ bool Graph::Setup(LayoutManager& layout){
             LOG_ERROR("Unsupported image file type.");
             break;
     }
-    return true;
+    return GY_OK;
 }
 
 Graph::IF_T Graph::DetectFormat(const char * str, FILE * fp){
@@ -97,33 +100,33 @@ Graph::IF_T Graph::DetectFormat(const char * str, FILE * fp){
     return IF_NONE;
 }
 
-bool Graph::SetupPNG(LayoutManager& layout, FILE* fp){
+Glyph::GY_ST_RET Graph::SetupPNG(LayoutManager& layout, FILE* fp){
     png_structp png_ptr = 
         png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
     if (!png_ptr){
         LOG_ERROR("Fail to create png struct!");
-        return false; 
+        return GY_ERROR; 
     }
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr){
         png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
         LOG_ERROR("Fail to create png info!");
-        return false; 
+        return GY_ERROR; 
     } 
 
     png_infop end_info = png_create_info_struct(png_ptr);
     if (!end_info) {
         png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
         LOG_ERROR("Fail to create png info!");
-        return false; 
+        return GY_ERROR; 
     }
 
     if (setjmp(png_jmpbuf(png_ptr))) {
         png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
         fclose(fp);
         LOG_ERROR("Setjump callback.");
-        return false;
+        return GY_ERROR; 
     }
 
     png_init_io(png_ptr, fp);
@@ -157,7 +160,7 @@ bool Graph::SetupPNG(LayoutManager& layout, FILE* fp){
 
     uint32 row;
 
-    char* bmap = new char[png_get_rowbytes(png_ptr, info_ptr) * height];
+    uint8* bmap = new uint8[png_get_rowbytes(png_ptr, info_ptr) * height];
 
     for (row = 0; row < height; row++){
         row_pointers[row] = 
@@ -174,6 +177,17 @@ bool Graph::SetupPNG(LayoutManager& layout, FILE* fp){
     Convert((void**)row_pointers, png_get_rowbytes(png_ptr, info_ptr), height, col_type, bit_depth, channel);
     delete [] bmap;
 
+    int n_w, n_h;
+    if (bitmap_w > PAGE_WIDTH || bitmap_h > PAGE_HEIGHT){
+        bmap = (uint8*)Resize(bitmap, bitmap_w, bitmap_h, n_w, n_h);
+        if (NULL != bmap){
+            delete [] (uint8*)bitmap;
+            bitmap = bmap;
+            bitmap_w = n_w;
+            bitmap_h = n_h;
+        }
+    }
+
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 
     LAYOUT_RET ret;
@@ -189,13 +203,13 @@ bool Graph::SetupPNG(LayoutManager& layout, FILE* fp){
             break;
         case LO_NEW_PAGE:
             layout.Reset();
-            return false;
+            return GY_NEW_PAGE;
         default:
             LOG_ERROR("Unsupported Layout return.");
             break;
     }
 
-    return true;
+    return GY_OK;
 }
 
 void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, int channel){
@@ -283,20 +297,8 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
     }
 }
 
-bool Graph::SetupJPG(LayoutManager& layout, FILE* fp){
+Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
     fclose(fp);
-
-    // Adjust image size in order not to render out side of frame buffer
-    double ratio = (double)req_width / req_height;
-
-    if (req_width > SCREEN_WIDTH - 2 * MARGIN_VERTICAL){
-	req_width = SCREEN_WIDTH - 2 * MARGIN_VERTICAL - IMAGE_GAURD_SIZE;
-	req_height = req_width / ratio;
-	if (req_height > SCREEN_HEIGHT - 2 * MARGIN_HORIZONTAL){
-	    req_height = SCREEN_HEIGHT - 2 * MARGIN_HORIZONTAL - IMAGE_GAURD_SIZE;
-	    req_width = req_height * ratio;
-	}
-    }
 
     std::string file(file_path);
     file += file_name;
@@ -311,19 +313,30 @@ bool Graph::SetupJPG(LayoutManager& layout, FILE* fp){
 
     if(loadImage(&global_IO) == ERROR){
         LOG_ERROR("Loading jpg file fails");
-        return false;
+        return GY_ERROR;
     }
 
     fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
-//    fillImage(output_image.data, 160, 128, 160* 2, 0, 0);
-    ConvertJPG((void**)output_image.data, req_width, req_height);
-//    ConvertJPG((void**)output_image.data, 160, 128);
+    ConvertJPG((void*)output_image.data, req_width, req_height);
+
+    uint8* bmap;
+    int n_w, n_h;
+    if (req_width > PAGE_WIDTH || req_height > PAGE_HEIGHT){
+        bmap = (uint8*)Resize(bitmap, req_width, req_height, n_w, n_h);
+        if (NULL != bmap){
+            delete [] (uint8*)bitmap;
+            bitmap = bmap;
+            bitmap_w = n_w;
+            bitmap_h = n_h;
+        }
+    }
 
     freeImage();
 
     LAYOUT_RET ret;
     ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
 
+    LOG_EVENT_STR3("JPG position", pos.x, pos.y);
     switch(ret){
         case LO_OK:
             layout.AddGlyph(this);
@@ -333,13 +346,13 @@ bool Graph::SetupJPG(LayoutManager& layout, FILE* fp){
             break;
         case LO_NEW_PAGE:
             layout.Reset();
-            return false;
+            return GY_NEW_PAGE;
         default:
             LOG_ERROR("Unsupported Layout return.");
             break;
     }
 
-    return true;
+    return GY_OK;
 }
 
 void Graph::ConvertJPG(void* bmap, int w, int h){
@@ -371,6 +384,56 @@ void Graph::ConvertJPG(void* bmap, int w, int h){
     LOG_EVENT("Color converted from RGBA to Grayscale.");
 }
 
+void* Graph::Resize(void* bmap, int32 w_old, int32 h_old, int32 & w_new, int32 & h_new){
+    assert(w_old >= 0);
+    assert(h_old >= 0);
+    if (w_old > PAGE_WIDTH){
+        int32 newWidth = PAGE_WIDTH - IMAGE_GUARD_SIZE;
+        int32 newHeight = h_old * newWidth / w_old;
+        if (newHeight > PAGE_HEIGHT){
+            newHeight = PAGE_HEIGHT - IMAGE_GUARD_SIZE;
+            newWidth = w_old * newHeight / h_old;
+        }
+        w_new = newWidth;
+        h_new = newHeight;
+        return ResizeImpl(bmap, w_old, h_old, newWidth, newHeight);
+    }
+    else if (h_old > PAGE_HEIGHT){
+        int32 newHeight = PAGE_HEIGHT - IMAGE_GUARD_SIZE;
+        int32 newWidth = w_old * newHeight / h_old;
+        if (newWidth > PAGE_WIDTH){
+            newWidth = PAGE_WIDTH - IMAGE_GUARD_SIZE;
+            newHeight = h_old * newWidth / w_old;
+        }
+        w_new = newWidth;
+        h_new = newHeight;
+        return ResizeImpl(bmap, w_old, h_old, newWidth, newHeight);
+    }
+    // Else, don't change anything
+    else{
+        w_new = 0;
+        h_new = 0;
+        return NULL;
+    }
+}
+
+void* Graph::ResizeImpl(void* bmap, int32 w_old, int32 h_old, int32 w_new, int32 h_new){
+    int32 row, col;
+    uint8 * p = (uint8*)bmap;
+    uint8 * nbmap = new uint8[w_new * h_new * sizeof(uint8)];
+    uint8 * q = nbmap;
+
+    // Nearest point sampling
+    for(row = 0; row < h_new; row++){
+        int32 sample_row = row * h_old / h_new;
+        for (col = 0; col < w_new; col++){
+            int32 sample_col = col * w_old / w_new;
+            *(q++) = *(p + (sample_row * w_old) + sample_col);
+        }
+    }
+
+    return nbmap;
+}
 
 bool Graph::Draw(RenderMan& render){
     if (bitmap != NULL){
@@ -400,6 +463,8 @@ Glyph* Graph::Dup(){
     img->bitmap_w   = this->bitmap_w;
     img->bitmap_h   = this->bitmap_h;
     img->bitmap     = new char[bitmap_w * bitmap_h];
+    img->req_width  = this->req_width;
+    img->req_height = this->req_height;
 
     img->file_name  = new char[std::strlen(file_name) + 1];
     std::memcpy(img->file_name, file_name, std::strlen(file_name) + 1);
@@ -409,25 +474,16 @@ Glyph* Graph::Dup(){
 }
 
 void Graph::Serialize(std::ofstream & ofs){
-//    ofs << GetMagic();
 
     SER_OBJ(magic_num);
+    SER_OBJ(req_width);
+    SER_OBJ(req_height);
     SER_OBJ(file_name);
-#if 0
-    uint32 file_name_len = std::strlen(file_name) + 1;
-
-    // Set file name length
-    ofs << file_name_len;
-    uint32 i;
-    for (i = 0; i < file_name_len - 1; i++){
-        ofs << file_name[i];
-    }
-    ofs << '\0';
-#endif
 }
 
 void Graph::Deserialize(std::ifstream & ifs){
+    DESER_OBJ(req_width);
+    DESER_OBJ(req_height);
     DESER_OBJ(file_name);
-
 }
 
