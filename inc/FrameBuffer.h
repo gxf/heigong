@@ -10,7 +10,7 @@ class FrameBuffer{
             width(w), height(h), elem_len(elem_l)
         {
             pFB = new uint8[width * height * elem_len];
-            std::memset(pFB, 0xff, width * height * elem_len);
+            std::memset(pFB, 0xff, width * height * elem_len + FB_GUARD_SIZE);
         }
 
         ~FrameBuffer(){

@@ -172,15 +172,12 @@ LAYOUT_RET PageLayout::GetGraphPos(Position & pos, int width, int height){
     else
     {
         // Current line still have space, return curPos
-        LOG_EVENT("HERE?");
         pos      = curPos;
         if (firstLine){
             // Append indent offset
             pos.x += (int)curLine->GetIndent();
         }
         pos.y    += height;
-//        curPos.y += height;
-//        curMaxHeight = height;
         curPos.x += width + g_word_spacing;
         return LO_OK;
     }
