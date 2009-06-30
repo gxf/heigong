@@ -119,6 +119,8 @@ enum ENCODING_MODE{
 #define IMAGE_GUARD_SIZE    40
 #define FB_GUARD_SIZE       256
 
+#define TAB_MARGIN  2
+
 #define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-droid/DroidSansFallback.ttf"
 #define DEFAULT_FONT_SIZE   12
 

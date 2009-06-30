@@ -14,6 +14,18 @@ TableLayout::~TableLayout(){
     delete curLine;
 }
 
+void TableLayout::ReSetup(int w, int h, int mv, int mh, 
+                          Logger* log, int ls, int ws)
+{
+    p_width     = w;
+    p_height    = h;
+    v_m_width   = mv;
+    h_m_width   = mh;
+    g_line_spacing = ls;
+    g_word_spacing = ws;
+    logger      = log;
+}
+
 LAYOUT_RET TableLayout::GetCharPos(Position & pos, int width, int height, int bearingY){
     // Setting up baseline and maxheight
     curBaseline =  (curBaseline > bearingY) ? curBaseline : bearingY;

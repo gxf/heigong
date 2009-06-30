@@ -46,6 +46,8 @@ void DocState::Serialize(std::ofstream & ofs){
     }
     SER_OBJ(offset_magic);
     SER_OBJ(offset);
+    SER_OBJ(glyphAttrib);
+    SER_OBJ(lineAttrib);
 }
 
 void DocState::Deserialize(std::ifstream & ifs){
@@ -61,6 +63,8 @@ void DocState::Deserialize(std::ifstream & ifs){
         if(magic == offset_magic){
             // offset is placed at the end of the serialized record
             DESER_OBJ(offset);
+            DESER_OBJ(glyphAttrib);
+            DESER_OBJ(lineAttrib);
             return;
         }
         else if (magic == e.GetMagic()){

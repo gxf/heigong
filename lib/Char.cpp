@@ -141,6 +141,7 @@ Glyph * Char::UngetSet(){
     ch->val         = this->val;
     ch->charLen     = this->charLen;
     ch->id          = this->id;
+    ch->attrib      = this->attrib;
     return ch;
 }
 
@@ -176,7 +177,6 @@ void Char::Serialize(std::ofstream & ofs){
     SER_OBJ(charLen);
     SER_OBJ(id);
     SER_OBJ(attrib);
-//    ofs << id;
 }
 
 void Char::Deserialize(std::ifstream & ifs){
@@ -186,6 +186,5 @@ void Char::Deserialize(std::ifstream & ifs){
     DESER_OBJ(charLen);
     DESER_OBJ(id);
     DESER_OBJ(attrib);
-//    ifs >> id;
 }
 

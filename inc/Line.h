@@ -39,7 +39,7 @@ class Line{
         inline void SetAttrib(const Attrib_Line & att){ attrib = att; }
 
         inline double GetHeight() { return attrib.height; }
-        inline double GetIndent() { return attrib.indent; }
+        inline double GetIndent() { return (attrib.indent >= 0) ? attrib.indent: 0; }
 
     private:
         std::vector<Glyph*> glyphs;

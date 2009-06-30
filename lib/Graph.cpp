@@ -311,14 +311,18 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
     global_IO.width   = req_width; 
     global_IO.height  = req_height; 
 
+    LOG_EVENT("load image.");
     if(loadImage(&global_IO) == ERROR){
         LOG_ERROR("Loading jpg file fails");
         return GY_ERROR;
     }
 
+    LOG_EVENT("fill image.");
     fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
+    LOG_EVENT("convert image.");
     ConvertJPG((void*)output_image.data, req_width, req_height);
 
+    LOG_EVENT("resize image.");
     uint8* bmap;
     int n_w, n_h;
     if (req_width > PAGE_WIDTH || req_height > PAGE_HEIGHT){
@@ -333,6 +337,7 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
 
     freeImage();
 
+    LOG_EVENT("setup image.");
     LAYOUT_RET ret;
     ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
 

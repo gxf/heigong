@@ -9,7 +9,7 @@ class Line;
 class TableLayout : public LayoutManager{
     public:
         TableLayout(int w, int h, int m_v, int m_h, 
-                    Logger* log, int ls = 2, int ws = 2);
+                    Logger* log, int ls = TAB_MARGIN, int ws = TAB_MARGIN);
         ~TableLayout();
 
     public:
@@ -26,6 +26,9 @@ class TableLayout : public LayoutManager{
 
     public:
         int GetMaxHeight();
+
+        void ReSetup(int w, int h, int mv, int mh, 
+                     Logger* log, int ls = TAB_MARGIN, int ws = TAB_MARGIN);
 
         TableLayout & operator=(TableLayout & tlo);
 

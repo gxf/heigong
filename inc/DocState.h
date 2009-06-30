@@ -31,6 +31,10 @@ class DocState : public Serializer{
         long int            offset;
 
     public:
+        Attrib_Glyph        glyphAttrib;
+        Attrib_Line         lineAttrib;
+
+    public:
         std::map<uint32, const char*> serialTable;
         Logger * logger;
 

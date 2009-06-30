@@ -35,6 +35,9 @@ void DocParser::ClearGlyphStream(){
         glyphBuffer.pop_front();
     }
 #endif
+    while(!delayedToken.empty()){
+        delayedToken.pop();
+    }
     glyphBuffer.clear();
 }
 
@@ -84,6 +87,8 @@ HDocState DocParser::ShadowDocState(){
         ++itr;
     }
     shadowState->offset = docStream.GetCurOffset();
+    shadowState->glyphAttrib = glyphAttrib;
+    shadowState->lineAttrib  = lineAttrib;
     return shadowState;
 }
 
@@ -96,6 +101,8 @@ bool DocParser::RestoreDocState(HDocState hState){
         ++itr;
     }
     docStream.SetOffset(hState->offset);
+    glyphAttrib = hState->glyphAttrib;
+    lineAttrib  = hState->lineAttrib;
 
     return true;
 }

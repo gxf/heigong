@@ -148,6 +148,8 @@ void Table_Data_Cell::Deserialize(std::ifstream & ifs){
     DESER_OBJ(glyphAttrib);
     DESER_OBJ(lineAttrib);
 
+    cellLayout.ReSetup(width, 0, TABLE_MARGIN_VERTICAL, TABLE_MARGIN_HORIZONTAL, logger);
+
     // Dummy objects
     Char    ch(logger);
     Graph   g(logger);
