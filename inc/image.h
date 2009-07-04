@@ -7,7 +7,7 @@
 #include "IpadTypes.h"
 
 #define MAX_INDEX_COLOR 256
-#define BYTE_LENGTH_LIMIT 4000 /**< 图片一行最多允许的象素 */
+#define BYTE_LENGTH_LIMIT 0x4000 /**< 图片一行最多允许的象素 */
 #define FINAL_WIDTH_LENGTH 650
 #define FINAL_HEIGHT_LENGTH 490
 /// 定义图片类型
@@ -68,7 +68,7 @@ typedef struct {
      UINT32 width;  /* width of image in pixels */
      UINT32 height; /* height of image in pixels */
      UINT16 depth;  /* depth of image in bits if IRGB type */
-     UINT8  data[800*600];    /* data rounded to full byte for each row */
+     UINT8  data[4096 * 4096];    /* data rounded to full byte for each row */
      UINT32 pixlen; /* length of pixel if IRGB type, gif 使用该属性 */
      UINT32 new_width;
      UINT32 new_height;

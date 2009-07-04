@@ -37,41 +37,46 @@ STATUS loadImage(ImageOptions * image_ops)
      UINT8 * fullname = image_ops->fullname;
      int a,fd;
 
-     if(fullname==NULL)
-	  return ERROR;
-     if(image_ops->zoom==0 || image_ops->zoom>3)
-	  return ERROR;
+     if(fullname==NULL) 
+         return ERROR;
+#if 0
+     if(image_ops->zoom == 0 || image_ops->zoom > 3) 
+         return ERROR;
+#endif
      if(image_ops->exactly!=TRUE && image_ops->exactly!=FALSE)
-	  return ERROR;
+         return ERROR;
      if(image_ops->smooth!=TRUE && image_ops->smooth != FALSE)
-	  return ERROR;
+         return ERROR;
+
      fd = image_file_open(fullname,O_RDONLY);
      if(fd<0)
-	  return ERROR;
+         return ERROR;
      image_file_close(fd);
      
-     global_image=NULL;
-     row_buffer=NULL;
-     width_index=height_index=NULL;
+     global_image   = NULL;
+     row_buffer     = NULL;
+     width_index    = NULL;
+     height_index   = NULL;
 
      width_index=(UINT16*)malloc(FINAL_WIDTH_LENGTH*2); // at most 640, alloc 650
      if(width_index==NULL)
-	  goto err;
+         goto err;
      height_index=(UINT16*)malloc(FINAL_HEIGHT_LENGTH*2); // at most 480, alloc 490
      if(height_index==NULL)
-	  goto err;
+         goto err;
      row_buffer=(UINT8*)malloc(BYTE_LENGTH_LIMIT*4); // pixlen最大为4,length limit 4000
      if(row_buffer==NULL)
-	  goto err;
+         goto err;
      rgb_row_buffer=(UINT8*)malloc(BYTE_LENGTH_LIMIT*2); // pixlen=2, length limit 4000
      if(rgb_row_buffer==NULL)
-	  goto err;
+         goto err;
      rgb_row_buffer2=(UINT8*)malloc(BYTE_LENGTH_LIMIT*2); // 足够了..
      if(rgb_row_buffer2==NULL)
-	  goto err;
+         goto err;
      global_image=(Image*)malloc(sizeof(Image));
+
      if(global_image==NULL)
-	  goto err;
+         goto err;
 
      for (a = 0; ImageTypes[a].loader; a++) {
 	    if(ImageTypes[a].loader((char*)fullname, image_ops)==OK)

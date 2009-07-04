@@ -191,23 +191,21 @@ static void describe_jpeg(j_decompress_ptr cinfo, char *filename)
 
 STATUS jpegLoad(char *fullname, ImageOptions *image_ops)
 {
-     INT32 fd,rowbytes;
+     INT32 fd, rowbytes;
      struct jpeg_decompress_struct cinfo;
      fra_jpg_err jerr;
+
      Image *image = 0;;
      UINT8 *rows = 0;
-     UINT16 demand_size[4][2]={{160,128},{320,240},{640,480}};
      
-     
-     image= global_image;
-     fd = image_file_open((UINT8 *)fullname,O_RDONLY);
-     if (fd<0)
-	  return ERROR;
+     image  = global_image;
+     if((fd = image_file_open((UINT8 *)fullname, O_RDONLY)) < 0)
+         return ERROR;
 
      /* Quick check to see if file starts with JPEG SOI marker */
      if (image_file_getc(fd) != 0xFF || image_file_getc(fd) != 0xD8) {
-	  image_file_close(fd);
-	  return ERROR;
+         image_file_close(fd);
+         return ERROR;
      }
      image_file_rewind(fd);
 
@@ -216,9 +214,9 @@ STATUS jpegLoad(char *fullname, ImageOptions *image_ops)
      jerr.pub.error_exit = fra_jpg_error_exit;
 
      if (setjmp(jerr.setjmp_buffer)) {
-	  jpeg_destroy_decompress(&cinfo);
-	  image_file_close(fd);
-	  return ERROR;
+         jpeg_destroy_decompress(&cinfo);
+         image_file_close(fd);
+         return ERROR;
      }
      jpeg_create_decompress(&cinfo);
      fra_jpg_zio_src(&cinfo, fd);
@@ -228,80 +226,86 @@ STATUS jpegLoad(char *fullname, ImageOptions *image_ops)
 
      cinfo.scale_num = 1;
      cinfo.scale_denom = 1;
+
      // 如果太宽就出错
      if(cinfo.image_width> BYTE_LENGTH_LIMIT){
-	  jpeg_destroy_decompress(&cinfo);
-	  image_file_close(fd);
-	  return ERROR;
+         jpeg_destroy_decompress(&cinfo);
+         image_file_close(fd);
+         return ERROR;
      }
 	  
+     // hgMaster: No need to resize here
+     image->new_width   = cinfo.image_width;
+     image->new_height  = cinfo.image_height;
+#if 0
      if(image_ops->zoom>=1 && image_ops->zoom<=3){
-	if(image_ops->width != 0 && image_ops->height != 0){
-	  image->new_width = image_ops->width;
-	  image->new_height= image_ops->height;
-	}
-	else{
-	  image->new_width = demand_size[image_ops->zoom-1][0];
-	  image->new_height = demand_size[image_ops->zoom-1][1];
-	}
-	INT16 i;
-	for(i=3;i>=0;i--){
-	    if((cinfo.image_width>>i)>=image->new_width &&(cinfo.image_height>>i)>=image->new_height){
-		cinfo.scale_denom = (1<<i);
-		break;
-	    }
-	}
+         if(image_ops->width != 0 && image_ops->height != 0){
+             image->new_width = image_ops->width;
+             image->new_height= image_ops->height;
+         }
+         else{
+             image->new_width = demand_size[image_ops->zoom-1][0];
+             image->new_height = demand_size[image_ops->zoom-1][1];
+         }
+         INT16 i;
+         for(i=3;i>=0;i--){
+             if((cinfo.image_width>>i)>=image->new_width &&(cinfo.image_height>>i)>=image->new_height){
+                 cinfo.scale_denom = (1<<i);
+                 break;
+             }
+         }
      }
      else{
-	  jpeg_destroy_decompress(&cinfo);
-	  image_file_close(fd);
-	  return ERROR;
+         jpeg_destroy_decompress(&cinfo);
+         image_file_close(fd);
+         return ERROR;
      }
+#endif
      
      jpeg_start_decompress(&cinfo);
 
      if (JCS_GRAYSCALE == cinfo.out_color_space) {
-	  int i;
-	  image->width = cinfo.output_width;
-	  image->height = cinfo.output_height;
-	  image->depth = 8;
-	  image->pixlen = 1;
-	  for (i = 0; i < 256; i++) {
-	       image->rgb.red[i] = image->rgb.green[i] =
-		    image->rgb.blue[i] = i;
-	  }
-	  image->rgb.used = 256;
+         int i;
+         image->width   = cinfo.output_width;
+         image->height  = cinfo.output_height;
+         image->depth   = 8;
+         image->pixlen  = 1;
+         for (i = 0; i < 256; i++) {
+             image->rgb.red[i] = image->rgb.green[i] =
+                 image->rgb.blue[i] = i;
+         }
+         image->rgb.used = 256;
      } else if (JCS_RGB == cinfo.out_color_space) {
-	  image->width = cinfo.output_width;
-	  image->height = cinfo.output_height;
-	  image->depth = 24;
-	  image->pixlen = 3;
+         image->width   = cinfo.output_width;
+         image->height  = cinfo.output_height;
+         image->depth   = 24;
+         image->pixlen  = 3;
      } else {
-	  jpeg_destroy_decompress(&cinfo);
-	  image_file_close(fd);
-	  return ERROR;
+         jpeg_destroy_decompress(&cinfo);
+         image_file_close(fd);
+         return ERROR;
      }
 
      rowbytes = image->width * 2;
      rows = row_buffer;
 
      if(buildIndex(image,image_ops)==ERROR){
-          jpeg_destroy_decompress(&cinfo);
-	  image_file_close(fd);
-	  return ERROR;
+         jpeg_destroy_decompress(&cinfo);
+         image_file_close(fd);
+         return ERROR;
      }
 
-     while (cinfo.output_scanline < cinfo.output_height) {
-	  jpeg_read_scanlines(&cinfo, &rows ,1);//+ cinfo.output_scanline,1);
-	  jpg_convert_irgb_to_rgb565(image,image->depth,rows,cinfo.output_scanline-1,image->data,image_ops->smooth);
+     while (cinfo.output_scanline < cinfo.output_height){
+         jpeg_read_scanlines(&cinfo, &rows ,1);//+ cinfo.output_scanline,1);
+         jpg_convert_irgb_to_rgb565(image, image->depth, rows, cinfo.output_scanline - 1,image->data, image_ops->smooth);
      }
 
      jpeg_finish_decompress(&cinfo);
      jpeg_destroy_decompress(&cinfo);
      image_file_close(fd);
 
-     image->width = image->new_width;
-     image->height = image->new_height;
+     image_ops->width   = image->width;
+     image_ops->height  = image->height;
 	
      return OK;
 }

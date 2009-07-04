@@ -307,15 +307,23 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
 
     global_IO.exactly =FALSE;
     global_IO.zoom    = 1;
-    global_IO.smooth  = TRUE;
+#if 0
+    global_IO.smooth  = FALSE;
     global_IO.width   = req_width; 
     global_IO.height  = req_height; 
+#endif
+    global_IO.smooth  = TRUE;
+    global_IO.width   = 1; 
+    global_IO.height  = 1; 
 
     LOG_EVENT("load image.");
     if(loadImage(&global_IO) == ERROR){
         LOG_ERROR("Loading jpg file fails");
         return GY_ERROR;
     }
+
+    req_width   = global_IO.width;
+    req_height  = global_IO.height;
 
     LOG_EVENT("fill image.");
     fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
@@ -328,14 +336,14 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
     if (req_width > PAGE_WIDTH || req_height > PAGE_HEIGHT){
         bmap = (uint8*)Resize(bitmap, req_width, req_height, n_w, n_h);
         if (NULL != bmap){
-            delete [] (uint8*)bitmap;
+//            delete [] (uint8*)bitmap;
             bitmap = bmap;
             bitmap_w = n_w;
             bitmap_h = n_h;
         }
     }
 
-    freeImage();
+//    freeImage();
 
     LOG_EVENT("setup image.");
     LAYOUT_RET ret;

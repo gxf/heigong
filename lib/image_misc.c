@@ -139,6 +139,7 @@ static inline UINT32 two_value(UINT8 *source)
      value = memToVal(a,3);
      return value;
 }
+
 static void __jpeg_resize_image(Image * image,UINT8 * in_rgb_row_buffer,UINT8* out_rgb_row_buffer,BOOL smooth)
 {
      UINT32 i;
@@ -146,42 +147,45 @@ static void __jpeg_resize_image(Image * image,UINT8 * in_rgb_row_buffer,UINT8* o
      UINT32 value,src=0;
 
      source = in_rgb_row_buffer;
-     dest = out_rgb_row_buffer;
-     if(smooth==TRUE){
-	  if(width_index[0]==0 && width_index[1]>1)
-	       value = two_value(source);
-	  else		    
-	       value = memToVal(source,3);
-	  for(i=0;i<image->new_width;i++){
-	       if(src!=width_index[i]){
-		    do{
-			 src ++;
-			 source +=3;
-		    }
-		    while(src!=width_index[i]);
-		    if(i<image->new_width-1 && width_index[i+1]>src+1)
-			 value = two_value(source);
-		    else
-			 value= memToVal(source, 3);
-	       }
-	       valToMem(value,dest,3);
-	       dest += 3;
-	  }
+     dest   = out_rgb_row_buffer;
+
+     if(smooth == TRUE){
+         if(width_index[0] == 0 && width_index[1] > 1)
+             value = two_value(source);
+         else		    
+             value = memToVal(source,3);
+
+         for(i = 0;i < image->new_width;i++){
+             if(src != width_index[i]){
+                 do{
+                     src++;
+                     source += 3;
+                 }
+                 while(src != width_index[i]);
+
+                 if(i < image->new_width - 1 && width_index[i+1] > src + 1)
+                     value = two_value(source);
+                 else
+                     value= memToVal(source, 3);
+             }
+             valToMem(value, dest, 3);
+             dest += 3;
+         }
      }
      else{
-	  value = memToVal(source,3);
-	  for(i=0;i<image->new_width;i++){
-	       if(src!=width_index[i]){
-		    do{
-			 src ++;
-			 source +=3;
-		    }
-		    while(src!=width_index[i]);
-		    value= memToVal(source, 3);
-	       }
-	       valToMem(value,dest,3);
-	       dest += 3;
-	  }
+         value = memToVal(source,3);
+         for(i=0;i<image->new_width;i++){
+             if(src!=width_index[i]){
+                 do{
+                     src ++;
+                     source +=3;
+                 }
+                 while(src!=width_index[i]);
+                 value= memToVal(source, 3);
+             }
+             valToMem(value,dest,3);
+             dest += 3;
+         }
      }
 }
 
@@ -275,87 +279,98 @@ void gif_convert_irgb_to_rgb565(Image *image,UINT16 depth,UINT8* row_buffer,UINT
  * @param width 图片宽度
  * @param dest rgb565目标缓存区
  */
-void jpg_convert_irgb_to_rgb565(Image *image,UINT16 depth,UINT8* row_buffer,UINT32 current_height,UINT8* data_source,BOOL smooth)
+void jpg_convert_irgb_to_rgb565(Image *image, UINT16 depth, UINT8* row_buffer, UINT32 current_height, UINT8* data_source, BOOL smooth)
 {
      UINT32 i,index;
      UINT8* dest;
-     UINT32 width=image->width,found_index;
+     UINT32 width = image->width,found_index;
      RGBMap * map = &image->rgb;
 
-     if(depth == 24 &&smooth==TRUE){
-	  if(need_next_line==0){
-	       for(i=0;i<image->new_height;i++){
-		    if(current_height == height_index[i]){ //找到则这行是有用的
-			 found_index = i;
-			 if((i<image->new_height-1) && (height_index[i+1]>current_height+1)){
-			      __jpeg_resize_image(image,row_buffer,rgb_row_buffer2,smooth);
-			      need_next_line=1;
-			      last_found_index = i;
-			      return;
-			 }
-			 break;
-		    }
-	       }
-	       if(i==image->new_height)
-		    return; // 这行在新行中没被映射到
-	  }
-	  __jpeg_resize_image(image,row_buffer,rgb_row_buffer,smooth);
-     
-	  if(need_next_line)
-	       dest = data_source+image->new_width*2*last_found_index;
-	  else
-	       dest = data_source+image->new_width*2*found_index;
+     if(depth == 24 && smooth == TRUE){
+         if(need_next_line == 0){
+             for(i = 0;i < image->new_height;i++){
+                 if(current_height == height_index[i]){ //找到则这行是有用的
+                     found_index = i;
+                     if((i < image->new_height - 1) && 
+                        (height_index[i+1] > current_height+1)){
+                         __jpeg_resize_image(image,row_buffer,rgb_row_buffer2,smooth);
+                         need_next_line = 1;
+                         last_found_index = i;
+                         return;
+                     }
+                     break;
+                 }
+             }
+             if(i == image->new_height)
+                 return; // 这行在新行中没被映射到
+         }
+         __jpeg_resize_image(image, row_buffer, rgb_row_buffer, smooth);
 
-	  for(i=0;i<image->new_width;i++){
-	       index = 3*i;
-	       if(need_next_line)
-		    *(UINT16*)dest = RGB_TO_565((rgb_row_buffer2[index]/2+rgb_row_buffer[index]/2),(rgb_row_buffer2[index+1]/2+rgb_row_buffer[index+1]/2),(rgb_row_buffer2[index+2]/2+rgb_row_buffer[index+2]/2));
-	       else
-		    *(UINT16*)dest = RGB_TO_565(rgb_row_buffer[index],rgb_row_buffer[index+1],rgb_row_buffer[index+2]);
-	       dest += 2;
-	  }
-	  if(need_next_line) need_next_line=0;
-	  return;
+         if(need_next_line)
+             dest = data_source + image->new_width * 2 * last_found_index;
+         else
+             dest = data_source + image->new_width * 2 * found_index;
+
+         for(i = 0;i < image->new_width;i++){
+             index = 3 * i;
+             if(need_next_line){
+                 *(UINT16*)dest = 
+                     RGB_TO_565((rgb_row_buffer2[index]/2 + rgb_row_buffer[index]/2),
+                                (rgb_row_buffer2[index+1]/2 + rgb_row_buffer[index+1]/2),
+                                (rgb_row_buffer2[index+2]/2 + rgb_row_buffer[index+2]/2));
+             }
+             else{
+                 *(UINT16*)dest = 
+                     RGB_TO_565(rgb_row_buffer[index], 
+                                rgb_row_buffer[index + 1], 
+                                rgb_row_buffer[index + 2]);
+             }
+             dest += 2;
+         }
+         if(need_next_line) need_next_line=0;
+         return;
      }
-     if(depth == 24 &&smooth==FALSE){
-	  for(i=0;i<image->new_height;i++){
-	       if(current_height == height_index[i]){ //找到则这行是有用的
-		    found_index = i;
-		    break;
-	       }
-	  }
-	  if(i==image->new_height)
-	       return; // 这行在新行中没被映射到
+     else if(depth == 24 && smooth == FALSE){
+         for(i = 0;i < image->new_height; i++){
+             if(current_height == height_index[i]){ //找到则这行是有用的
+                 found_index = i;
+                 break;
+             }
+         }
+         if(i==image->new_height)
+             return; // 这行在新行中没被映射到
 
-	  __jpeg_resize_image(image,row_buffer,rgb_row_buffer,smooth);
-     
-	  dest = data_source+image->new_width*2*found_index;
+         __jpeg_resize_image(image,row_buffer,rgb_row_buffer,smooth);
+//         memcpy(rgb_row_buffer, row_buffer, image->new_width * 2);
 
-	  for(i=0;i<image->new_width;i++){
-	       index = 3*i;
-	       *(UINT16*)dest = RGB_TO_565(rgb_row_buffer[index],rgb_row_buffer[index+1],rgb_row_buffer[index+2]);
-	       dest += 2;
-	  }
-	  return;
+         dest = data_source + image->new_width * 2 * found_index;
+
+         for(i = 0;i < image->new_width;i++){
+             index = 3 * i;
+             *(UINT16*)dest = 
+                 RGB_TO_565(rgb_row_buffer[index],rgb_row_buffer[index+1],rgb_row_buffer[index+2]);
+             dest += 2;
+         }
+         return;
      }
      else if(depth == 8){
-	  for(i=0;i<image->new_height;i++){
-	       if(current_height == height_index[i]){ //找到则这行是有用的
-		    found_index = i;
-		    break;
-	       }
-	  }
-	  if(i==image->new_height)
-	       return; // 这行在新行中没被映射到
+         for(i=0;i<image->new_height;i++){
+             if(current_height == height_index[i]){ //找到则这行是有用的
+                 found_index = i;
+                 break;
+             }
+         }
+         if(i==image->new_height)
+             return; // 这行在新行中没被映射到
 
-	  dest = rgb_row_buffer; //转换成rgb row buffer
+         dest = rgb_row_buffer; //转换成rgb row buffer
 
-	  for(i=0;i<width;i++){
-	       index = row_buffer[i];
-	       *(UINT16*)dest = RGB_TO_565(map->red[index],map->green[index],map->blue[index]);
-	       dest += 2;
-	  }
-	  __resize_image(image,current_height,found_index,rgb_row_buffer,data_source);
-	  return;
+         for(i=0;i<width;i++){
+             index = row_buffer[i];
+             *(UINT16*)dest = RGB_TO_565(map->red[index],map->green[index],map->blue[index]);
+             dest += 2;
+         }
+         __resize_image(image,current_height,found_index,rgb_row_buffer,data_source);
+         return;
      }
 }
