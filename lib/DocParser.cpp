@@ -20,8 +20,11 @@ DocParser::DocParser(Logger* log):
 
 DocParser::~DocParser(){}
 
-bool DocParser::Init(const char* filen){
-    return docStream.OpenFile(filen);
+bool DocParser::Init(const char* filen, bool convert){
+    if (convert)
+        return docStream.OpenFile(filen);
+    else 
+        return docStream.OpenFileDirect(filen);
 }
 void DocParser::SetCurParseOffset(long int offset){
     ClearGlyphStream();

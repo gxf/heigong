@@ -28,9 +28,14 @@
 int
 wvHtml (wvParseStruct * ps)
 {
-    if (ps->fib.fComplex)
+    if (ps->fib.fComplex) {
+    fprintf(stderr, "6.7 %d\n", time(NULL));
 	wvDecodeComplex (ps);
-    else
+    fprintf(stderr, "6.8 %d\n", time(NULL));
+    } else {
+    fprintf(stderr, "6.9 %d\n", time(NULL));
 	wvDecodeSimple (ps, Dmain);
+    fprintf(stderr, "6.a %d\n", time(NULL));
+    } 
     return (0);
 }

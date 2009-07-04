@@ -32,6 +32,15 @@ void DocStream::AdjustCmd(char* cmd, int length){
     }
 }
 
+bool DocStream::OpenFileDirect(const char* filename){
+    if(!(fd = fopen(filename, "r"))){
+        LOG_ERROR("fail to open doc file.");
+        return false;
+    }
+    fileEnds = false;
+    return true;
+}
+
 bool DocStream::OpenFile(const char* filename){
 
     char filen[std::strlen(filename) + 200];
@@ -49,15 +58,15 @@ bool DocStream::OpenFile(const char* filename){
     LOG_EVENT(cmd);
 
     system(cmd);
-    if(!(fd = fopen(tmpFile, "r"))){
-        LOG_ERROR("fail to open doc file.");
-        return false;
-    }
-    fileEnds = false;
-    return true;
+
+    return OpenFileDirect(tmpFile);
 }
 
 bool DocStream::ReOpenFile(){
+    LOG_ERROR("ReOpenFile NOT PROPERLY IMPLEMENTED!!!");
+
+    return false;
+
     CloseFile();
     if(!(fd = fopen(tmpFile, "r"))){
         LOG_ERROR("fail to open doc file.");

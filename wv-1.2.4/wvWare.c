@@ -464,38 +464,55 @@ main (int argc, char **argv)
 	  return (-1);
       }
 
+    fprintf(stderr, "1 %d\n", time(NULL));
     wvSetElementHandler (&ps, myelehandler);
+    fprintf(stderr, "2 %d\n", time(NULL));
     wvSetDocumentHandler (&ps, mydochandler);
+    fprintf(stderr, "3 %d\n", time(NULL));
     wvSetCharHandler (&ps, myCharProc);
+    fprintf(stderr, "4 %d\n", time(NULL));
     wvSetSpecialCharHandler (&ps, mySpecCharProc);
+    fprintf(stderr, "5 %d\n", time(NULL));
 
     wvInitStateData (&myhandle);
+    fprintf(stderr, "6 %d\n", time(NULL));
 
     if (wvOpenConfig (&myhandle,config) == 0)
       {
+    fprintf(stderr, "6.1 %d\n", time(NULL));
 	  wvError (("config file not found\n"));
+    fprintf(stderr, "6.2 %d\n", time(NULL));
 	  return (-1);
       }
     else
       {
 	  wvTrace (("x for FILE is %x\n", myhandle.fp));
+    fprintf(stderr, "6.3 %d\n", time(NULL));
 	  ret = wvParseConfig (&myhandle);
+    fprintf(stderr, "6.4 %d\n", time(NULL));
       }
+    fprintf(stderr, "6.5 %d\n", time(NULL));
 
     if (!ret)
       {
 	  expandhandle.sd = &myhandle;
 	  ps.userData = &expandhandle;
+    fprintf(stderr, "6.6 %d\n", time(NULL));
 	  ret = wvHtml (&ps);
       }
+    fprintf(stderr, "7 %d\n", time(NULL));
     wvReleaseStateData (&myhandle);
 
+    fprintf(stderr, "8 %d\n", time(NULL));
     if (ret == 2)
 	return (2);
     else if (ret != 0)
 	ret = -1;
+    fprintf(stderr, "9 %d\n", time(NULL));
     wvOLEFree (&ps);
+    fprintf(stderr, "a %d\n", time(NULL));
     wvShutdown ();
+    fprintf(stderr, "b %d\n", time(NULL));
 
     return (ret);
 }

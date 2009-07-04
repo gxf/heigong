@@ -6,6 +6,7 @@
 
 int main(int argc, char** argv)
 {
+    bool convert = false; // doesn't need to convert file format using wvWare
     // Argument check
     if (argc > 3 || argc < 2){
         std::cout << std::endl
@@ -17,15 +18,20 @@ int main(int argc, char** argv)
             << std::endl;
         exit(0);
     }
-    else if (argc == 2){ 
+
+    char *ext = strrchr(argv[1], '.');
+    if (strcmp(ext, ".doc") == 0)
+        convert = true;
+    
+    if (argc == 2){ 
         Logger logger;
-        May12th may(&logger, argv[1]);
+        May12th may(&logger, argv[1], convert);
         may.MainLoop();
     }
     else if (argc == 3){
         int page = std::atoi(argv[2]);
         Logger logger;
-        May12th may(&logger, argv[1]);
+        May12th may(&logger, argv[1], convert);
         may.RenderAll();
         may.Display(page);
         //usleep(20 * 1e6);

@@ -5,7 +5,7 @@
 
 class May12th{
     public:
-        May12th(Logger* log, const char* filename);
+        May12th(Logger* log, const char* filename, bool convert = true);
         ~May12th();
 
     public:

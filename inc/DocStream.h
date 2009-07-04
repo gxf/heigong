@@ -19,6 +19,7 @@ class DocStream{
 
     public:
         bool OpenFile(const char* filename);
+        bool OpenFileDirect(const char* filename);
         void CloseFile();
         bool ReOpenFile();
     

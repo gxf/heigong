@@ -82,6 +82,7 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
     U32 bkd_intervals;
     wvVersion ver;
 
+    fprintf(stderr, "a. %d\n", time(NULL));
     external_wvReleasePAPX_FKP ();
     external_wvReleaseCHPX_FKP ();
 
@@ -273,6 +274,9 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
 	/*get stream size for bounds checking*/
 	stream_size = wvStream_size(ps->mainfd);
 
+    fprintf(stderr, "f. %d\n", time(NULL));
+    fprintf(stderr, "f. %d\n", ps->clx.nopcd);
+
     /*for each piece */
     for (piececount = 0; piececount < ps->clx.nopcd; piececount++)
       {
@@ -302,6 +306,7 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
 	   */
 	  char_fcLim = beginfc;
 	  wvTrace (("%d %d %d\n", begincp, endcp, ps->fib.ccpText));
+    fprintf(stderr, "f. %d %d\n", begincp, endcp);
 	  for (i = begincp, j = beginfc; (i < endcp /*&& i<ps->fib.ccpText */ );
 	       i++, j += wvIncFC (chartype))
 	    {
@@ -524,6 +529,7 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
 	    }
 
       }
+    fprintf(stderr, "g. %d\n", time(NULL));
 
  finish_processing:
     if (char_pendingclose)
