@@ -17,6 +17,12 @@ htmlNodePtr strip(htmlNodePtr node)
                 next = node->next,
                 cur;
 
+    if (! node->children) {
+        xmlUnlinkNode(node);
+        xmlFreeNode(node);
+        return next;
+    }
+
     for (cur = node->children; cur; cur = cur->next)
         cur->parent = parent;
                 
@@ -146,12 +152,10 @@ traverse(htmlNodePtr root)
         case XML_ELEMENT_NODE:
             policy = decide(cur_node->name);
             if (policy == STRIP) {
-                /*
-                strip code is still buggy, disable for now
-                fprintf(stderr, "strip %s\n", cur_node->name);
+                // strip code is still buggy, disable for now
+                // fprintf(stderr, "strip %s\n", cur_node->name);
                 next_node = strip(cur_node);
                 cur_node = NULL;
-                */
             } else if (policy == ERASE) {
                 //fprintf(stderr, "erase %s\n", cur_node->name);
                 cur_node = erase(cur_node);
