@@ -1,0 +1,3 @@
+g_clist = new Array();
+g_clist[0] = new Array("gj:1-1-18154187:0", "15");
+if (typeof(counter_callback) != "undefined") { counter_callback(); }

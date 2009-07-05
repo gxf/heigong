@@ -1,0 +1,146 @@
+/** overlay **/
+
+
+
+#yschyqresult { font: 1em/1.0em arial;}
+#yschyqresult { position:absolute; margin:-60px 0 0 150px;  width:320px; height:auto; border-top: 2px solid white; border-left: 2px solid white; background: #666666; font-size:12px; font-family:verdana,arial,helvetica, sans-serif !important; z-index:999999999}
+#yschyqresult { filter:alpha(opacity=96); -moz-opacity:0.96 }
+#yschyqresult img { float:none; margin:0; padding:0; border:none; }
+#yschyqresultin { position:relative; top:-2px; left:-2px; height:auto; border:1px solid #7BB4F5; background:#FFFFFF; text-align:left; margin:0 !important; overflow:hidden}
+#yschyqresultin h3 { background: #D4E7FC; height: auto; padding:4px 0 4px 10px !important; margin: 0 !important; color:#000000 !important;  font:normal bold 105%/1.2em arial,helvetica,sans-serif !important; letter-spacing:0}
+#yschyqresultclose { background: #D4E7FC; position: absolute; right: 5px; top: 5px; }
+#yschyqresultclose a.help { color:#326CAE; position:relative;top:-4px; font-size:12}
+#yschyqresulticon { top: 0; position: absolute; }
+* html #yschyqresulticon { top: 1px }
+
+/**overlay inlined overrides **/
+.yschyqresultinl {position:absolute; margin:0px 0 0 0px !important; top:20px; left:5px}
+	
+/** results **/
+
+#yschyqloading { background: white; height: auto; margin:1em .5em; padding: 0; border-top: 1px solid white; }
+#yschyqloading p { margin:0; font-weight: bold; color: #940894; line-height:1.2em !important; letter-spacing:0 !important; font-size:small}
+
+/**
+#yschyqfeedback {background:#FCECC8; text-align:center !important; padding:1px 0 3px 0 !important; margin:0 5px 5px 5px !important; }
+#yschyqfeedback p { margin:0 !important; padding:0 !important; font-weight:bold; letter-spacing:0 !important; line-height:1.2em !important; font-size:xx-small !important; text-align:center !important; }
+#yschyqfeedback p a { color:blue !important; text-decoration:underline}
+#yschyqfeedback p a:visited { color:#6C6C6C  !important; }
+**/
+
+#yschyqfeedback {display:none; height:0px !important; overflow: hidden !important;}
+
+#yschyqresults { background: white; height: auto; margin:3px 0 0 0; padding: 0 0 3px 0; border-top: 1px solid white; }
+#yschyqif { width:316px; height:0em; background:white; }
+
+
+
+
+/** styles for results **/
+
+
+#yschweb, #yschyqframe div, #yschweb div {margin:0; border:none; font: 12px Verdana, Arial, Helvetica, sans-serif;}
+
+
+
+.sp1IYResult {margin:0;padding:0;}
+.sp1IYResult p {margin:0;padding:0;}
+.sp1IYResult p div.yschttl  {margin:0;padding:0;}
+
+#yschyqframe { width: 300px; margin: 5px 5px 0 5px; padding:0 !important;  border:1px solid white !important;}
+#yschyqframe form { height:auto}
+#yschweb {clear:both; margin:0 !important; padding:0 !important}
+#yschweb ol {margin: 0 0 5px 0 !important; padding:0 !important;}
+#yschweb li {margin:3px 0 0 23px !important; line-height:1.2em !important; color:black !important; font-size:x-small !important; font:xx-small !important; font-family:verdana, arial, helvetica, sans-serif !important; letter-spacing:0 !important; }
+#yschmarker {margin:0px;padding:0px; height: 0px; width: 0px;}
+#yschsp {width: 100px;}
+
+#yschyqsearchbox {margin:5px 0!important; height:auto; min-height:1.8em !important}
+#yschyqsearchbox form {margin:0 !important; padding:0 !important }
+#yschyqsearchbox input {font-size: 1em; margin-left: 2px;}
+* html #yschyqsearchbox input.yschyqbt {width:10em;}
+#yschyqsearchbox input#yschsp {width:150px; margin-right:1px }
+
+#yschyqframe a {color:#0A0ADE !important; font-weight:normal !important; text-decoration:underline !important;}
+#yschyqframe a:visited {color:#6C6C6C !important}
+#yschyqframe p.more {border: 0; margin: 10px 0 10px 22px; padding: 0px; font-weight:bold !important; font-family:arial,helvetica, sans-serif !important; font-size:x-small !important; font:xx-small !important}
+#yschspmore, #yschspmore p, #yschspmore form { line-height:1.2em !important; letter-spacing:0 !important}
+
+
+#yschyqframe p.err {padding:0 0 0 22px; margin:1em 0 0 0; line-height:1.2em; background:url('http://us.i1.yimg.com/us.yimg.com/i/us/search/gr/alertbubble.gif') top left no-repeat  }
+#yschyqframe p.err img {display:none}
+
+#yschloading { background:#fff; height:3.5em; margin:0; padding:0}
+#yschloading p { margin:15px 0 0 5px !important; font:normal x-small/1.2em verdana,arial,helvetica !important; }
+
+#yschyqframe .yschspns {margin:0; padding:0;}
+#yschyqframe .yschspns h2 {font-size:100%; color:#6B6B6C; padding:0; margin:0 0 0 23px; font:normal 100%/1.2em verdana,arial,helvetical,sans-serif}
+#yschyqframe .yschspns ul { background:#fff !important; list-style:none !important; margin:0 !important; padding:0 !important}
+#yschyqframe .yschspns ul li { cursor:default; margin:0 0 0 23px !important; list-style:none !important; padding:0 !important; font:normal x-small/1.2em verdana,arial,helvetical,sans-serif !important; color:black !important}
+#yschyqframe .yschspns ul li a { display:block !important; font-size: 95%; color:blue !important }
+#yschyqframe .yschspns ul li address { display:block !important; color:#12840A !important; margin:0 !important; padding:0 !important; font-style:normal !important}
+.yschyqnw { display:block !important; color:#12840A !important; margin:0 !important; padding:0 !important; font-style:normal !important}
+
+#yschyqframe .yschspns, #yschyqframe #yschiy, #yschyqframe #yschweb, #yschyqframe #yschyqsearchbox
+    { margin:10px 0 0 0 !important; }
+#yschyqframe .yschspns, #yschyqframe #yschiy, #yschyqframe #yschweb, #yschyqframe #yschyqsearchbox
+    { margin-top:10px !important}
+
+#yschiy {letter-spacing:0; color:black; line-height:1.2em; }
+#yschiy ul li { list-style:none !important;}
+#yschiy p div.yschttl a {letter-spacing:0}
+
+#yschiy p, #yschiy p div,  #yschiy div, #yschiy ul, #yschiy li, #yschiy address { line-height:1.32em !important; letter-spacing:0 !important; margin:0 !important; padding:0 !important; font-size:x-small !important; letter-spacing:0 !important; font-family:verdana, arial, helvetica !important}
+
+/* catx */
+#yschiy {background:#f2f2f2 no-repeat 0 .3em;padding:0 0 0 28px;margin:0 0 17px 9px;}
+* html #yschiy/*IE5 hide*/{height:100%;} /* IE: fix extra bg img bug */ 
+#yschiy address a, #iynws, #iyfn, #yschna {color:#666;}
+
+#yschiy .yschttl {color:#000;line-height:1.1em;} #yschiy a.yschttl, #yschiy .yschttl a {color:#0000de;line-height:1.1em;}
+#yschiy p, #yschiy ul, #yschiy li, #yschiy dl, #yschiy dt, #yschiy dd {margin:0;padding:0;} #yschiy ul {list-style:none;line-height:1.3em;}
+#yschiy p img {float:left;margin:0 5px 0 0;} #yschiy dt {float:left;} #yschiy dt:after {content:':';visibility:hidden;} /* nonIE: hold space between float dt and dd */ #yschiy q:before, #yschiy q:after {content:'';} #yschiy address {display:block;color:#088000;font-style:normal;}
+
+/* catx specific */
+#yschiy p#iywthr img {margin-top:3px;}
+#iyfn {border-collapse:collapse;padding:0;border-spacing:0;}
+#iyfn td {padding-right:10px;}
+#iyfn strong {color:#000;}
+#iyfn .yschdn {color:red;}
+#iyfn .yschup {color:#008800}
+#iymap em {margin-left:15px;}
+p#iymap img {border:1px solid #999;margin-top:6px;float:none;} #iysprt table {text-align:left; padding:0;margin-left:-.6em;} #iysprt table table {margin:0;} #iysprt table small {font:100%/1.3em arial;}
+* html #iysprt table {vertical-align:text-top;} /* TODO: make this work for gecko */ #iysprt td {padding:0 10px 0 0;} #iysprt td td {padding:0;} #iysprt em {color:#666;margin-left:10px;} #yschiy caption {text-align:left;color:#666;padding:0;}
+
+/* mods for YQ */
+#yschiy {padding:0 0 0 22px;margin:0 0 17px 0px;}
+
+
+#yschiy cite , #yschiy ul#iynws li, #yschiy address , #yschiy .yschttl 
+    {font:normal 100%/1.3em verdana,arial,helvetica,sans-serif !important}
+
+div#iyimg {white-space:nowrap;display:table;}
+* html div#iyimg {height:1%;} /* IE5:clear */
+div#iyimg span {display:table-cell;vertical-align:bottom;text-align:center;padding:5px 5px 0 0;float:left;}
+* html>body div#iyimg span {width:50px;white-space:nowrap;}/* macIE */
+* html>body #yschiy address {clear:both;} /* macIE */
+div#iyimg span/*IE5 hide */{float:none;}
+* html div#iyimg span {display:inline-block;}
+div#iyimg a {text-decoration:none !important;}
+div#iyimg img {float:none;margin:0 auto;border:1px solid #0000de;text-align:center;}
+div#iyimg a:visited img {border-color:#639;}
+
+div#iyimg cite {display:block; font:normal 100%/1.3em !important; color: #6c6c6c; text-decoration: none !important;}
+* html div#iyimg cite {font: 75% !important; }
+div#iyimg span cite a {text-decoration:underline;}
+* html div#yschiy div span cite a  {font: 75% !important;}
+.yimgurl {text-decoration:none; margin:-2px 0 0 0;}
+
+/** IE font hacks **/
+#yschiy ul#iynws li {font:75% !important;}
+#yschyqframe .yschspns ul li {font:100% !important}
+
+/* defensive css */
+#example #yschiy p { font-size:0px !important; padding-bottom: 0px !important; }
+
+
