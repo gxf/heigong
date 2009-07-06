@@ -14,7 +14,7 @@ static struct {
      const char *name;
 } ImageTypes[] = {
      {jpegLoad,	"JFIF style jpeg Image"},
-//     {gifLoad,	"GIF Image"},
+     {gifLoad,	"GIF Image"},
 //     {bmpLoad,	"Windows, OS/2 RLE Image"},
      {NULL,		NULL}
 };
@@ -58,22 +58,22 @@ STATUS loadImage(ImageOptions * image_ops)
      width_index    = NULL;
      height_index   = NULL;
 
-     width_index=(UINT16*)malloc(FINAL_WIDTH_LENGTH*2); // at most 640, alloc 650
-     if(width_index==NULL)
+     width_index = (UINT16*)malloc(FINAL_WIDTH_LENGTH * 2); // at most 640, alloc 650
+     if(width_index == NULL)
          goto err;
-     height_index=(UINT16*)malloc(FINAL_HEIGHT_LENGTH*2); // at most 480, alloc 490
-     if(height_index==NULL)
+     height_index = (UINT16*)malloc(FINAL_HEIGHT_LENGTH * 2); // at most 480, alloc 490
+     if(height_index == NULL)
          goto err;
-     row_buffer=(UINT8*)malloc(BYTE_LENGTH_LIMIT*4); // pixlen最大为4,length limit 4000
-     if(row_buffer==NULL)
+     row_buffer = (UINT8*)malloc(BYTE_LENGTH_LIMIT * 4); // pixlen最大为4,length limit 4000
+     if(row_buffer == NULL)
          goto err;
-     rgb_row_buffer=(UINT8*)malloc(BYTE_LENGTH_LIMIT*2); // pixlen=2, length limit 4000
-     if(rgb_row_buffer==NULL)
+     rgb_row_buffer = (UINT8*)malloc(BYTE_LENGTH_LIMIT * 2); // pixlen=2, length limit 4000
+     if(rgb_row_buffer == NULL)
          goto err;
-     rgb_row_buffer2=(UINT8*)malloc(BYTE_LENGTH_LIMIT*2); // 足够了..
-     if(rgb_row_buffer2==NULL)
+     rgb_row_buffer2 = (UINT8*)malloc(BYTE_LENGTH_LIMIT * 2); // 足够了..
+     if(rgb_row_buffer2 == NULL)
          goto err;
-     global_image=(Image*)malloc(sizeof(Image));
+     global_image = (Image*)malloc(sizeof(Image));
 
      if(global_image==NULL)
          goto err;
@@ -105,3 +105,4 @@ STATUS freeImage()
      if(width_index) {free(width_index);width_index=NULL;}
      return OK;
 }
+

@@ -4,6 +4,7 @@
 #include "Color.h"
 #include "Context.h"
 #include "image.h"
+#include "gif.h"
 #include <string>
 #include <cassert>
 
@@ -61,6 +62,10 @@ Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
             LOG_EVENT("JPG file is detected.");
             return SetupJPG(layout, fp);
             break;
+        case IF_GIF:
+            LOG_EVENT("GIF file is detected.");
+            return SetupGIF(layout, fp);
+            break;
         case IF_EMF:
             break;
         default:
@@ -72,10 +77,10 @@ Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
 
 Graph::IF_T Graph::DetectFormat(const char * str, FILE * fp){
     // Detect if it is PNG file
-    size_t number = 8;
-    char header[number];
-    fread(header, 1, number, fp);
-    bool is_png = !png_sig_cmp((png_byte*)header, 0, (png_size_t)number);
+    size_t png_hdr_num = 8;
+    char png_hdr[png_hdr_num];
+    fread(png_hdr, 1, png_hdr_num, fp);
+    bool is_png = !png_sig_cmp((png_byte*)png_hdr, 0, (png_size_t)png_hdr_num);
     if (is_png){
         rewind(fp);
         return IF_PNG;
@@ -91,6 +96,20 @@ Graph::IF_T Graph::DetectFormat(const char * str, FILE * fp){
     if (0xFF == ch || 0xD8 == ch){
         rewind(fp);
         return IF_JPG;
+    }
+    rewind(fp);
+
+    // Detect if it is GIF file
+    char gif_hdr[GIF_SIG_LEN];
+    if (fread(gif_hdr, 1, GIF_SIG_LEN, fp) != GIF_SIG_LEN){
+        throw Except_Fail_To_Read_file();
+    }
+    gif_hdr[GIF_SIG_LEN] = '\0';
+    if (strcmp((char *)gif_hdr, GIF_SIG) == 0 ||
+        strcmp((char *)gif_hdr, GIF_SIG_89) == 0)
+    { 
+        rewind(fp);
+        return IF_GIF;
     }
     rewind(fp);
 
@@ -325,27 +344,23 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
     req_width   = global_IO.width;
     req_height  = global_IO.height;
 
-    LOG_EVENT("fill image.");
     fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
-    LOG_EVENT("convert image.");
     ConvertJPG((void*)output_image.data, req_width, req_height);
 
-    LOG_EVENT("resize image.");
     uint8* bmap;
     int n_w, n_h;
     if (req_width > PAGE_WIDTH || req_height > PAGE_HEIGHT){
         bmap = (uint8*)Resize(bitmap, req_width, req_height, n_w, n_h);
         if (NULL != bmap){
-//            delete [] (uint8*)bitmap;
+            delete [] (uint8*)bitmap;
             bitmap = bmap;
             bitmap_w = n_w;
             bitmap_h = n_h;
         }
     }
 
-//    freeImage();
+    freeImage();
 
-    LOG_EVENT("setup image.");
     LAYOUT_RET ret;
     ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
 
@@ -368,6 +383,76 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
     return GY_OK;
 }
 
+Glyph::GY_ST_RET Graph::SetupGIF(LayoutManager& layout, FILE* fp){
+    fclose(fp);
+
+    std::string file(file_path);
+    file += file_name;
+
+    strcpy((char*)global_IO.fullname, file.c_str());
+
+    global_IO.exactly =FALSE;
+    global_IO.zoom    = 1;
+#if 0
+    global_IO.smooth  = FALSE;
+    global_IO.width   = req_width; 
+    global_IO.height  = req_height; 
+#endif
+    global_IO.smooth  = TRUE;
+    global_IO.width   = 1; 
+    global_IO.height  = 1; 
+
+    LOG_EVENT("load image.");
+    if(loadImage(&global_IO) == ERROR){
+        LOG_ERROR("Loading jpg file fails");
+        return GY_ERROR;
+    }
+
+    req_width   = global_IO.width;
+    req_height  = global_IO.height;
+
+    LOG_EVENT("fill image.");
+    fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
+    LOG_EVENT("convert image.");
+    ConvertJPG((void*)output_image.data, req_width, req_height);
+
+    LOG_EVENT("resize image.");
+    uint8* bmap;
+    int n_w, n_h;
+    if (req_width > PAGE_WIDTH || req_height > PAGE_HEIGHT){
+        bmap = (uint8*)Resize(bitmap, req_width, req_height, n_w, n_h);
+        if (NULL != bmap){
+            delete [] (uint8*)bitmap;
+            bitmap = bmap;
+            bitmap_w = n_w;
+            bitmap_h = n_h;
+        }
+    }
+
+    freeImage();
+
+    LOG_EVENT("setup image.");
+    LAYOUT_RET ret;
+    ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
+
+    LOG_EVENT_STR3("GIF position", pos.x, pos.y);
+    switch(ret){
+        case LO_OK:
+            layout.AddGlyph(this);
+            break;
+        case LO_NEW_LINE:
+            layout.AddGlyph(this);
+            break;
+        case LO_NEW_PAGE:
+            layout.Reset();
+            return GY_NEW_PAGE;
+        default:
+            LOG_ERROR("Unsupported Layout return.");
+            break;
+    }
+
+    return GY_OK;
+}
 void Graph::ConvertJPG(void* bmap, int w, int h){
     // Convert image from RGB to Grayscale
 

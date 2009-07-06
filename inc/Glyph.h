@@ -186,6 +186,7 @@ class Graph: public Glyph{
             IF_NONE,
             IF_PNG,
             IF_JPG,
+            IF_GIF,
             IF_EMF,
         }IF_T;
 
@@ -210,6 +211,7 @@ class Graph: public Glyph{
     protected:
         GY_ST_RET SetupPNG(LayoutManager& lo, FILE* fp);
         GY_ST_RET SetupJPG(LayoutManager& lo, FILE* fp);
+        GY_ST_RET SetupGIF(LayoutManager& lo, FILE* fp);
         IF_T DetectFormat(const char*, FILE * fp);
         void Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 b_depth, int channel);
         void ConvertJPG(void* bmap, int w, int h);

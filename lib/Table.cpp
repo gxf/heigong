@@ -389,7 +389,7 @@ Glyph::GY_ST_RET Table::Setup(LayoutManager& lo){
 Glyph* Table::UngetSet(){
     uint32 r = 0;
     std::vector<Table_Row *>::iterator itr = rows.begin();
-    while(r++ < rowSplit){
+    while(r++ < rowSplit && itr != rows.end()){
         ++itr;
     }
     Table *t = new Table(logger);
