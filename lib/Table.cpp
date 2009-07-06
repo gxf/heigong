@@ -375,7 +375,8 @@ Glyph::GY_ST_RET Table::Setup(LayoutManager& lo){
     std::vector<Table_Row *>::iterator itr = rows.begin();
     while(itr != rows.end()){
         if (GY_NEW_PAGE == (*itr) -> Setup(lo)){
-            --rowSplit;
+            if (rowSplit > 0)
+                --rowSplit;
 //            LOG_EVENT_STR2("[TABLE] Page ends.Row is splitted @ ", rowSplit);
             return GY_NEW_PAGE;
         }
