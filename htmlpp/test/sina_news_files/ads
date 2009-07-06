@@ -1,0 +1,50 @@
+{ 
+ 
+var google_ads = new Array(); 
+var google_ad; 
+var google_radlinks = new Array(); 
+var google_radlink; 
+var google_info = new Object(); 
+google_ad = new Object(); 
+google_ad.n = 1; 
+google_ad.type = "text"; 
+google_ad.bidtype = "CPC"; 
+google_ad.targeting_type = "contextual"; 
+google_ad.url = "http://googleads.g.doubleclick.net/aclk?sa=l&amp;ai=BGUJKFRxPSq6iI5uAvQPzufmIDNCF62zMwdzhC8CNtwHA78ABEAEYASCSh4oJKAM4AFCB0PHu-_____8BYJ3p1YG4BbIBEG5ld3Muc2luYS5jb20uY27IAQHaAThodHRwOi8vbmV3cy5zaW5hLmNvbS5jbi93LzIwMDktMDctMDQvMTQyMDE1ODk4ODk3cy5zaHRtbKkCObafGXVRgT7IAs7shAioAwHoAw_oA0PoA7ED9QMABAAE9QMEAAAA&amp;num=1&amp;sig=AGiWqtyQsumCk-YqM9R5T-kHb-4by5RYzQ&amp;client=ca-sina-cn_js&amp;adurl=http://www.discoverhongkong.com/hksummerspectacular/sc/index.html"; 
+google_ad.visible_url = "www.discoverhongkong.com"; 
+google_ad.line1 = "\x26#39321;\x26#28207;\x26#20154;\x26#27668;\x26#26032;\x26#26223;\x26#28857;"; 
+google_ad.line2 = "\x26#26053;\x26#28216;\x26#21457;\x26#23637;\x26#23616;\x26#25552;\x26#20379;\x26#26368;\x26#26032;\x26#26223;\x26#28857;\x26#36164;\x26#35759;\x26#21450;\x26#20248;\x26#24800;"; 
+google_ad.line3 = "\x26#24555;\x26#26469;\x26#21442;\x26#19982;\x26quot;\x26#39321;\x26#28207;\x26#22799;\x26#26085;\x26#30427;\x26#20250;\x26quot;\x26#65292;\x26#29609;\x26#23613;\x26#20170;\x26#22799;!"; 
+google_ad.regionname = ""; 
+google_ads[0] = google_ad; 
+google_ad = new Object(); 
+google_ad.n = 2; 
+google_ad.type = "text"; 
+google_ad.bidtype = "CPC"; 
+google_ad.targeting_type = "contextual"; 
+google_ad.url = "http://googleads.g.doubleclick.net/aclk?sa=l&amp;ai=BSaEXFRxPSq6iI5uAvQPzufmIDNSf4IoB6o6NxwrQ-c2hFLDFNxACGAIgkoeKCSgDOABQ4-iWxfz_____AWCd6dWBuAWgAdDAuvsDsgEQbmV3cy5zaW5hLmNvbS5jbsgBAdoBOGh0dHA6Ly9uZXdzLnNpbmEuY29tLmNuL3cvMjAwOS0wNy0wNC8xNDIwMTU4OTg4OTdzLnNodG1sqQJUyXZXPKWDPsACAcgC-Jf6CqgDAegDD-gDQ-gDsQP1AwAEAAT1AwQAAAA&amp;num=2&amp;sig=AGiWqtzPJZi1UdT4ovnwvq3qve-gDQBnig&amp;client=ca-sina-cn_js&amp;adurl=http://www.world90.net"; 
+google_ad.visible_url = "www.world90.net"; 
+google_ad.line1 = "\x26#19978;\x26#19979;\x26#29677;\x26#36335;\x26#19978;\x26#23398;\x26#33521;\x26#35821;,\x26#24744;\x26#19981;\x26#24819;\x26#35201;"; 
+google_ad.line2 = "\x26#20250;\x26#20013;\x26#22269;\x26#35805;\x26#23601;\x26#20250;\x26#33521;\x26#35821;,\x26#26080;\x26#38656;\x26#20219;\x26#20309;\x26#22522;\x26#30784;"; 
+google_ad.line3 = "\x26#21704;\x26#20315;\x26#21517;\x26#24072;\x26#29420;\x26#21019;,\x26#38543;\x26#24847;\x26#21548;\x26#21548;\x26#20320;\x26#23601;\x26#20250;"; 
+google_ad.regionname = ""; 
+google_ads[1] = google_ad; 
+google_ad = new Object(); 
+google_ad.n = 3; 
+google_ad.type = "text"; 
+google_ad.bidtype = "CPC"; 
+google_ad.targeting_type = "contextual"; 
+google_ad.url = "http://googleads.g.doubleclick.net/aclk?sa=l&amp;ai=BC_hBFRxPSq6iI5uAvQPzufmIDMTI0X3mudCFD9aswtkR0IYDEAMYAyCSh4oJKAM4AFDxjYiRAmCd6dWBuAWyARBuZXdzLnNpbmEuY29tLmNuyAEB2gE4aHR0cDovL25ld3Muc2luYS5jb20uY24vdy8yMDA5LTA3LTA0LzE0MjAxNTg5ODg5N3Muc2h0bWyAAgGpAqkPa8SoeLc-wAIBqAMB6AMP6AND6AOxA_UDAAQABPUDBAAAAA&amp;num=3&amp;sig=AGiWqtxsZpjJ4O66AVDHpAv-XZFo18KJCA&amp;client=ca-sina-cn_js&amp;adurl=http://www.rolex.com/zh-Hans/index.jsp%3Fs_kwcid%3DTC%7C8985%7C%7Csina.com.cn%253E%253E%25E6%2596%25B0%25E6%25B5%25AA%25E6%2596%25B0%25E9%2597%25BB-%25E5%259B%25BD%25E9%2599%2585%25E6%2596%25B0%25E9%2597%25BB%252C%25E5%25BA%2595%25E9%2583%25A8%25E5%25B1%2585%25E4%25B8%25AD%7CC%7C%7C3942909978"; 
+google_ad.visible_url = "Rolex.com"; 
+google_ad.line1 = "\x26#21171;\x26#21147;\x26#22763;\x26#65288;\x26#20013;\x26#22269;\x26#65289;\x26#23448;\x26#26041;\x26#32593;\x26#31449;"; 
+google_ad.line2 = "\x26#22882;\x26#21326;\x26#33109;\x26#34920;\x26#8212;\x26#23613;\x26#26174;\x26#23562;\x26#36149;"; 
+google_ad.line3 = "\x26#20840;\x26#26032;\x26#21517;\x26#34920;\x26#24266;\x26#65292;\x26#21171;\x26#21147;\x26#22763;\x26#19990;\x26#30028;\x26#31934;\x26#24425;\x26#21576;\x26#29616;\x26#65281;"; 
+google_ad.regionname = ""; 
+google_ads[2] = google_ad; 
+if (window.google_ad_request_done) { 
+google_ad_request_done(google_ads); 
+} 
+if (window.google_radlink_request_done) { 
+google_radlink_request_done(google_radlinks); 
+} 
+}

@@ -1,0 +1,221 @@
+/* 正文页主题样式(标准主题,蓝色)           */
+/* 此样式表应包含：                        */
+/* 1、公共部分的配色                       */
+/* 2、广告部分的配色                       */
+/* 3、内容部分的配色                       */
+/* 4、所有右侧内容模块的配色               */
+/* 5、所有右侧内容模块的配色               */
+/* 6、所有正文下方的内容模块配色           */
+
+
+/* 顶部导航 */
+.hd_nav li{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_bg_standard_001.gif) no-repeat 0 10px; color:#7e7e7e;}
+.hd_nav li a,.hd_nav li a:visited{color:#7e7e7e;}
+.hd_nav li a:hover,.hd_nav li a:active{color:#c00;}
+
+
+/* 顶部Google搜索 */
+.blkTopGoogleSearch{border-bottom:1px #eee solid;}
+
+
+/* 路径导航栏 */
+.blkChannelLogo{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_bg_standard_001.gif) no-repeat right -47px;}
+
+
+
+/* 主容器 */
+.Main{background:url(http://i2.sinaimg.cn/dy/news/2008/0708/con_bg_standard_002.gif) repeat-y 0 0;border-top:1px #c8d8f2 solid;}
+
+
+/* 正文标题 */
+.blkContainerSblk h1{border-bottom:1px #c8d8f2 solid;}
+
+.artInfo a,.artInfo a:visited{color:#c00;}
+.artInfo a:hover,.artInfo a:active{color:#f00;}
+
+/* 正文块 */
+.blkContainerPblk{background:#f5f8fd;}
+
+
+/* 发表评论 */
+.blkComment{border-bottom:1px #c8d8f2 dashed;}
+a.blkCommentLinkPost{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_bg_standard_001.gif) no-repeat 0 -99px;}
+
+
+/* 其它功能 */
+.blkOtherFunction{border-top:1px #c8d8f2 solid;}
+.blkOtherFunction_1,.blkOtherFunction_2,.blkOtherFunction_3,.blkOtherFunction_4,.blkOtherFunction_5{border-right:1px #c8d8f2 solid;}
+.blkPhoneNum{color:#636161;}
+.blkMessageBoard a{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_bg_standard_001.gif) no-repeat 0 -148px;}
+
+
+
+/* footer */
+.blkContentFooter{color:#626262; border-top:1px #c8d8f2 solid;}
+.blkContentFooter a,.blkContentFooter a:visited{color:#626262;}
+.blkContentFooter a:hover,.blkContentFooter a:active{color:#c00;}
+
+
+
+
+/* =====================模块===================== */
+
+/* 内容模块：图文 */
+.moduleImgTxt01{border:1px #c8d8f2 solid;}
+.moduleImgTxt01Txt h3{border-bottom:1px #c8d8f2 dashed;}
+.moduleImgTxt01Txt h3 a,.moduleImgTxt01Txt a:visited{padding-left:5px; color:#2c4ebb;}
+.moduleImgTxt01Txt h3 a:hover,.moduleImgTxt01Txt h3 a:active{color:#c00;}
+
+/* 内容模块：带视频链接的段落 */
+.blkVideoLink a{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_bg_standard_001.gif) no-repeat 0 -200px;}
+.blkVideoLink a:hover,.blkVideoLink a:active{background-position:0 -350px;}
+
+/* 内容模块：带视频链接的段落-新闻中心专用 */
+.blkVideoLinkNews a{background:url(http://i0.sinaimg.cn/dy/deco/2008/0723/con_bg_standard_005.gif) no-repeat 0 0;}
+.blkVideoLinkNews a:hover,.blkVideoLinkNews a:active{background-position:-150px 0px;}
+
+/* 内容模块：新闻事件_图文_01 */
+.moduleNewsImgTxt01{border:1px #c8d8f2 solid; background:#fff;}
+.moduleNewsImgTxt01_Tm_Ti{background:url(http://i0.sinaimg.cn/dy/deco/2008/0723/con_bg_standard_001.gif) no-repeat 0 -940px;}
+.moduleNewsImgTxt01_Tm_Ti h3{border-bottom:1px #c8d8f2 dashed;border-top:1px #c8d8f2 dashed;}
+
+.moduleNewsImgTxt01_Tim .moduleNewsImgTxt01_Tm_Ti h3,.moduleNewsImgTxt01_Pim .moduleNewsImgTxt01_Tm_Ti h3,.moduleNewsImgTxt01_Pm .moduleNewsImgTxt01_Tm_Ti h3{border-bottom:none;}
+.moduleNewsImgTxt01_Tm_List li{border-bottom:1px #c8d8f2 dashed;}
+.moduleNewsImgTxt01_Tm_List li .liTi{border-left:1px #c8d8f2 solid;}
+.moduleNewsImgTxt01_Tim_Tl{}
+.moduleNewsImgTxt01_Tim_Il_01_I a img{border:1px #ddd solid;}
+.moduleNewsImgTxt01_Tim_Il_01_I a:hover img,.moduleNewsImgTxt01_Tim_Il_01_I a:active img{border:1px #81a0d1 solid;}
+.moduleNewsImgTxt01_Tim_Il_01 p{color:#666;}
+.moduleNewsImgTxt01_Tim_Il_01_V a{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_bg_standard_001.gif) no-repeat 0 -550px;}
+.moduleNewsImgTxt01_Tim_Il_01_V a:hover,.moduleNewsImgTxt01_Tim_Il_01_V a:active{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_bg_standard_001.gif) no-repeat 0 -750px;}
+.moduleNewsImgTxt01_Tim_Il_01_D a img{border:1px #ddd solid;}
+.moduleNewsImgTxt01_Tim_Il_01_D a:hover img,.moduleNewsImgTxt01_Tim_Il_01_D a:active img{border:1px #81a0d1 solid;}
+.moduleNewsImgTxt01_Pim{}
+.moduleNewsImgTxt01_Pim_IL_blk a img{border:1px #ddd solid;}
+.moduleNewsImgTxt01_Pim_IL_blk a:hover img,.moduleNewsImgTxt01_Pim_IL_blk a:active img{border:1px #81a0d1 solid;}
+
+/* 内容模块：相关专题入口 */
+.moduleGoTopic{border:1px #81a0d1 solid; background:#ddeffd; color:#666;}
+
+.MPartA .Mblk_02{background:#f5f9ff;}
+
+.Mblk_01{border-color:#d1e3f4;background:#f5f9ff;}
+.Mblk_01 .b_left{}
+.Mblk_01 .b_right .c_pic img{border-color:#b9cdec;}
+.Mblk_01 .b_right .c_pic a:hover img{border-color:#c8d8f2;}
+
+.Mblk_02{border-color:#d1e3f4;background:#fff;}
+
+.Mblk_03{border-color:#d1e3f4;background:#fff;}
+
+.Mblk_04{border-color:#d1e3f4;background:#fff;}
+.Mblk_04 .b_box1{border-color:#d1e3f4;}
+
+.Mblk_05{border-color:#d1e3f4;background:#fff;}
+.Mblk_05 .line_1{background-position:4px -45px;}
+.Mblk_05 ul{border-color:#d1e3f4;}
+
+.Mblk_06{border-color:#d1e3f4;background:#fff;}
+
+.Mblk_07{border-color:#d1e3f4;background:#fff;}
+
+.Mblk_08{border-color:#d1e3f4;background:#fff;}
+
+.Mblk_08_1 .search{border-color:#d1e3f4;}
+.Mblk_08_1 .input_01{border-color:#d1e3f4;color:#7e7e7e;}
+.Mblk_08_1 .button_01{background:url(http://i2.sinaimg.cn/dy/deco/2008/1127/con_mj_002.gif) no-repeat -150px -400px;}
+.Mblk_08_1 table,.Mblk_08_1 td,.Mblk_08_1 th{border-color:#d1e3f4;}
+.Mblk_08_1 .bg{background:#f7faff;}
+
+.Mblk_09{border-color:#c8d8f2;}
+.Mblk_09 h2{border-color:#c8d8f2;}
+.Mblk_09 .b_left{border-color:#c8d8f2;}
+
+/* 080708001 ws begin */
+.Mblk_10{}
+.Mblk_10 h2{border-bottom:1px #c8d8f2 dashed;}
+/* 080708001 ws end */
+
+.Mblk_11{border-color:#c8d8f2;}
+.Mblk_11 .b_cont1{border-color:#c8d8f2;}
+.Mblk_11 .b_cont2 h2 .more{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_bg_standard_001.gif) no-repeat 0 -93px;}
+.Mblk_11 .t_info{background:url(http://i3.sinaimg.cn/dy/news/2008/0708/con_mj_001.gif) repeat-x 0 -200px;}
+
+.Mblk_12 .line{border-color:#c8d8f2;}
+.Mblk_12 .b_left{border-color:#c8d8f2;}
+.Mblk_12 h4 .t_line{border-color:#c8d8f2;}
+
+
+.MTitle_01{background:url(http://i3.sinaimg.cn/dy/news/2008/0708/con_mj_001.gif) repeat-x 0 0;border-color:#d5e2f3;}
+.MTitle_01 .menu label{border-color:#d1e3f4;}
+.MTitle_01 .menu label.selected{background:url(http://i2.sinaimg.cn/dy/deco/2008/1127/con_mj_002.gif) no-repeat 0 0;}
+
+.M_Menu_01{background:url(http://i3.sinaimg.cn/dy/news/2008/0708/con_mj_001.gif) repeat-x 0 0;border-color:#d5e2f3;}
+.M_Menu_01 label{border-color:#d1e3f4;}
+.M_Menu_01 label.selected{background:url(http://i2.sinaimg.cn/dy/deco/2008/1127/con_mj_002.gif) no-repeat -151px 0;}
+
+.M_Menu_02{border-color:#d5e2f3;background:#f7faff;}
+.M_Menu_02 label{border-color:#d1e3f4;}
+
+.M_Menu_03{border-color:#d1e3f4;background:#eff4fa;}
+.M_Menu_03 label{border-color:#d1e3f4;}
+.M_Menu_03 label.selected{background-position:-150px -350px;}
+
+
+/* GoogleAd */
+#GoogleAd{background:#fff;}
+#GoogleAd .b_cont{border-color:#d1e3f4;}
+
+.Ad_01{border-color:#d1e3f4;background:#fff;}
+
+.topList_02{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_mj_003.gif) repeat-y 48% 0;}
+
+.topList_03{background:url(http://i1.sinaimg.cn/dy/news/2008/0708/con_mj_003.gif) repeat-y 49% 0;}
+
+.histogram .pillar{border-color:#add0f5;background:#cce6f8;}
+
+
+.c_v_01 .c_pic a{background:url(http://i2.sinaimg.cn/dy/deco/2008/1127/con_mj_002.gif) no-repeat 0 -200px;}
+.c_v_01 .c_pic a:hover{background-position:-150px -200px;}
+
+.c_p_01 .c_pic img{border-color:#c8d8f2;}
+.c_p_01 .c_pic a:hover img{border-color:#81a0d1;}
+
+.c_pt_01 .c_pic img{border-color:#c8d8f2;}
+.c_pt_01 .c_pic a:hover img{border-color:#81a0d1;}
+
+.c_pt_02 .c_pic img{border-color:#c8d8f2;}
+.c_pt_02 .c_pic a:hover img{border-color:#81a0d1;}
+
+.c_t_01 li{border-color:#d1e3f4;}
+.c_t_01 li .time{border-color:#d1e3f4;}
+
+.list_009_f12 li{background-position:4px -43px;}
+.list_009_f14 li{background-position:4px -41px;}
+
+
+/* 针对正文抓站内容再编辑 */
+table.tb01{border-collapse:separate; border:1px #c6d8ee solid; border-bottom:none; border-left:none; background:#eef5fd;}
+table.tb01 td,table.tb01 th{border:1px #c6d8ee solid; border-right:none; border-top:none; background:#eef5fd; font-size:12px; line-height:164.28%; text-align:left; padding:0 5px;}
+table.tb01 p{font-size:12px; text-align:left;}
+table.tb01 img{border:none;}
+
+/*20081126 cl begin*/
+
+.MTitle_01Cl .menu label{float:left;width:70px;text-align:center;line-height:22px;padding:2px 0 0;border-width:0 0 0 1px;border-style:solid;cursor:pointer;}
+.MTitle_01Cl .menu label.selected{border:none;padding-bottom:5px;margin-bottom:-5px;position:relative;z-index:2;margin-right:-1px;padding-left:1px;background:url(http://i2.sinaimg.cn/dy/deco/2008/1127/con_mj_002.gif) 0 -921px no-repeat; }
+
+a.videoNews{background:url(http://i1.sinaimg.cn/dy/deco/2007/1211/yocc/unfcn_mj_01.gif) no-repeat 100% 50%; padding-right:18px;}/* 视频图标链接 */
+a.videoNewsLeft{background:url(http://i1.sinaimg.cn/dy/deco/2007/1211/yocc/unfcn_mj_01.gif) no-repeat -19982px 50%; padding-left:20px;}/* 视频图标链接
+
+
+/* 081205001 ws begin */
+/* 写入博客 */
+.boxS1{width:70px; height:64px;background:url(http://i1.sinaimg.cn/dy/confv/toblog/conBlogBtn_s01_01.png) no-repeat 0 0; }
+.boxS1 a,.boxS1 a:visited{width:70px; height:64px; text-decoration:none;}
+.boxS1 a:hover{text-decoration:none;}
+.boxS1Num{color:#fff;}
+.boxS1 a .boxS1Num,.boxS1 a #getBlogNum,.boxS1 a #getBlogNum a,.boxS1 a:visited #getBlogNum,.boxS1 a:visited #getBlogNum a{color:#fff; text-decoration:none;}
+.blkS2 table{width:234px; *width:245px;}
+.boxS1Num2{background:url(http://i2.sinaimg.cn/dy/confv/toblog/conBlogBtn_s01_02.png) no-repeat;}
+/* 081205001 ws end */
