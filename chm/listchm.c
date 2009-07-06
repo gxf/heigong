@@ -24,6 +24,7 @@ int main(int argc, const char *argv[])
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s chmfile\n", argv[0]);
+        exit(1);
     }
 
     h = chm_open(argv[1]);
