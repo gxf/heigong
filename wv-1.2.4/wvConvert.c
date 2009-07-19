@@ -279,9 +279,11 @@ mydochandler (wvParseStruct * ps, wvTag tag)
     return (0);
 }
 
+#define BUF_SIZE 1024
 int
 wvOpenConfig (state_data *myhandle,char *config)
 {
+    static char buf[BUF_SIZE];
     FILE *tmp;
     int i = 0;
     if (config == NULL)
@@ -290,14 +292,17 @@ wvOpenConfig (state_data *myhandle,char *config)
 	i = 1;
     tmp = fopen (config, "rb");
     if (tmp == NULL)
-      {
-	  if (i)
-	      wvError (
-		       ("Attempt to open %s failed, using %s\n", config,
-			HTMLCONFIG));
-	  config = XMLCONFIG;
-	  tmp = fopen (config, "rb");
-      }
+    {
+        if (i)
+            wvError (
+                    ("Attempt to open %s failed, using %s\n", config,
+                     HTMLCONFIG));
+        config = XMLCONFIG;
+        tmp = fopen (config, "rb");
+    }
+    if (tmp != NULL)
+        setvbuf(tmp, buf, _IOFBF, BUF_SIZE);
+
     myhandle->path = config;
     myhandle->fp = tmp;
     return (tmp == NULL ? 0 : 1);

@@ -29,6 +29,11 @@
 #include "wv.h"
 #include "getopt.h"
 
+#define BUF_SIZE 1024
+
+static char inBuf[BUF_SIZE];
+static char outBuf[BUF_SIZE];
+
 /* strdup isn't declared in <string.h> for `gcc -ansi'; declare it here */
 extern char *strdup (const char *);
 
@@ -179,14 +184,16 @@ HandleBitmap (wvParseStruct * ps, char *name, BitmapBlip * bitmap)
     FILE *fd = NULL;
     size_t size = 0, i;
 
+    static char buf[BUF_SIZE];
     if (ps->dir) chdir (ps->dir);
     fd = fopen (name, "wb");
     if (ps->dir) chdir (wv_cwd);
     if (fd == NULL)
-      {
-	fprintf (stderr,"\nCannot open %s for writing\n",name);
-	exit (1);
-      }
+    {
+        fprintf (stderr,"\nCannot open %s for writing\n",name);
+        exit (1);
+    }
+    setvbuf(fd, buf, _IOFBF, BUF_SIZE);
     size = wvStream_size (pwv);
     wvStream_rewind(pwv);
 
@@ -206,14 +213,16 @@ HandleMetafile (wvParseStruct * ps, char *name, MetaFileBlip * bitmap)
     size_t size = 0, i;
     U8 decompressf = 0;
 
+    static char buf[BUF_SIZE];
     if (ps->dir) chdir (ps->dir);
     fd = fopen (name, "wb");
     if (ps->dir) chdir (wv_cwd);
     if (fd == NULL)
-      {
-	fprintf (stderr,"\nCannot open %s for writing\n",name);
-	exit (1);
-      }
+    {
+        fprintf (stderr,"\nCannot open %s for writing\n",name);
+        exit (1);
+    }
+    setvbuf(fd, buf, _IOFBF, BUF_SIZE);
     size = wvStream_size (pwv);
     wvStream_rewind(pwv);
 
@@ -464,55 +473,38 @@ main (int argc, char **argv)
 	  return (-1);
       }
 
-    fprintf(stderr, "1 %d\n", time(NULL));
     wvSetElementHandler (&ps, myelehandler);
-    fprintf(stderr, "2 %d\n", time(NULL));
     wvSetDocumentHandler (&ps, mydochandler);
-    fprintf(stderr, "3 %d\n", time(NULL));
     wvSetCharHandler (&ps, myCharProc);
-    fprintf(stderr, "4 %d\n", time(NULL));
     wvSetSpecialCharHandler (&ps, mySpecCharProc);
-    fprintf(stderr, "5 %d\n", time(NULL));
 
     wvInitStateData (&myhandle);
-    fprintf(stderr, "6 %d\n", time(NULL));
 
     if (wvOpenConfig (&myhandle,config) == 0)
       {
-    fprintf(stderr, "6.1 %d\n", time(NULL));
 	  wvError (("config file not found\n"));
-    fprintf(stderr, "6.2 %d\n", time(NULL));
 	  return (-1);
       }
     else
       {
 	  wvTrace (("x for FILE is %x\n", myhandle.fp));
-    fprintf(stderr, "6.3 %d\n", time(NULL));
 	  ret = wvParseConfig (&myhandle);
-    fprintf(stderr, "6.4 %d\n", time(NULL));
       }
-    fprintf(stderr, "6.5 %d\n", time(NULL));
 
     if (!ret)
       {
 	  expandhandle.sd = &myhandle;
 	  ps.userData = &expandhandle;
-    fprintf(stderr, "6.6 %d\n", time(NULL));
 	  ret = wvHtml (&ps);
       }
-    fprintf(stderr, "7 %d\n", time(NULL));
     wvReleaseStateData (&myhandle);
 
-    fprintf(stderr, "8 %d\n", time(NULL));
     if (ret == 2)
 	return (2);
     else if (ret != 0)
 	ret = -1;
-    fprintf(stderr, "9 %d\n", time(NULL));
     wvOLEFree (&ps);
-    fprintf(stderr, "a %d\n", time(NULL));
     wvShutdown ();
-    fprintf(stderr, "b %d\n", time(NULL));
 
     return (ret);
 }
@@ -755,7 +747,9 @@ wvConvert_WMF_to_EPS (int width, int height, char **source)
     in = fopen (*source, "rb");
 
     if (in == 0)
-	return;
+        return;
+
+    setvbuf(in, inBuf, _IOFBF, BUF_SIZE);
 
     sink = strdup (*source);
 
@@ -770,6 +764,7 @@ wvConvert_WMF_to_EPS (int width, int height, char **source)
 	  fclose (in);
 	  return;
       }
+    setvbuf(out, outBuf, _IOFBF, BUF_SIZE);
 
     flags = WMF_OPT_IGNORE_NONFATAL | WMF_OPT_FUNCTION;
     api_options.function = wmf_eps_function;
@@ -852,7 +847,9 @@ wvConvert_WMF_to_PNG (int width, int height, char **source)
     in = fopen (*source, "rb");
 
     if (in == 0)
-	return;
+        return;
+    else
+        setvbuf(in, inBuf, _IOFBF, BUF_SIZE);
 
     sink = strdup (*source);
 
@@ -862,11 +859,13 @@ wvConvert_WMF_to_PNG (int width, int height, char **source)
     out = fopen (sink, "wb");
 
     if (out == 0)
-      {
-	  wvFree (sink);
-	  fclose (in);
-	  return;
-      }
+    {
+        wvFree (sink);
+        fclose (in);
+        return;
+    }
+    else
+        setvbuf(out, outBuf, _IOFBF, BUF_SIZE);
 
     flags = WMF_OPT_IGNORE_NONFATAL | WMF_OPT_FUNCTION;
     api_options.function = wmf_gd_function;
@@ -960,17 +959,18 @@ wvConvert_PNG_to_EPS (int width, int height, char **source)
     in = fopen (*source, "rb");
 
     if (in == 0)
-      {
-      	wmf_api_destroy (API);
-      	return;
-      }
+    {
+        wmf_api_destroy (API);
+        return;
+    }
+    setvbuf(in, inBuf, _IOFBF, BUF_SIZE);
 
     if (wmf_image_load_png (API,in,&image) == (-1))
-      {
+    {
         fclose (in);
-      	wmf_api_destroy (API);
-      	return;
-      }
+        wmf_api_destroy (API);
+        return;
+    }
 
     fclose (in);
 
@@ -982,12 +982,14 @@ wvConvert_PNG_to_EPS (int width, int height, char **source)
     out = fopen (sink, "wb");
 
     if (out == 0)
-      {
+    {
         wvFree (sink);
         wmf_image_free (API,&image);
         wmf_api_destroy (API);
         return;
-      }
+    }
+    else
+        setvbuf(out, outBuf, _IOFBF, BUF_SIZE);
 
     wmf_image_save_eps (API,out,&image);
 
@@ -1041,10 +1043,11 @@ wvConvert_JPG_to_EPS (int width, int height, char **source)
     in = fopen (*source, "rb");
 
     if (in == 0)
-      {
-      	wmf_api_destroy (API);
+    {
+        wmf_api_destroy (API);
       	return;
-      }
+    }
+    setvbuf(in, inBuf, _IOFBF, BUF_SIZE);
 
     if (wmf_image_load_jpg (API,in,&image) == (-1))
       {
@@ -1063,12 +1066,13 @@ wvConvert_JPG_to_EPS (int width, int height, char **source)
     out = fopen (sink, "wb");
 
     if (out == 0)
-      {
+    {
         wvFree (sink);
         wmf_image_free (API,&image);
         wmf_api_destroy (API);
         return;
-      }
+    }
+    setvbuf(out, outBuf, _IOFBF, BUF_SIZE);
 
     wmf_image_save_eps (API,out,&image);
 
@@ -1624,33 +1628,38 @@ myCharProc (wvParseStruct * ps, U16 eachchar, U8 chartype, U16 lid)
 int
 wvOpenConfig (state_data *myhandle,char *config)
 {
+    static char fileBuf[BUF_SIZE];
     static char buf[BUFSIZ] = "";
     FILE *tmp;
     int i = 0;
+
     if (config == NULL)
-	config = "wvHtml.xml";
+        config = "wvHtml.xml";
     else
-	i = 1;
+        i = 1;
+
     tmp = fopen (config, "rb");
 
     if(tmp == NULL)
     {
-	str_copy  (buf, sizeof(buf), WVDATADIR);
-	str_append(buf, sizeof(buf), "/");
-	str_append(buf, sizeof(buf), config);
-	config = buf;
-	tmp = fopen(config, "rb");
+        str_copy  (buf, sizeof(buf), WVDATADIR);
+        str_append(buf, sizeof(buf), "/");
+        str_append(buf, sizeof(buf), config);
+        config = buf;
+        tmp = fopen(config, "rb");
     }
 
     if (tmp == NULL)
-      {
-	  if (i)
-	      wvError (
-		       ("Attempt to open %s failed, using %s\n", config,
-			HTMLCONFIG));
-	  config = HTMLCONFIG;
-	  tmp = fopen (config, "rb");
-      }
+    {
+        if (i)
+            wvError (
+                    ("Attempt to open %s failed, using %s\n", config,
+                     HTMLCONFIG));
+        config = HTMLCONFIG;
+        tmp = fopen (config, "rb");
+    }
+    if (tmp != NULL)
+        setvbuf(tmp, fileBuf, _IOFBF, BUF_SIZE);
     myhandle->path = config;
     myhandle->fp = tmp;
     return (tmp == NULL ? 0 : 1);

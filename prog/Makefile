@@ -16,7 +16,7 @@ DEP_FILES=$(addprefix $(BUILD_DIR)/,$(subst .cpp,.d,$(CPP_SRC_FILES)))	\
 
 all: $(TARGETS)
 
-libprog.a: $(OBJ_FILES)
+libprog.a: hgMaster.o
 	$(AR) $(BUILD_DIR)/$@  $(addprefix $(BUILD_DIR)/,$^)
 
 -include $(DEP_FILES)

@@ -27,6 +27,7 @@
 #include <errno.h>
 #include "wv.h"
 #include <glib.h>
+#include <sys/time.h>
 
 int (*wvConvertUnicodeToEntity) (U16 char16) = NULL;
 
@@ -799,8 +800,21 @@ wvOutputFromUnicode (U16 eachchar, char *outputtype)
 int
 wvHandleElement (wvParseStruct * ps, wvTag tag, void *props, int dirty)
 {
-    if (ps->elehandler)
-	return ((*(ps->elehandler)) (ps, tag, props, dirty));
+#if 0
+    static unsigned long long handle_time = 0;
+    struct timeval tvStart,tvEnd;
+    gettimeofday(&tvStart, NULL);
+#endif
+    if (ps->elehandler){
+        int ret = ((*(ps->elehandler)) (ps, tag, props, dirty));
+#if 0
+        gettimeofday(&tvEnd, NULL);
+        handle_time += (tvEnd.tv_sec * 1000000 + tvEnd.tv_usec) - 
+                       (tvStart.tv_sec * 1000000 + tvStart.tv_usec);
+        fprintf(stderr, "%llu\n", handle_time);
+#endif
+        return ret;
+    }
     wvError (("No element handler registered!!\n"));
     return (0);
 }
@@ -1667,22 +1681,22 @@ wvConvertUnicodeToLaTeX (U16 char16)
 	  return (1);
 
       case 0x01FA:
-	  printf ("\\'{\\AA}");	/* Å with acute */
+	  printf ("\\'{\\AA}");	/* ? with acute */
 	  return (1);
       case 0x01FB:
-	  printf ("\\'{\\aa}");	/* å with acute */
+	  printf ("\\'{\\aa}");	/* ? with acute */
 	  return (1);
       case 0x01FC:
-	  printf ("\\'{\\AE}");	/* Æ with acute */
+	  printf ("\\'{\\AE}");	/* ? with acute */
 	  return (1);
       case 0x01FD:
-	  printf ("\\'{\\ae}");	/* æ with acute */
+	  printf ("\\'{\\ae}");	/* ? with acute */
 	  return (1);
       case 0x01FE:
-	  printf ("\\'{\\O}");	/* Ø with acute */
+	  printf ("\\'{\\O}");	/* ? with acute */
 	  return (1);
       case 0x01FF:
-	  printf ("\\'{\\o}");	/* ø with acute */
+	  printf ("\\'{\\o}");	/* ? with acute */
 	  return (1);
 
       case 0x2010:
@@ -2191,7 +2205,7 @@ wvConvertStylename(char *stylename, char *outputtype)
 	if ((g_iconv_handle != (GIConv)-1))
 	    g_iconv_close(g_iconv_handle);
 
-	/**FIXME: don´t know if ISO-8859-1 is really the correct
+	/**FIXME: don?t know if ISO-8859-1 is really the correct
 	 **charset for style names with eg umlauts.             **/
 	g_iconv_handle = g_iconv_open(outputtype, "ISO-8859-1");
 	if(g_iconv_handle == (GIConv)-1)
@@ -2213,7 +2227,7 @@ wvConvertStylename(char *stylename, char *outputtype)
     *obuf   = 0;
     if(len == -1) 
     {
-	wvError(("wvConfig.c: can´t iconv()\n"));
+	wvError(("wvConfig.c: can?t iconv()\n"));
 	return stylename;
     }
     

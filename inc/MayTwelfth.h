@@ -24,9 +24,14 @@ class May12th{
 
     public:
         void RenderAll();
+        bool StartBackGround();
+        bool GetPage(uint32 page_num, uint32 * width, uint32 * height, 
+                     uint32 * depth, void** img);
+        bool FreePage(void* img);
+        bool Term();
 
     private:
-        void Init(uint32 fontSize);
+        void Init(uint32 fontSize = DEFAULT_FONT_SIZE);
 //        bool RenderChar(Char &);
 
     private:
@@ -34,6 +39,9 @@ class May12th{
         const static int screen_height;
 
     private:
+        bool            inited;
+        bool            convert;
+        const char*     filename;
         ENCODING_MODE   encoding;
 
     private:

@@ -7,15 +7,19 @@ include $(HG_ROOT)/makefile.def
 TARGETS=hgMaster
 
 LIB_FILES=libprog.a	\
-		  libhg.a		
+		  libhg.a	\
 
 all: $(TARGETS) 
 	$(CP) $^ $(HG_ROOT)/
+	$(CP) libhg.a $(HG_ROOT)/
 
 hgMaster: $(LIB_FILES)
 	$(LD) $(LDFLAGS) $(LIB_PATH) $(LIBS) $^ -o $@
 
 libprog.a:
+	$(MAKE) -C $(HG_ROOT)/prog
+
+libinterface.a:
 	$(MAKE) -C $(HG_ROOT)/prog
 
 libhg.a:

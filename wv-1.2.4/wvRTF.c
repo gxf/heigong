@@ -604,6 +604,7 @@ do_help (void)
 
 static char *charset = NULL;
 
+#define BUF_SIZE 1024
 int
 main (int argc, char *argv[])
 {
@@ -680,10 +681,14 @@ main (int argc, char *argv[])
 
     input = fopen (fname, "rb");
     if (!input)
-      {
-	fprintf (stderr, "Failed to open %s\n", fname);
-	  return -1;
-      }
+    {
+        fprintf (stderr, "Failed to open %s\n", fname);
+        return -1;
+    }
+    else{
+        static char buf[BUF_SIZE];
+        setvbuf(input, buf, _IOFBF, BUF_SIZE);
+    }
     fclose (input);
 
     wvInit ();

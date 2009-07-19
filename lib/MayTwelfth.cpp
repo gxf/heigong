@@ -7,15 +7,11 @@
 const int May12th::screen_width = SCREEN_WIDTH;
 const int May12th::screen_height= SCREEN_HEIGHT;
 
-May12th::May12th(Logger* log, const char* filename, bool convert):
+May12th::May12th(Logger* log, const char* fn, bool conv):
+    inited(false), convert(conv), filename(fn),
     encoding(EM_UTF_8), ctx(NULL), logger(log)
 {
     ctx = new Context(log, screen_width, screen_height);
-    ctx->render.Init();
-    if (false == ctx->docParse.Init(filename, convert)){
-        exit(0);
-    }
-    Init(DEFAULT_FONT_SIZE);
 }
 
 May12th::~May12th(){
@@ -24,15 +20,40 @@ May12th::~May12th(){
 }
 
 void May12th::Init(uint32 fontSize){
-    ctx->layout.NewPage();
-    ctx->layout.SetLineSpacing(fontSize/4);
+    if (false == inited){
+        ctx->render.Init();
+        if (false == ctx->docParse.Init(filename, convert)){
+            exit(0);
+        }
+        ctx->layout.NewPage();
+        ctx->layout.SetLineSpacing(fontSize/4);
+        inited = true;
+    }
 }
 
 void May12th::RenderAll(){
+    Init(DEFAULT_FONT_SIZE);
     int i = 0;
     for (i = 0; i < ctx->pgMgr.GetMaxPageNum(); i++){
         Display(i);
     }
+}
+
+bool May12th::StartBackGround(){
+    return true;
+}
+
+bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height, 
+                      uint32 * depth, void** img){
+    return true;
+}
+
+bool May12th::FreePage(void* img){
+    return true;
+}
+
+bool May12th::Term(){
+    return true;
 }
 
 void May12th::Display(int page_num){
@@ -137,6 +158,7 @@ void May12th::Display(int page_num){
 
 void May12th::MainLoop(){
 #ifndef RENDER2FILE
+    Init();
     int done = false;
     SDL_Event event;
 

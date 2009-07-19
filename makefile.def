@@ -4,9 +4,10 @@
 CC=g++
 LD=g++
 AR=ar -r
+AR_ADD=ar -a
 #CFLAGS=-g -Wall -O3
-#CFLAGS=-g -Wall -O0 -DRENDER2FILE
-CFLAGS=-g -Wall -O0
+CFLAGS=-g -Wall -O0 -DRENDER2FILE
+#CFLAGS=-g -Wall -O0
 LDFLAGS=
 INC=/usr/include/GL /usr/include/freetype2 $(HG_ROOT)/inc
 #INC_PATH=$(addprefix -I,$(INC))
