@@ -39,8 +39,9 @@ class May12th{
         const static int screen_height;
 
     private:
-        bool            inited;
-        bool            convert;
+        bool            inited;     // Status to show if engine is inited
+        bool            convert;    // Need html conversion
+        bool            bgMode;     // Background Mode
         const char*     filename;
         ENCODING_MODE   encoding;
 

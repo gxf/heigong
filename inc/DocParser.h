@@ -31,7 +31,7 @@ class DocParser{
         }DP_RET_T;
 
     public:
-        bool Init(const char* filen, bool convert = true);
+        bool Init(const char* filen, bool convert = true, bool backgroud = false);
         DP_RET_T GetNextGlyph(Glyph** g, LayoutManager* line);
         void SetCurParseOffset(long int offset);
 

@@ -33,8 +33,6 @@ int main(int argc, char** argv){
             << std::endl;
         ++page_num;
         HG_FreePage(hHG, pPage);
-        if (page_num > 5)
-            break;
     }
     HG_Term(hHG);
     return 0;

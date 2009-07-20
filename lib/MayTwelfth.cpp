@@ -8,8 +8,8 @@ const int May12th::screen_width = SCREEN_WIDTH;
 const int May12th::screen_height= SCREEN_HEIGHT;
 
 May12th::May12th(Logger* log, const char* fn, bool conv):
-    inited(false), convert(conv), filename(fn),
-    encoding(EM_UTF_8), ctx(NULL), logger(log)
+    inited(false), convert(conv), bgMode(false),
+    filename(fn), encoding(EM_UTF_8), ctx(NULL), logger(log)
 {
     ctx = new Context(log, screen_width, screen_height);
 }
@@ -22,7 +22,7 @@ May12th::~May12th(){
 void May12th::Init(uint32 fontSize){
     if (false == inited){
         ctx->render.Init();
-        if (false == ctx->docParse.Init(filename, convert)){
+        if (false == ctx->docParse.Init(filename, convert, bgMode)){
             exit(0);
         }
         ctx->layout.NewPage();
@@ -40,12 +40,18 @@ void May12th::RenderAll(){
 }
 
 bool May12th::StartBackGround(){
+    bgMode = true;
+    Init(DEFAULT_FONT_SIZE);
     return true;
 }
 
 bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                       uint32 * depth, void** img){
-    return true;
+    Display(page_num);
+    if (page_num == ctx->pgMgr.GetMaxPageNum())
+        return false;
+    else
+        return true;
 }
 
 bool May12th::FreePage(void* img){
@@ -59,8 +65,12 @@ bool May12th::Term(){
 void May12th::Display(int page_num){
     bool newPage;
     if (page_num > ctx->pgMgr.GetToWorkPageNum()){
-        // TODO: forward search
-        LOG_ERROR("Forward search is not supported yet.");
+        int i = ctx->pgMgr.GetToWorkPageNum(); 
+        while(i <= page_num){
+            Display(i);
+            if(i++ >= ctx->pgMgr.GetMaxPageNum())
+                break;
+        }
         return;
     }
     else if (page_num == ctx->pgMgr.GetToWorkPageNum()){

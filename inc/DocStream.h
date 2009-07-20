@@ -10,19 +10,20 @@ class Logger;
 class DocStream{
     public:
         DocStream(Logger * log, const char * tmpfilen = DEFAULT_TMP_FILE_NAME):
-            tmpFile(tmpfilen), fd(NULL), fileEnds(false),
-            offset(0), logger(log)
+            tmpFile(tmpfilen), fd(NULL), bgMode(false),
+            fileEnds(false), offset(0), logger(log)
         {}
         ~DocStream(){
             if(fd){ CloseFile(); }
         }
 
     public:
-        bool OpenFile(const char* filename);
+        bool OpenFile(const char* filename, bool bkgrd);
         bool OpenFileDirect(const char* filename);
-        void CloseFile();
-        bool ReOpenFile();
-    
+        bool CloseFile();
+
+        bool ReOpenFile();  // Deprecated
+
     public:
         DocStream & operator>>(int & ch);
         DocStream & operator<<(int & ch);
@@ -42,6 +43,7 @@ class DocStream{
     private:
         const char*         tmpFile;
         FILE*               fd;
+        bool                bgMode;     // Background parsing mode
         bool                fileEnds;
 
     private:

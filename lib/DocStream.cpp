@@ -41,7 +41,8 @@ bool DocStream::OpenFileDirect(const char* filename){
     return true;
 }
 
-bool DocStream::OpenFile(const char* filename){
+bool DocStream::OpenFile(const char* filename, bool background){
+    bgMode = background;
 
     char filen[std::strlen(filename) + 200];
     std::memset(filen, '\0', std::strlen(filename) + 200);
@@ -54,14 +55,28 @@ bool DocStream::OpenFile(const char* filename){
 
     char cmd[strlength];
     std::memset(cmd, 0x0, strlength);
-    sprintf(cmd, "./wvWare -x ./wvHtml.xml -d ./wvTmp -b wvImage %s > %s", filen, tmpFile);
-    LOG_EVENT(cmd);
+    if (false == bgMode){
+        sprintf(cmd, "./wvWare -x ./wvHtml.xml -d ./wvTmp -b wvImage %s > %s", filen, tmpFile);
+        LOG_EVENT(cmd); 
+        system(cmd); 
+        return OpenFileDirect(tmpFile);
+    }
+    else{
+        sprintf(cmd, "./wvWare -x ./wvHtml.xml -d ./wvTmp -b wvImage %s | tee %s", filen, tmpFile);
+        LOG_EVENT(cmd);
 
-    system(cmd);
+        // Open pipe for processing
+        if (!(fd = popen(cmd, "r"))){
+            LOG_ERROR("Fail to open pipe.");
+            return false;
+        }
+        fileEnds = false;
 
-    return OpenFileDirect(tmpFile);
+        return true;
+    }
 }
 
+// Deprecated
 bool DocStream::ReOpenFile(){
     LOG_ERROR("ReOpenFile NOT PROPERLY IMPLEMENTED!!!");
 
@@ -77,9 +92,16 @@ bool DocStream::ReOpenFile(){
 }
 
 
-void DocStream::CloseFile()
+bool DocStream::CloseFile()
 {
-    fclose(fd);
+    if ((true == bgMode) && (-1 == pclose(fd))){
+        LOG_ERROR("Fail to close pipe.");
+        return false;
+    }
+    else{
+        fclose(fd);
+    }
+
     fd = NULL;
     char cmd[100];
     sprintf(cmd, "rm -f %s", tmpFile);
@@ -89,10 +111,12 @@ void DocStream::CloseFile()
     sprintf(cmd, "rm -f *.png *.jpg *.emf *.wmf");
     LOG_EVENT(cmd);
     system(cmd);
+    return true;
 }
 
 DocStream & DocStream::operator>>(int & ch){
     ch = getc(fd);
+
     if (EOF == ch){
         fileEnds = true;
         // TODO: recover stream
