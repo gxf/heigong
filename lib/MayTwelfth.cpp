@@ -3,6 +3,7 @@
 #include "Table.h"
 #include <cstdlib>
 #include <cstring>
+#include <cassert>
 
 const int May12th::screen_width = SCREEN_WIDTH;
 const int May12th::screen_height= SCREEN_HEIGHT;
@@ -47,31 +48,53 @@ bool May12th::StartBackGround(){
 
 bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                       uint32 * depth, void** img){
-    Display(page_num);
-    if (page_num == ctx->pgMgr.GetMaxPageNum())
+    if((int)page_num > ctx->pgMgr.GetMaxPageNum()){
+        *width  = 0;
+        *height = 0;
+        *depth  = 0;
+        *img    = NULL;
         return false;
-    else
+    }
+
+    *img = Display(page_num);
+    if ((int)page_num == ctx->pgMgr.GetMaxPageNum()){
+        *width  = 0;
+        *height = 0;
+        *depth  = 0;
+        *img    = NULL;
+        return false;
+    }
+    else{
+        bool ret = ctx->bufMgr.GetAttr(*img, width, height, depth);
+        assert( ret == true);
         return true;
+    }
 }
 
 bool May12th::FreePage(void* img){
+    if (!ctx->bufMgr.Delete(img)){
+        return false;
+    }
     return true;
 }
 
 bool May12th::Term(){
+    // TODO:
+    exit(0);
     return true;
 }
 
-void May12th::Display(int page_num){
-    bool newPage;
+void* May12th::Display(int page_num){
+    bool newPage = false;
     if (page_num > ctx->pgMgr.GetToWorkPageNum()){
+        // Forward Display
         int i = ctx->pgMgr.GetToWorkPageNum(); 
-        while(i <= page_num){
+        while(i < page_num){
             Display(i);
             if(i++ >= ctx->pgMgr.GetMaxPageNum())
-                break;
+                return NULL;
         }
-        return;
+        return Display(i);
     }
     else if (page_num == ctx->pgMgr.GetToWorkPageNum()){
         char buf[100];
@@ -108,6 +131,7 @@ void May12th::Display(int page_num){
     DocParser::DP_RET_T dp_ret = DocParser::DP_OK;
 
     bool finished = false;
+    void* img = NULL;
     while(!finished){
         dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->layout);
         Glyph::GY_ST_RET gy_ret = Glyph::GY_OK; 
@@ -127,14 +151,20 @@ void May12th::Display(int page_num){
                         if(true == newPage){
                             ctx->docParse << glyph->UngetSet();
                         }
-                        ctx->render.Flush();
+                        if (!bgMode)
+                            img = ctx->render.Flush(NULL);
+                        else
+                            img = ctx->render.Flush(&ctx->bufMgr);
                         ctx->pgMgr.EndPage(page_num, &ctx->render);
                         finished = true;
                         break;
                     case Glyph::GY_EOF:
                         ctx->pgMgr.SetMaxPageNum(page_num);
                         ctx->layout.curLine->DrawFlush(&ctx->render);
-                        ctx->render.Flush();
+                        if (!bgMode)
+                            img = ctx->render.Flush(NULL);
+                        else
+                            img = ctx->render.Flush(&ctx->bufMgr);
                         ctx->pgMgr.EndPage(page_num, &ctx->render);
                         finished = true;
                         break;
@@ -164,6 +194,7 @@ void May12th::Display(int page_num){
                 break;
         }
     }
+    return img;
 }
 
 void May12th::MainLoop(){

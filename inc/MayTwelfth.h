@@ -18,7 +18,7 @@ class May12th{
     public:
         void MainLoop();
 //        void PerCharDisplay(int page_num);
-        void Display(int page_num);
+        void* Display(int page_num);
 
         inline Context* GetContext(){ return ctx; }
 

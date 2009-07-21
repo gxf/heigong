@@ -12,6 +12,7 @@
 class Logger;
 class Color;
 class Page;
+class BufferManager;
 
 class RenderMan{
     public:
@@ -32,7 +33,7 @@ class RenderMan{
         void GetFBSize(Page*);
         void GetFrameBuffer(Page*); 
         void Clear();
-        void Flush();
+        void* Flush(BufferManager *);
 
         void Quit();
 

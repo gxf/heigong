@@ -7,6 +7,7 @@
 #include "PageLayout.h"
 #include "DocParser.h"
 #include "PageManager.h"
+#include "BufferManager.h"
 
 class Context{
     public:
@@ -15,6 +16,7 @@ class Context{
         FontsCache      ftCache;
         DocParser       docParse;
         PageManager     pgMgr;
+        BufferManager   bufMgr;
 
     public:
         Context(Logger* log, int screen_width, int screen_height, uint32 margin_v = MARGIN_VERTICAL, uint32 margin_h = MARGIN_HORIZONTAL):

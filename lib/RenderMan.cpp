@@ -10,6 +10,7 @@
 #include "Page.h"
 #include "RenderMan.h"
 #include "Color.h"
+#include "BufferManager.h"
 
 using namespace std;
 
@@ -203,7 +204,7 @@ static void RenderToFile(void* pFb, uint32 width, uint32 height, const char* fil
 }
 #endif
 
-void RenderMan::Flush(){
+void* RenderMan::Flush(BufferManager * bufMgr){
 //    LOG_EVENT("Flush to buffer");
 
     uint32 width, height;
@@ -225,6 +226,10 @@ void RenderMan::Flush(){
 #else
     RenderToFile(pFb, width, height, "framebuffer.pgm");
 #endif
+    if (bufMgr)
+        return bufMgr->Insert(pFb, width, height, 8);
+    else
+        return NULL;
 }
 
 void RenderMan::GetFBSize(Page* pg){
