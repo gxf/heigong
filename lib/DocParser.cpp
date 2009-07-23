@@ -18,7 +18,9 @@ DocParser::DocParser(Logger* log):
     logger(log)
 {}
 
-DocParser::~DocParser(){}
+DocParser::~DocParser(){
+    ClearGlyphStream();
+}
 
 bool DocParser::Init(const char* filen, bool convert, bool background){
     if (true == convert){
@@ -35,16 +37,17 @@ void DocParser::SetCurParseOffset(long int offset){
 }
 
 void DocParser::ClearGlyphStream(){
-#if 0
+//#if 0
     while(!(glyphBuffer.empty())){
         delete glyphBuffer.front();
         glyphBuffer.pop_front();
     }
-#endif
+//#endif
     while(!delayedToken.empty()){
+        delete delayedToken.front();
         delayedToken.pop();
     }
-    glyphBuffer.clear();
+//    glyphBuffer.clear();
 }
 
 DocParser::DP_RET_T 

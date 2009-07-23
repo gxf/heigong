@@ -29,6 +29,7 @@ class May12th{
                      uint32 * depth, void** img);
         bool FreePage(void* img);
         bool Term();
+        inline Logger* GetLogger(){ return logger; }
 
     private:
         void Init(uint32 fontSize = DEFAULT_FONT_SIZE);

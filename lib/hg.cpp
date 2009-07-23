@@ -11,12 +11,14 @@
 #include <iostream>
 #include <unistd.h>
 
+static Logger* logger;
+
 hHgMaster HG_Init(const char* file, uint32 screen_width, uint32 screen_height){
     // Negtive number protector
     if (screen_width > 10000 || screen_height > 10000){
         return NULL;
     }
-    Logger* logger = new Logger;
+    logger = new Logger;
     if (!logger){
         return NULL;
     }
@@ -62,5 +64,14 @@ bool HG_FreePage(hHgMaster hHG, p_page_info hPG){
 
 bool HG_Term(hHgMaster hHG){
     May12th * engine = reinterpret_cast<May12th*>(hHG);
-    return engine->Term();
+    if (NULL == engine){
+        return false;
+    }
+    engine->Term();
+    delete logger;
+    delete engine;
+    char cmd[] = "killall -9 lt-wvWare";
+    system(cmd);
+
+    return true;
 }

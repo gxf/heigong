@@ -79,8 +79,6 @@ bool May12th::FreePage(void* img){
 }
 
 bool May12th::Term(){
-    // TODO:
-    exit(0);
     return true;
 }
 

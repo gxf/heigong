@@ -94,9 +94,11 @@ bool DocStream::ReOpenFile(){
 
 bool DocStream::CloseFile()
 {
-    if ((true == bgMode) && (-1 == pclose(fd))){
-        LOG_ERROR("Fail to close pipe.");
-        return false;
+    if (true == bgMode){
+        if(-1 == pclose(fd)){
+            LOG_ERROR("Fail to close pipe.");
+            return false;
+        }
     }
     else{
         fclose(fd);
@@ -108,7 +110,7 @@ bool DocStream::CloseFile()
     LOG_EVENT(cmd);
 
 //    system(cmd);
-    sprintf(cmd, "rm -f *.png *.jpg *.emf *.wmf");
+    sprintf(cmd, "rm -f *.png *.jpg *.emf *.wmf *.pg");
     LOG_EVENT(cmd);
     system(cmd);
     return true;
