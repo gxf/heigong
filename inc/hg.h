@@ -54,6 +54,15 @@ bool HG_StartParse(hHgMaster hHG);
 p_page_info HG_GetPage(hHgMaster hHG, uint32 pg_num);
 
 // BRIEF:
+//     This function get the total page processed by engine
+//
+// PARAMS:
+//     hHG - Handler fo engine context
+// RETURN:
+//     Total page already processed by engine
+uint32 HG_GetCurMaxPage(hHgMaster hHG);
+
+// BRIEF:
 //     This function free the memory page_info structure holds.
 //
 // PARAMS:

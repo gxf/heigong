@@ -55,6 +55,12 @@ p_page_info HG_GetPage(hHgMaster hHG, uint32 pg_num){
     }
 }
 
+uint32 HG_GetCurMaxPage(hHgMaster hHG){
+    May12th * engine = reinterpret_cast<May12th*>(hHG);
+
+    return engine->GetCurMaxPage();
+}
+
 bool HG_FreePage(hHgMaster hHG, p_page_info hPG){
     May12th * engine = reinterpret_cast<May12th*>(hHG);
     bool ret = engine->FreePage(hPG->img);

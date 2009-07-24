@@ -261,7 +261,8 @@ DocStream & DocStream::operator<<(Char & ch){
 void DocStream::SetOffset(long int off){
     if (fd){
         if (-1 == fseek(fd, off, SEEK_SET)){
-            LOG_ERROR("fail to seek offset in file");
+            LOG_ERROR("fail to seek offset in file.");
+            printf("offset: %ld\n", off);
         }
     }
     else{

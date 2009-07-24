@@ -78,6 +78,10 @@ bool May12th::FreePage(void* img){
     return true;
 }
 
+uint32 May12th::GetCurMaxPage(){
+    return ctx->pgMgr.GetLastPageNum();
+}
+
 bool May12th::Term(){
     return true;
 }
