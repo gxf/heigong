@@ -24,8 +24,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include "wv.h"
 #include "wvinternal.h"
+
+#define TO_LE_8(val) (val)
 
 void
 wvCopyBlip (Blip * dest, Blip * src)
@@ -148,7 +151,6 @@ wvCopyFBSE (FBSE * dest, FBSE * src)
     memcpy (dest, src, sizeof (FBSE));
 }
 
-
 U32
 wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
 {
@@ -202,9 +204,62 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
       return 0;
     }
 
-    for (i = count; i < amsofbh->cbLength; i++)
-	write_8ubit (stm, read_8ubit (fd));
-    
+    /* fix by gxf: fast copy */
+    U32 length = amsofbh->cbLength - count;
+    if (fd->kind == GSF_STREAM || fd->kind == FILE_STREAM){
+        guint8 buf[length];
+
+        /* Read process */
+        if (fd->kind == GSF_STREAM){
+            if(NULL == (gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, buf)))
+                fprintf(stderr, "gsf reads err");
+        }
+        else{
+            int sz;
+            if ((sz = fread(buf, sizeof(guint8), length, fd->stream.file_stream)) != length)
+                fprintf(stderr, "read err, length: %d\n", sz);
+        }
+
+        /* output process */
+        if (stm->kind == GSF_STREAM){
+            wvTrace (("Unsupported output stream\n"));
+            exit(0);
+        }
+        if (stm->kind == FILE_STREAM)
+        {
+#if 0
+            for(i = 0; i < length; i++){
+                guint8 cpy = (guint8) TO_LE_8 (buf[i]);
+                buf[i] = cpy;
+            }
+#endif
+            int sz;
+            if((sz = (int)fwrite (buf, sizeof (guint8), length, stm->stream.file_stream)) != length)
+                fprintf(stderr, "write err, length: %d\n", sz);
+        }
+        else{
+#if 0
+            for(i = 0; i < length; i++){
+                guint8 cpy = (guint8) TO_LE_8 (buf[i]);
+                *((U8 *)(stm->stream.memory_stream->mem + 
+                            stm->stream.memory_stream->current)) = cpy;
+                stm->stream.memory_stream->current++;
+            }
+#endif
+            memcpy(stm->stream.memory_stream->mem, buf, length);
+            stm->stream.memory_stream->current += length;
+        }
+    }
+    else{
+        for (i = 0; i < length; i++)
+            write_8ubit (stm, read_8ubit (fd));
+    }
+
+#if 0
+    for (i = 0; i < length; i++)
+        write_8ubit (stm, read_8ubit (fd));
+#endif
+
     wvStream_rewind (stm);
     
     abm->m_pvBits = stm;

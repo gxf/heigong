@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/time.h>
 #include "wv.h"
 
 
@@ -52,29 +53,30 @@ wvGetEscher (escherstruct * item, U32 offset, U32 len, wvStream * fd,
     wvStream_goto (fd, offset);
     wvTrace (("offset %x, len %d\n", offset, len));
     wvInitEscher (item);
+
     while (count < len)
-      {
-	  count += wvGetMSOFBH (&amsofbh, fd);
-	  wvTrace (
-		   ("count is %x,len is %x, next len is %x\n", count, len,
-		    amsofbh.cbLength));
-	  wvTrace (("type is %x\n	", amsofbh.fbt));
-	  switch (amsofbh.fbt)
-	    {
-	    case msofbtDggContainer:
-		count +=
-		    wvGetDggContainer (&item->dggcontainer, &amsofbh, fd,
-				       delay);
-		break;
-	    case msofbtDgContainer:
-		count += wvGetDgContainer (&item->dgcontainer, &amsofbh, fd);
-		break;
-	    default:
-		wvError (("Not a container, panic (%x)\n", amsofbh.fbt));
-		return;
-		break;
-	    }
-      }
+    {
+        count += wvGetMSOFBH (&amsofbh, fd);
+        wvTrace (
+                ("count is %x,len is %x, next len is %x\n", count, len,
+                 amsofbh.cbLength));
+        wvTrace (("type is %x\n	", amsofbh.fbt));
+        switch (amsofbh.fbt)
+        {
+            case msofbtDggContainer:
+                count +=
+                    wvGetDggContainer (&item->dggcontainer, &amsofbh, fd,
+                            delay);
+                break;
+            case msofbtDgContainer:
+                count += wvGetDgContainer (&item->dgcontainer, &amsofbh, fd);
+                break;
+            default:
+                wvError (("Not a container, panic (%x)\n", amsofbh.fbt));
+                return;
+                break;
+        }
+    }
     wvTrace (("offset %x, len %d (pos %x)\n", offset, len, wvStream_tell (fd)));
 }
 
@@ -101,44 +103,46 @@ wvGetDggContainer (DggContainer * item, MSOFBH * msofbh, wvStream * fd,
     MSOFBH amsofbh;
     U32 count = 0;
 
+
     while (count < msofbh->cbLength)
-      {
-	  count += wvGetMSOFBH (&amsofbh, fd);
-	  wvTrace (
-		   ("len is %x, type is %x, count %x,fullen %x\n",
-		    amsofbh.cbLength, amsofbh.fbt, count, msofbh->cbLength));
-	  wvTrace (("type is %x\n	", amsofbh.fbt));
-	  switch (amsofbh.fbt)
-	    {
-	    case msofbtDgg:
-		count += wvGetDgg (&item->dgg, &amsofbh, fd);
-		break;
-	    case msofbtSplitMenuColors:
-		count +=
-		    wvGetSplitMenuColors (&item->splitmenucolors, &amsofbh, fd);
-		break;
-	    case msofbtBstoreContainer:
-		count +=
-		    wvGetBstoreContainer (&item->bstorecontainer, &amsofbh,
-					  fd, delay);
-		wvTrace (
-			 ("type is %d (number is %d\n",
-			  item->bstorecontainer.blip[item->bstorecontainer.
-						     no_fbse - 1].type,
-			  item->bstorecontainer.no_fbse));
-		break;
-	    default:
-		count += wvEatmsofbt (&amsofbh, fd);
-		wvError (("Eating type 0x%x\n", amsofbh.fbt));
-		break;
-	    }
-      }
+    {
+        count += wvGetMSOFBH (&amsofbh, fd);
+        wvTrace (
+                ("len is %x, type is %x, count %x,fullen %x\n",
+                 amsofbh.cbLength, amsofbh.fbt, count, msofbh->cbLength));
+        wvTrace (("type is %x\n	", amsofbh.fbt));
+        switch (amsofbh.fbt)
+        {
+            case msofbtDgg:
+                count += wvGetDgg (&item->dgg, &amsofbh, fd);
+                break;
+            case msofbtSplitMenuColors:
+                count +=
+                    wvGetSplitMenuColors (&item->splitmenucolors, &amsofbh, fd);
+                break;
+            case msofbtBstoreContainer:
+                count +=
+                    wvGetBstoreContainer (&item->bstorecontainer, &amsofbh,
+                            fd, delay);
+                wvTrace (
+                        ("type is %d (number is %d\n",
+                         item->bstorecontainer.blip[item->bstorecontainer.
+                         no_fbse - 1].type,
+                         item->bstorecontainer.no_fbse));
+                break;
+            default:
+                count += wvEatmsofbt (&amsofbh, fd);
+                wvError (("Eating type 0x%x\n", amsofbh.fbt));
+                break;
+        }
+    }
     /*
        For some reason I appear to have an extra byte associated either with
        this or its wrapper, I will investigate further.
      */
     read_8ubit (fd);
     count++;
+
 
     return (count);
 }
@@ -185,30 +189,31 @@ wvGetBstoreContainer (BstoreContainer * item, MSOFBH * msofbh, wvStream * fd,
 {
     MSOFBH amsofbh;
     U32 count = 0;
+
     while (count < msofbh->cbLength)
-      {
-	  count += wvGetMSOFBH (&amsofbh, fd);
-	  wvTrace (("type is %x\n	", amsofbh.fbt));
-	  switch (amsofbh.fbt)
-	    {
-	    case msofbtBSE:
-		wvTrace (("Blip at %x\n", wvStream_tell (fd)));
-		item->no_fbse++;
-		item->blip =
-		    (Blip *) realloc (item->blip,
-				      sizeof (Blip) * item->no_fbse);
-		count +=
-		    wvGetBlip ((&item->blip[item->no_fbse - 1]), fd, delay);
-		wvTrace (
-			 ("type is %d (number is %d\n",
-			  item->blip[item->no_fbse - 1].type, item->no_fbse));
-		break;
-	    default:
-		count += wvEatmsofbt (&amsofbh, fd);
-		wvError (("Eating type 0x%x\n", amsofbh.fbt));
-		break;
-	    }
-      }
+    {
+        count += wvGetMSOFBH (&amsofbh, fd);
+        wvTrace (("type is %x\n	", amsofbh.fbt));
+        switch (amsofbh.fbt)
+        {
+            case msofbtBSE:
+                wvTrace (("Blip at %x\n", wvStream_tell (fd)));
+                item->no_fbse++;
+                item->blip =
+                    (Blip *) realloc (item->blip,
+                            sizeof (Blip) * item->no_fbse);
+                count +=
+                    wvGetBlip ((&item->blip[item->no_fbse - 1]), fd, delay);
+                wvTrace (
+                        ("type is %d (number is %d\n",
+                         item->blip[item->no_fbse - 1].type, item->no_fbse));
+                break;
+            default:
+                count += wvEatmsofbt (&amsofbh, fd);
+                wvError (("Eating type 0x%x\n", amsofbh.fbt));
+                break;
+        }
+    }
     return (count);
 }
 
@@ -221,46 +226,48 @@ wvGetDgContainer (DgContainer * item, MSOFBH * msofbh, wvStream * fd)
     item->spcontainer = NULL;
     item->no_spcontainer = 0;
 
+
     while (count < msofbh->cbLength)
-      {
-	  count += wvGetMSOFBH (&amsofbh, fd);
-	  wvTrace (
-		   ("len is %x, type is %x, count %x,fullen %x\n",
-		    amsofbh.cbLength, amsofbh.fbt, count, msofbh->cbLength));
-	  wvTrace (("type is %x\n	", amsofbh.fbt));
-	  switch (amsofbh.fbt)
-	    {
-	    case msofbtDg:
-		count += wvGetFDG (&item->fdg, fd);
-		break;
-	    case msofbtSpgrContainer:
-		item->no_spgrcontainer++;
-		item->spgrcontainer =
-		    (SpgrContainer *) realloc (item->spgrcontainer,
-					       sizeof (SpgrContainer) *
-					       item->no_spgrcontainer);
-		count +=
-		    wvGetSpgrContainer (&
-					(item->spgrcontainer
-					 [item->no_spgrcontainer - 1]), &amsofbh, fd);
-		break;
-		case msofbtSpContainer:
-	      	item->no_spcontainer++; 
-		item->spcontainer =
-		    (FSPContainer *) realloc (item->spcontainer,
-					       sizeof (FSPContainer) *
-					       item->no_spcontainer);
-		count +=
-		    wvGetFSPContainer (&
-	        			(item->spcontainer
-					 [item->no_spcontainer - 1]), &amsofbh, fd);
-		break; 
-	    default:
-		count += wvEatmsofbt (&amsofbh, fd);
-		wvError (("Eating type 0x%x\n", amsofbh.fbt));
-		break;
-	    }
-      }
+    {
+        count += wvGetMSOFBH (&amsofbh, fd);
+        wvTrace (
+                ("len is %x, type is %x, count %x,fullen %x\n",
+                 amsofbh.cbLength, amsofbh.fbt, count, msofbh->cbLength));
+        wvTrace (("type is %x\n	", amsofbh.fbt));
+        switch (amsofbh.fbt)
+        {
+            case msofbtDg:
+                count += wvGetFDG (&item->fdg, fd);
+                break;
+            case msofbtSpgrContainer:
+                item->no_spgrcontainer++;
+                item->spgrcontainer =
+                    (SpgrContainer *) realloc (item->spgrcontainer,
+                            sizeof (SpgrContainer) *
+                            item->no_spgrcontainer);
+                count +=
+                    wvGetSpgrContainer (&
+                            (item->spgrcontainer
+                             [item->no_spgrcontainer - 1]), &amsofbh, fd);
+                break;
+            case msofbtSpContainer:
+                item->no_spcontainer++; 
+                item->spcontainer =
+                    (FSPContainer *) realloc (item->spcontainer,
+                            sizeof (FSPContainer) *
+                            item->no_spcontainer);
+                count +=
+                    wvGetFSPContainer (&
+                            (item->spcontainer
+                             [item->no_spcontainer - 1]), &amsofbh, fd);
+                break; 
+            default:
+                count += wvEatmsofbt (&amsofbh, fd);
+                wvError (("Eating type 0x%x\n", amsofbh.fbt));
+                break;
+        }
+    }
+
     return (count);
 }
 

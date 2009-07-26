@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include "wv.h"
 #include "getopt.h"
+#include <sys/time.h>
 
 #define BUF_SIZE 1024
 
@@ -673,14 +674,14 @@ wvStrangeNoGraphicData (char *config, int graphicstype)
     wvError (("Strange No Graphic Data in the 0x01/0x08 graphic\n"));
 
     if ((strstr (config, "wvLaTeX.xml") != NULL)
-	|| (strstr (config, "wvCleanLaTeX.xml") != NULL))
-	printf
-	    ("\n\\resizebox*{\\baselineskip}{!}{\\includegraphics{placeholder.eps}}\
- 		  \n-- %#.2x graphic: StrangeNoGraphicData --",
-	     graphicstype);
+            || (strstr (config, "wvCleanLaTeX.xml") != NULL))
+        printf
+            ("\n\\resizebox*{\\baselineskip}{!}{\\includegraphics{placeholder.eps}}\
+             \n-- %#.2x graphic: StrangeNoGraphicData --",
+             graphicstype);
     else
-	printf ("<img alt=\"%#.2x graphic\" src=\"%s\"%s><br%s>", graphicstype,
-		"StrangeNoGraphicData", xml_slash, xml_slash);
+        printf ("<img alt=\"%#.2x graphic\" src=\"%s\"%s><br%s>", graphicstype,
+                "StrangeNoGraphicData", xml_slash, xml_slash);
     return;
 }
 
@@ -1316,146 +1317,144 @@ mySpecCharProc (wvParseStruct * ps, U16 eachchar, CHP * achp)
     expand_data *data = (expand_data *) ps->userData;
 
     switch (eachchar)
-      {
-      case 19:
-	  wvError (("field began\n"));
-	  ps->fieldstate++;
-	  ps->fieldmiddle = 0;
-	  fieldCharProc (ps, eachchar, 0, 0x400);	/* temp */
-	  return (0);
-	  break;
-      case 20:
-	  wvTrace (("field middle\n"));
-	  if (achp->fOle2)
-	    {
-		wvError (
-			 ("this field has an associated embedded object of id %x\n",
-			  achp->fcPic_fcObj_lTagObj));
-		/*test = wvFindObject(achp->fcPic_fcObj_lTagObj);
-		   if (test)
-		   wvError(("data can be found in object entry named %s\n",test->name));
-		 */ }
-	  fieldCharProc (ps, eachchar, 0, 0x400);	/* temp */
-	  ps->fieldmiddle = 1;
-	  return (0);
-	  break;
+    {
+        case 19:
+            wvError (("field began\n"));
+            ps->fieldstate++;
+            ps->fieldmiddle = 0;
+            fieldCharProc (ps, eachchar, 0, 0x400);	/* temp */
+
+            return (0);
+            break;
+        case 20:
+            wvTrace (("field middle\n"));
+            if (achp->fOle2)
+            {
+                wvError (
+                        ("this field has an associated embedded object of id %x\n",
+                         achp->fcPic_fcObj_lTagObj));
+                /*test = wvFindObject(achp->fcPic_fcObj_lTagObj);
+                 * if (test)
+                 * wvError(("data can be found in object entry named %s\n",test->name));
+                 * */ 
+            }
+            fieldCharProc (ps, eachchar, 0, 0x400);	/* temp */
+            ps->fieldmiddle = 1;
+
+            return (0);
+            break;
       case 21:
-	  wvTrace (("field end\n"));
-	  ps->fieldstate--;
-	  ps->fieldmiddle = 0;
-	  fieldCharProc (ps, eachchar, 0, 0x400);	/* temp */
-	  return (0);
-	  break;
-      }
+            wvTrace (("field end\n"));
+            ps->fieldstate--;
+            ps->fieldmiddle = 0;
+            fieldCharProc (ps, eachchar, 0, 0x400);	/* temp */
+            return (0);
+            break;
+    }
 
     if (ps->fieldstate)
-      {
-	  if (fieldCharProc (ps, eachchar, 0, 0x400))
-	      return (0);
-      }
+    {
+        if (fieldCharProc (ps, eachchar, 0, 0x400))
+            return (0);
+    }
 
     switch (eachchar)
-      {
-      case 0x05:
-	  /* this should be handled by the COMMENTBEGIN and COMMENTEND events */
-	  return (0);
-	  break;
-      case 0x01:
-	  {
-	      wvStream *f;
-	      Blip blip;
-	      char *name;
-	      long p = wvStream_tell (ps->data);
-	      wvError (
-		       ("picture 0x01 here, at offset %x in Data Stream, obj is %d, ole is %d\n",
-			achp->fcPic_fcObj_lTagObj, achp->fObj, achp->fOle2));
+    {
+        case 0x05:
+            /* this should be handled by the COMMENTBEGIN and COMMENTEND events */
+            return (0);
+            break;
+        case 0x01:
+            {
+                wvStream *f;
+                Blip blip;
+                char *name;
+                long p = wvStream_tell (ps->data);
+                wvError (
+                        ("picture 0x01 here, at offset %x in Data Stream, obj is %d, ole is %d\n",
+                         achp->fcPic_fcObj_lTagObj, achp->fObj, achp->fOle2));
 
-	      if (achp->fOle2)
-		return (0);
-	      if(!no_graphics) 
-	      {
-	      wvStream_goto (ps->data, achp->fcPic_fcObj_lTagObj);
-	      wvGetPICF (wvQuerySupported (&ps->fib, NULL), &picf, ps->data);
-	      f = picf.rgb;
-	      if (wv0x01 (&blip, f, picf.lcb - picf.cbHeader))
-		{
-		    wvTrace (("Here\n"));
-		    name = wvHtmlGraphic (ps, &blip);
-		    if (ps->dir) chdir (ps->dir);
-		    wvPrintGraphics (config, 0x01,
-				     (int) wvTwipsToHPixels (picf.dxaGoal),
-				     (int) wvTwipsToVPixels (picf.dyaGoal),
-				     name);
-		    if (ps->dir) chdir (wv_cwd);
-		    wvFree (name);
-		}
+                if (achp->fOle2)
+                    return (0);
+                if(!no_graphics) 
+                {
+                    wvStream_goto (ps->data, achp->fcPic_fcObj_lTagObj);
+                    wvGetPICF (wvQuerySupported (&ps->fib, NULL), &picf, ps->data);
+                    f = picf.rgb;
+                    if (wv0x01 (&blip, f, picf.lcb - picf.cbHeader))
+                    {
+                        wvTrace (("Here\n"));
+                        name = wvHtmlGraphic (ps, &blip);
+                        if (ps->dir) chdir (ps->dir);
+                        wvPrintGraphics (config, 0x01,
+                                (int) wvTwipsToHPixels (picf.dxaGoal),
+                                (int) wvTwipsToVPixels (picf.dyaGoal),
+                                name);
+                        if (ps->dir) chdir (wv_cwd);
+                        wvFree (name);
+                    }
+                    else{
+                        wvStrangeNoGraphicData (config, 0x01);
+                    }
+                }
+
+                wvStream_goto (ps->data, p);
+
+                return (0);
+            }
+        case 0x08:
+            {
+                Blip blip;
+                char *name;
+                if (wvQuerySupported (&ps->fib, NULL) == WORD8)
+                {
+                    if(!no_graphics) 
+                    {
+                        if (ps->nooffspa > 0)
+                        {
+                            fspa =
+                                wvGetFSPAFromCP (ps->currentcp, ps->fspa,
+                                        ps->fspapos, ps->nooffspa);
+
+                            if (!fspa)
+                            {
+                                wvError (("No fspa! Insanity abounds!\n"));
+                                return 0;
+                            }
+
+                            data->props = fspa;
+                            if (wv0x08 (&blip, fspa->spid, ps))
+                            {
+                                wvTrace (("Here\n"));
+                                name = wvHtmlGraphic (ps, &blip);
+                                if (ps->dir) chdir (ps->dir);
+                                wvPrintGraphics (config, 0x08,
+                                        (int) wvTwipsToHPixels (fspa->xaRight - fspa-> xaLeft),
+                                        (int) wvTwipsToVPixels (fspa-> yaBottom - fspa-> yaTop),
+                                        name);
+                                if (ps->dir) chdir (wv_cwd);
+                                wvFree (name);
+                            }
+                            else{
+                                wvStrangeNoGraphicData (config, 0x08);
+                            }
+                        }
+                        else
+                        {
+                            wvError (("nooffspa was <=0!  Ignoring.\n"));
+                        }
+                    }
+                }
 	      else
-		  wvStrangeNoGraphicData (config, 0x01);
-	      }
-
-	      wvStream_goto (ps->data, p);
-	      return (0);
-	  }
-      case 0x08:
-	  {
-	      Blip blip;
-	      char *name;
-	      if (wvQuerySupported (&ps->fib, NULL) == WORD8)
-		{
-		    if(!no_graphics) 
-		    {
-		    if (ps->nooffspa > 0)
-		      {
-			  fspa =
-			      wvGetFSPAFromCP (ps->currentcp, ps->fspa,
-					       ps->fspapos, ps->nooffspa);
-
-			  if (!fspa)
-			    {
-				wvError (("No fspa! Insanity abounds!\n"));
-				return 0;
-			    }
-
-			  data->props = fspa;
-			  if (wv0x08 (&blip, fspa->spid, ps))
-			    {
-				wvTrace (("Here\n"));
-				name = wvHtmlGraphic (ps, &blip);
-				if (ps->dir) chdir (ps->dir);
-				wvPrintGraphics (config, 0x08,
-						 (int)
-						 wvTwipsToHPixels (fspa->xaRight
-								   -
-								   fspa->
-								   xaLeft),
-						 (int) wvTwipsToVPixels (fspa->
-									 yaBottom
-									 -
-									 fspa->
-									 yaTop),
-						 name);
-				if (ps->dir) chdir (wv_cwd);
-				wvFree (name);
-			    }
-			  else
-			      wvStrangeNoGraphicData (config, 0x08);
-		      }
-		    else
-		      {
-			  wvError (("nooffspa was <=0!  Ignoring.\n"));
-		      }
-		    }
-		}
-	      else
-		{
-		    FDOA *fdoa;
-		    wvError (
-			     ("pre word8 0x08 graphic, unsupported at the moment\n"));
-		    fdoa =
-			wvGetFDOAFromCP (ps->currentcp, ps->fdoa, ps->fdoapos,
-					 ps->nooffdoa);
-		    data->props = fdoa;
-		}
+          {
+              FDOA *fdoa;
+              wvError (
+                      ("pre word8 0x08 graphic, unsupported at the moment\n"));
+              fdoa =
+                  wvGetFDOAFromCP (ps->currentcp, ps->fdoa, ps->fdoapos,
+                          ps->nooffdoa);
+              data->props = fdoa;
+          }
 
 
 

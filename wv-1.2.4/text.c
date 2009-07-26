@@ -85,6 +85,7 @@ wvnLocaleToLIDConverter (U8 nLocale)
 int
 wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
 {
+    int ret = 0;
     U16 lid = 0;
 
     wvVersion v = wvQuerySupported (&ps->fib, NULL);
@@ -95,22 +96,22 @@ wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
      * depend on the font's charset.
      */
     if ((v <= WORD7) && (!ps->fib.fFarEast))
-      {
-	  FFN currentfont;
+    {
+        FFN currentfont;
 	
-	  if (ps->fonts.ffn == NULL)
-          {
-	      lid = 0;
-	  }
-	  else
-          {
-	  	currentfont = ps->fonts.ffn[achp->ftc];
-	  	/* Return 0 if no match */
-	  	lid = wvnLocaleToLIDConverter (currentfont.chs);
-	  }
-      }
+        if (ps->fonts.ffn == NULL)
+        {
+            lid = 0;
+        }
+        else
+        {
+            currentfont = ps->fonts.ffn[achp->ftc];
+            /* Return 0 if no match */
+            lid = wvnLocaleToLIDConverter (currentfont.chs);
+        }
+    }
     if (!lid)
-	lid = achp->lidDefault;
+        lid = achp->lidDefault;
 
 
     /* No lidDefault for ver < WORD6 */
@@ -120,31 +121,32 @@ wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
     /* end testing adding a language */
 
     if (achp->fSpec)
-      {
-	  /*
+    {
+        /*
 	     if the character is still one of the special ones then call this other 
 	     handler 
 	     instead
-	   */
-	  if (ps->scharhandler)
-	      return ((*(ps->scharhandler)) (ps, eachchar, achp));
-      }
+	    */
+        if (ps->scharhandler)
+            ret = ((*(ps->scharhandler)) (ps, eachchar, achp));
+        return ret;
+    }
     else
-      {
-	  /* Most Chars go through this baby */
-	  if (ps->charhandler)
-	    {
-		if (!((v == WORD7 || v == WORD6) && ps->fib.fFarEast))
-		    if (v <= WORD7)
-		      {
-			  /* versions <= 7 do not use unicode. versions >= 8 always do */
-			  /* versions 7 and 6 use unicode iff the far-east flag is set */
-			  chartype = 1;
-		      }
-
-		return ((*(ps->charhandler)) (ps, eachchar, chartype, lid));
-	    }
-      }
+    {
+        /* Most Chars go through this baby */
+        if (ps->charhandler)
+        {
+            if (!((v == WORD7 || v == WORD6) && ps->fib.fFarEast))
+                if (v <= WORD7)
+                {
+                    /* versions <= 7 do not use unicode. versions >= 8 always do */
+                    /* versions 7 and 6 use unicode iff the far-east flag is set */
+                    chartype = 1;
+                }
+            ret = ((*(ps->charhandler)) (ps, eachchar, chartype, lid)); 
+            return ret;
+        }
+    }
     wvError (("No CharHandler registered, programmer error\n"));
     return (0);
 }
@@ -800,19 +802,8 @@ wvOutputFromUnicode (U16 eachchar, char *outputtype)
 int
 wvHandleElement (wvParseStruct * ps, wvTag tag, void *props, int dirty)
 {
-#if 0
-    static unsigned long long handle_time = 0;
-    struct timeval tvStart,tvEnd;
-    gettimeofday(&tvStart, NULL);
-#endif
     if (ps->elehandler){
         int ret = ((*(ps->elehandler)) (ps, tag, props, dirty));
-#if 0
-        gettimeofday(&tvEnd, NULL);
-        handle_time += (tvEnd.tv_sec * 1000000 + tvEnd.tv_usec) - 
-                       (tvStart.tv_sec * 1000000 + tvStart.tv_usec);
-        fprintf(stderr, "%llu\n", handle_time);
-#endif
         return ret;
     }
     wvError (("No element handler registered!!\n"));
