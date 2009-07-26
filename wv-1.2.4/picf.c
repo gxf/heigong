@@ -212,8 +212,26 @@ wvGetPICF (wvVersion ver, PICF * apicf, wvStream * fd)
 		p = buf = malloc(size);
 	}
 	
+#if 0
 	for (; i < apicf->lcb - apicf->cbHeader; i++)
 	  *p++ = read_8ubit (fd);
+#endif
+    U32 length = apicf->lcb - apicf->cbHeader - i; 
+    if (fd->kind == GSF_STREAM)
+    {
+        gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, p);
+        p += length;
+    }
+    else if (fd->kind == FILE_STREAM)
+    {
+        fread(p, sizeof(guint8), length, fd->stream.file_stream);
+        p += length;
+    }
+    else
+    {
+	    memorystream_read(fd->stream.memory_stream, p, length);
+        p += length;
+    }
 	
 /*	f = fopen("test.dat","wb");
 	fwrite(buf, 1,size, f);

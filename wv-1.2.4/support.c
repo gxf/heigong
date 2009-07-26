@@ -195,7 +195,7 @@ wvStream_create (wvStream ** in, wvStreamKind kind, wvInternalStream inner)
     streams = listEntry;
 }
 
-static size_t memorystream_read(MemoryStream *stream, void *buf, size_t count)
+size_t memorystream_read(MemoryStream *stream, void *buf, size_t count)
 {
   size_t ret;
 
@@ -220,6 +220,7 @@ U32
 read_32ubit (wvStream * in)
 {
     U32 ret;
+#if 0
     U16 temp1, temp2;
     temp1 = read_16ubit (in);
     temp2 = read_16ubit (in);
@@ -228,11 +229,27 @@ read_32ubit (wvStream * in)
     ret += temp1;
 
     return (ret);
+#endif
+    /* gxf: performance fix */
+    if (in->kind == GSF_STREAM)
+    {
+        gsf_input_read (GSF_INPUT (in->stream.gsf_stream), sizeof(ret), &ret);
+    }
+    else if (in->kind == FILE_STREAM)
+    {
+        return fread(&ret, sizeof(ret), 1, in->stream.file_stream);
+    }
+    else
+    {
+        memorystream_read(in->stream.memory_stream, &ret, sizeof(ret));
+    }
+    return ret;
 }
 
 U16
 read_16ubit (wvStream * in)
 {
+#if 0
     U16 ret;
     U8 temp1, temp2;
     temp1 = read_8ubit (in);
@@ -241,6 +258,22 @@ read_16ubit (wvStream * in)
     ret = ret << 8;
     ret += temp1;
     return (ret);
+#endif
+    /* gxf: performance fix */
+    U16 ret = 0;
+    if (in->kind == GSF_STREAM)
+    {
+        gsf_input_read (GSF_INPUT (in->stream.gsf_stream), sizeof(ret), &ret);
+    }
+    else if (in->kind == FILE_STREAM)
+    {
+        return fread(&ret, sizeof(ret), 1, in->stream.file_stream);
+    }
+    else
+    {
+        memorystream_read(in->stream.memory_stream, &ret, sizeof(ret));
+    }
+    return ret;
 }
 
 U8

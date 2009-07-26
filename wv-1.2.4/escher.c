@@ -103,7 +103,6 @@ wvGetDggContainer (DggContainer * item, MSOFBH * msofbh, wvStream * fd,
     MSOFBH amsofbh;
     U32 count = 0;
 
-
     while (count < msofbh->cbLength)
     {
         count += wvGetMSOFBH (&amsofbh, fd);
@@ -277,21 +276,22 @@ wvFindSPID (SpgrContainer * item, S32 spid)
     U32 i;
     FSPContainer *t;
     for (i = 0; i < item->no_spcontainer; i++)
-      {
-	  /* FIXME: Cast below is to avoid compiler warnings, but having
+    {
+        /* FIXME: Cast below is to avoid compiler warnings, but having
 	     to have it could be a sign of something wrong. */
-	  if (item->spcontainer[i].fsp.spid == (U32) spid)
-	    {
-		wvTrace (("FOUND IT\n"));
-		return (&(item->spcontainer[i]));
+        if (item->spcontainer[i].fsp.spid == (U32) spid)
+        {
+            wvTrace (("FOUND IT\n"));
+            return (&(item->spcontainer[i]));
 	    }
-      }
+    }
     for (i = 0; i < item->no_spgrcontainer; i++)
-      {
-	  t = wvFindSPID (&(item->spgrcontainer[i]), spid);
-	  if (t)
-	      return (t);
-      }
+    {
+        t = wvFindSPID (&(item->spgrcontainer[i]), spid);
+        if (t){
+            return (t);
+        }
+    }
     return (NULL);
 }
 
@@ -475,11 +475,11 @@ wv0x08 (Blip * blip, S32 spid, wvParseStruct * ps)
 		 ps->mainfd);
 
     for (i = 0; i < item.dgcontainer.no_spgrcontainer; i++)
-      {
-	  answer = wvFindSPID (&(item.dgcontainer.spgrcontainer[i]), spid);
-	  if (answer)
-	      break;
-      }
+    {
+        answer = wvFindSPID (&(item.dgcontainer.spgrcontainer[i]), spid);
+        if (answer)
+            break;
+    }
 
     i = 0;
     if (answer == NULL)
@@ -554,6 +554,11 @@ wv0x01 (Blip * blip, wvStream * fd, U32 len)
 	  return (1);
       }
 	*/
+#if 0
+    static long long ti = 0;
+    struct timeval start_tm, end_tm;
+    gettimeofday(&start_tm, NULL);
+#endif
     while (count < len)
       {
 	  wvTrace (("count is %x,len is %x\n", count, len));
@@ -569,6 +574,12 @@ wv0x01 (Blip * blip, wvStream * fd, U32 len)
 	    case msofbtBSE:
 		wvTrace (("Blip at %x\n", wvStream_tell (fd)));
 		count += wvGetBlip (blip, fd, NULL);
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
 		ret = 1;
 		break;
 	    default:

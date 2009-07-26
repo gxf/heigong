@@ -75,23 +75,41 @@ wvGetBlip (Blip * blip, wvStream * fd, wvStream * delay)
     count = wvGetFBSE (&blip->fbse, fd);
     wvTrace (("count is %d\n", count));
     if (blip->fbse.cbName == 0)
-	blip->name = NULL;
+        blip->name = NULL;
     else
-	blip->name = (U16 *) wvMalloc (sizeof (U16) * blip->fbse.cbName);
+        blip->name = (U16 *) wvMalloc (sizeof (U16) * blip->fbse.cbName);
+#if 0
     for (i = 0; i < blip->fbse.cbName; i++)
-	blip->name[i] = read_16ubit (fd);
+        blip->name[i] = read_16ubit (fd);
+#endif
+    /* gxf: performance fix */
+    U32 length = blip->fbse.cbName * 2;
+    if (fd->kind == GSF_STREAM)
+    {
+        gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, blip->name);
+    }
+    else if (fd->kind == FILE_STREAM)
+    {
+        fread(blip->name, sizeof(guint8), length, fd->stream.file_stream);
+    }
+    else
+    {
+	    memorystream_read(fd->stream.memory_stream, blip->name, length);
+    }
+    i += length / 2;
+
     count += blip->fbse.cbName * 2;
     wvTrace (("count is %d\n", count));
     wvTrace (("offset %x\n", blip->fbse.foDelay));
 
     if (delay)
-      {
-	  pos = wvStream_tell (delay);
-	  if(blip->fbse.foDelay!=-1)
-		wvStream_goto (delay, blip->fbse.foDelay);
-	  wvTrace (("offset %x\n", blip->fbse.foDelay));
-	  fd = delay;
-      }
+    {
+        pos = wvStream_tell (delay);
+        if(blip->fbse.foDelay!=-1)
+            wvStream_goto (delay, blip->fbse.foDelay);
+        wvTrace (("offset %x\n", blip->fbse.foDelay));
+        fd = delay;
+    }
 
     count2 = wvGetMSOFBH (&amsofbh, fd);
     wvTrace (("count is %d\n", count2));
@@ -99,19 +117,20 @@ wvGetBlip (Blip * blip, wvStream * fd, wvStream * delay)
 	     ("HERE is %x %x (%d)\n", wvStream_tell (fd), amsofbh.fbt,
 	      amsofbh.fbt - msofbtBlipFirst));
     wvTrace (("type is %x\n", amsofbh.fbt));
+
     switch (amsofbh.fbt - msofbtBlipFirst)
-      {
-      case msoblipWMF:
-      case msoblipEMF:
-      case msoblipPICT:
-	  count2 += wvGetMetafile (&blip->blip.metafile, &amsofbh, fd);
-	  break;
-      case msoblipJPEG:
-      case msoblipPNG:
-      case msoblipDIB:
-	  count2 += wvGetBitmap (&blip->blip.bitmap, &amsofbh, fd);
-	  break;
-      }
+    {
+        case msoblipWMF:
+        case msoblipEMF:
+        case msoblipPICT:
+            count2 += wvGetMetafile (&blip->blip.metafile, &amsofbh, fd);
+            break;
+        case msoblipJPEG:
+        case msoblipPNG:
+        case msoblipDIB:
+            count2 += wvGetBitmap (&blip->blip.bitmap, &amsofbh, fd);
+            break;
+    }
     wvTrace (("count is %d\n", count2));
     blip->type = amsofbh.fbt - msofbtBlipFirst;
 
@@ -130,8 +149,24 @@ wvGetFBSE (FBSE * afbse, wvStream * fd)
     int i;
     afbse->btWin32 = read_8ubit (fd);
     afbse->btMacOS = read_8ubit (fd);
+#if 0
     for (i = 0; i < 16; i++)
-	afbse->rgbUid[i] = read_8ubit (fd);
+        afbse->rgbUid[i] = read_8ubit (fd);
+#endif
+    /* gxf: performance fix */
+    U32 length = 16;
+    if (fd->kind == GSF_STREAM)
+    {
+        gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, afbse->rgbUid);
+    }
+    else if (fd->kind == FILE_STREAM)
+    {
+        fread(afbse->rgbUid, sizeof(guint8), length, fd->stream.file_stream);
+    }
+    else
+    {
+	    memorystream_read(fd->stream.memory_stream, afbse->rgbUid, length);
+    }
     afbse->tag = read_16ubit (fd);
     afbse->size = read_32ubit (fd);
     afbse->cRef = read_32ubit (fd);
@@ -186,12 +221,28 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
 	  break;
       }
 
+    /* gxf: Performance fix */
     if (extra)
-      {
-	  for (i = 0; i < 16; i++)
-	      abm->m_rgbUidPrimary[i] = read_8ubit (fd);
-	  count += 16;
-      }
+    {
+        U32 length = 16;
+        if (fd->kind == GSF_STREAM)
+        {
+            gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, abm->m_rgbUidPrimary);
+        }
+        else if (fd->kind == FILE_STREAM)
+        {
+            fread(abm->m_rgbUidPrimary, sizeof(guint8), length, fd->stream.file_stream);
+        }
+        else
+        {
+            memorystream_read(fd->stream.memory_stream, abm->m_rgbUidPrimary, length);
+        }
+#if 0
+        for (i = 0; i < 16; i++)
+            abm->m_rgbUidPrimary[i] = read_8ubit (fd);
+#endif
+        count += 16;
+    }
 
     abm->m_bTag = read_8ubit (fd);
     abm->m_pvBits = NULL;
@@ -206,38 +257,45 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
 
     /* fix by gxf: fast copy */
     U32 length = amsofbh->cbLength - count;
-    if (fd->kind == GSF_STREAM || fd->kind == FILE_STREAM){
-        guint8 buf[length];
+    guint8 buf[length];
 
-        /* Read process */
-        if (fd->kind == GSF_STREAM){
-            if(NULL == (gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, buf)))
-                fprintf(stderr, "gsf reads err");
-        }
-        else{
-            int sz;
-            if ((sz = fread(buf, sizeof(guint8), length, fd->stream.file_stream)) != length)
-                fprintf(stderr, "read err, length: %d\n", sz);
-        }
+    /* Read process */
+    if (fd->kind == GSF_STREAM){
+        if(NULL == (gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, buf)))
+            fprintf(stderr, "gsf reads err");
+    }
+    else if (fd->kind == FILE_STREAM){
+        int sz;
+        if ((sz = fread(buf, sizeof(guint8), length, fd->stream.file_stream)) != length)
+            fprintf(stderr, "read err, length: %d\n", sz);
+    }
+    else{ 
+	    memorystream_read(fd->stream.memory_stream, buf, length);
+    }
 
-        /* output process */
-        if (stm->kind == GSF_STREAM){
-            wvTrace (("Unsupported output stream\n"));
-            exit(0);
-        }
-        if (stm->kind == FILE_STREAM)
-        {
+#if 0
+    static long long ti = 0;
+    struct timeval start_tm, end_tm;
+    gettimeofday(&start_tm, NULL);
+#endif
+    /* output process */
+    if (stm->kind == GSF_STREAM){
+        wvTrace (("Unsupported output stream\n"));
+        exit(0);
+    }
+    if (stm->kind == FILE_STREAM)
+    {
 #if 0
             for(i = 0; i < length; i++){
                 guint8 cpy = (guint8) TO_LE_8 (buf[i]);
                 buf[i] = cpy;
             }
 #endif
-            int sz;
-            if((sz = (int)fwrite (buf, sizeof (guint8), length, stm->stream.file_stream)) != length)
-                fprintf(stderr, "write err, length: %d\n", sz);
-        }
-        else{
+         int sz;
+        if((sz = (int)fwrite (buf, sizeof (guint8), length, stm->stream.file_stream)) != length)
+             fprintf(stderr, "write err, length: %d\n", sz);
+    }
+    else{
 #if 0
             for(i = 0; i < length; i++){
                 guint8 cpy = (guint8) TO_LE_8 (buf[i]);
@@ -246,15 +304,15 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
                 stm->stream.memory_stream->current++;
             }
 #endif
-            memcpy(stm->stream.memory_stream->mem, buf, length);
-            stm->stream.memory_stream->current += length;
-        }
+        memcpy(stm->stream.memory_stream->mem, buf, length);
+        stm->stream.memory_stream->current += length;
     }
-    else{
-        for (i = 0; i < length; i++)
-            write_8ubit (stm, read_8ubit (fd));
-    }
-
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
 #if 0
     for (i = 0; i < length; i++)
         write_8ubit (stm, read_8ubit (fd));
@@ -264,7 +322,10 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
     
     abm->m_pvBits = stm;
 
+#if 0
     count += i;
+#endif
+    count += length;
     return count;
 }
 
@@ -349,9 +410,27 @@ wvGetMetafile (MetaFileBlip * amf, MSOFBH * amsofbh, wvStream * fd)
     buf = malloc(amsofbh->cbLength);
     p = buf;
 
+#if 0
     for (i = count; i < amsofbh->cbLength; i++)
 	*p++ = read_8ubit (fd);
     count += i;
+#endif
+    /* fix by gxf: fast copy */
+    U32 length = amsofbh->cbLength - count; 
+    if (fd->kind == GSF_STREAM)
+    {
+        gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, p);
+    }
+    else if (fd->kind == FILE_STREAM)
+    {
+        fread(p, sizeof(guint8), length, fd->stream.file_stream);
+    }
+    else
+    {
+	    memorystream_read(fd->stream.memory_stream, p, length);
+    }
+    p += length;
+    count += length;
 
     wvStream_memory_create (&stm, buf, amsofbh->cbLength);
 

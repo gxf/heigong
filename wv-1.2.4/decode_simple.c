@@ -276,252 +276,245 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
 
     /*for each piece */
     for (piececount = 0; piececount < ps->clx.nopcd; piececount++)
-      {
-	  ichartype =
-	      wvGetPieceBoundsFC (&beginfc, &endfc, &ps->clx, piececount);
-	  if(ichartype==-1)
-		  break;
-	  chartype = (U8) ichartype;
-	  /*lvm007@aha.ru fix antiloop: check stream size */
-	  if(beginfc>stream_size || endfc>stream_size){
-		  wvError (
-		   ("Piece Bounds out of range!, its a disaster\n"));
-		  continue;
-	  }
+    {
+        ichartype =
+            wvGetPieceBoundsFC (&beginfc, &endfc, &ps->clx, piececount);
+        if(ichartype==-1)
+            break;
+        chartype = (U8) ichartype;
+	    /*lvm007@aha.ru fix antiloop: check stream size */
+        if(beginfc>stream_size || endfc>stream_size){
+            wvError(("Piece Bounds out of range!, its a disaster\n"));
+            continue;
+        }
 
-	  wvStream_goto (ps->mainfd, beginfc);
+        wvStream_goto (ps->mainfd, beginfc);
 
-	  wvTrace (("SEEK %x\n", beginfc));
+        wvTrace (("SEEK %x\n", beginfc));
 
-	  /*lvm007@aha.ru fix antiloop fix*/
-	  if(wvGetPieceBoundsCP (&begincp, &endcp, &ps->clx, piececount)==-1)
-		  break;
+        /*lvm007@aha.ru fix antiloop fix*/
+        if(wvGetPieceBoundsCP (&begincp, &endcp, &ps->clx, piececount)==-1)
+            break;
 
-	  /*
+        /*
 	     text that is not in the same piece is not guaranteed to have the same properties as
 	     the rest of the exception run, so force a stop and restart of these properties.
-	   */
-	  char_fcLim = beginfc;
-	  wvTrace (("%d %d %d\n", begincp, endcp, ps->fib.ccpText));
-	  for (i = begincp, j = beginfc; (i < endcp /*&& i<ps->fib.ccpText */ );
-	       i++, j += wvIncFC (chartype))
-      {
-          /* character properties */
-          if (j == char_fcLim)
-          {
-              wvHandleElement (ps, CHARPROPEND, (void *) &achp,
-                      char_dirty);
-		      char_pendingclose = 0;
-          }
+	    */
+        char_fcLim = beginfc;
+        wvTrace (("%d %d %d\n", begincp, endcp, ps->fib.ccpText));
+        for (i = begincp, j = beginfc; (i < endcp /*&& i<ps->fib.ccpText */ );
+                i++, j += wvIncFC (chartype))
+        {
+            /* character properties */
+            if (j == char_fcLim)
+            {
+                wvHandleElement (ps, CHARPROPEND, (void *) &achp,
+                        char_dirty);
+                char_pendingclose = 0;
+            }
 
-          /* comment ending location */
-          if (i == comment_cpLim)
-          {
-              wvHandleElement (ps, COMMENTEND, (void *) catrd, 0);
-              comment_pendingclose = 0;
-		  }
+            /* comment ending location */
+            if (i == comment_cpLim)
+            {
+                wvHandleElement (ps, COMMENTEND, (void *) catrd, 0);
+                comment_pendingclose = 0;
+            }
 
-          /* paragraph properties */
-          if (j == para_fcLim)
-          {
-              wvHandleElement (ps, PARAEND, (void *) &apap, para_dirty);
-		      para_pendingclose = 0;
-		  }
+            /* paragraph properties */
+            if (j == para_fcLim)
+            {
+                wvHandleElement (ps, PARAEND, (void *) &apap, para_dirty);
+                para_pendingclose = 0;
+            }
 
-          if (j == section_fcLim)
-          {
-              wvHandleElement (ps, SECTIONEND, (void *) &sep,
-                      section_dirty);
-              section_pendingclose = 0;
-          }
+            if (j == section_fcLim)
+            {
+                wvHandleElement (ps, SECTIONEND, (void *) &sep,
+                        section_dirty);
+                section_pendingclose = 0;
+            }
 
-          if ((section_fcLim == 0xffffffff) || (section_fcLim == j))
-          {
-              wvTrace (("j i is %x %d\n", j, i));
-              section_dirty =
-                  wvGetSimpleSectionBounds (ver, ps,
-                          &sep, &section_fcFirst,
-                          &section_fcLim, i,
-                          &ps->clx, sed, &spiece,
-                          posSedx,
-                          section_intervals,
-                          &ps->stsh, ps->mainfd);
-              wvTrace (
-                      ("section begins at %x ends %x\n",
-                       section_fcFirst, section_fcLim));
-		  }
+            if ((section_fcLim == 0xffffffff) || (section_fcLim == j))
+            {
+                wvTrace (("j i is %x %d\n", j, i));
+                section_dirty =
+                    wvGetSimpleSectionBounds (ver, ps,
+                            &sep, &section_fcFirst,
+                            &section_fcLim, i,
+                            &ps->clx, sed, &spiece,
+                            posSedx,
+                            section_intervals,
+                            &ps->stsh, ps->mainfd);
+                wvTrace (("section begins at %x ends %x\n",
+                         section_fcFirst, section_fcLim));
+            }
 
-          if (j == section_fcFirst)
-          {
-              wvHandleElement (ps, SECTIONBEGIN, (void *) &sep,
-                      section_dirty);
-              section_pendingclose = 1;
-          }
+            if (j == section_fcFirst)
+            {
+                wvHandleElement (ps, SECTIONBEGIN, (void *) &sep,
+                        section_dirty);
+                section_pendingclose = 1;
+            }
 
-          if ((para_fcLim == 0xffffffff) || (para_fcLim == j))
-          {
-              wvReleasePAPX_FKP (&para_fkp);
-              wvGetSimpleParaBounds (ver, &para_fkp,
-					     &para_fcFirst, &para_fcLim,
-					     wvConvertCPToFC (i, &ps->clx),
-					     btePapx, posPapx, para_intervals,
-					     ps->mainfd);
+            if ((para_fcLim == 0xffffffff) || (para_fcLim == j))
+            {
+                wvReleasePAPX_FKP (&para_fkp);
+                wvGetSimpleParaBounds (ver, &para_fkp,
+                        &para_fcFirst, &para_fcLim,
+                        wvConvertCPToFC (i, &ps->clx),
+                        btePapx, posPapx, para_intervals,
+                        ps->mainfd);
 
-              wvTrace (
-                      ("Para from %x to %x, j is %x\n", para_fcFirst,
-                       para_fcLim, j));
+                wvTrace (
+                        ("Para from %x to %x, j is %x\n", para_fcFirst,
+                         para_fcLim, j));
 
-              if (0 == para_pendingclose)
-              {
-                  /*
-                   if there's no paragraph open, but there should be then I believe that the fcFirst search
-			       has failed me, so I set it to now. I need to investigate this further. I believe it occurs
-			       when a the last piece ended simultaneously with the last paragraph, and that the algorithm
-			       for finding the beginning of a para breaks under that condition. I need more examples to
-			       be sure, but it happens is very large complex files so its hard to find
-                   */
-                  if (j != para_fcFirst)
-                  {
-                      wvWarning (
-                              ("There is no paragraph due to open but one should be, plugging the gap.\n"));
-                      para_fcFirst = j;
-                  }
-              }
-          }
+                if (0 == para_pendingclose)
+                {
+                    /*
+                    if there's no paragraph open, but there should be then I believe that the fcFirst search
+			        has failed me, so I set it to now. I need to investigate this further. I believe it occurs
+			        when a the last piece ended simultaneously with the last paragraph, and that the algorithm
+			        for finding the beginning of a para breaks under that condition. I need more examples to
+			        be sure, but it happens is very large complex files so its hard to find
+                    */
+                    if (j != para_fcFirst)
+                    {
+                        wvWarning (
+                                ("There is no paragraph due to open but one should be, plugging the gap.\n"));
+                        para_fcFirst = j;
+                    }
+                }
+            } 
+            
+            if (j == para_fcFirst)
+            {
+                para_dirty =
+                    wvAssembleSimplePAP (ver, &apap, para_fcLim, &para_fkp, ps);
 
-          if (j == para_fcFirst)
-          {
-              para_dirty =
-                  wvAssembleSimplePAP (ver, &apap, para_fcLim, &para_fkp, ps);
-
-              /* test section */
-              wvReleasePAPX_FKP (&para_fkp);
-              wvGetSimpleParaBounds (ver, &para_fkp,
+                /* test section */
+                wvReleasePAPX_FKP (&para_fkp);
+                wvGetSimpleParaBounds (ver, &para_fkp,
 					     &dummy, &nextpara_fcLim,
 					     para_fcLim, btePapx, posPapx,
 					     para_intervals, ps->mainfd);
-		      wvAssembleSimplePAP (ver, &ps->nextpap, nextpara_fcLim, &para_fkp, ps);
-		      /* end test section */
+                wvAssembleSimplePAP (ver, &ps->nextpap, nextpara_fcLim, &para_fkp, ps);
+                /* end test section */
 
-              if ((apap.fInTable) && (!apap.fTtp))
-              {
-                  wvGetFullTableInit (ps, para_intervals, btePapx,
-                          posPapx);
-                  wvGetRowTap (ps, &apap, para_intervals, btePapx,
-                          posPapx);
-              }
-              else if (apap.fInTable == 0)
-                  ps->intable = 0;
-              wvHandleElement (ps, PARABEGIN, (void *) &apap, para_dirty);
+                if ((apap.fInTable) && (!apap.fTtp))
+                {
+                    wvGetFullTableInit (ps, para_intervals, btePapx,
+                            posPapx);
+                    wvGetRowTap (ps, &apap, para_intervals, btePapx,
+                            posPapx);
+                }
+                else if (apap.fInTable == 0)
+                    ps->intable = 0;
+                wvHandleElement (ps, PARABEGIN, (void *) &apap, para_dirty); 
+                char_fcLim = j;
+                para_pendingclose = 1;
+            }
 
-              char_fcLim = j;
-              para_pendingclose = 1;
-          }
-
-          if ((comment_cpLim == 0xffffffffL) || (comment_cpLim == i))
-          {
-              wvTrace (
-                      ("searching for the next comment begin cp is %d\n",
-                       i));
-              catrd = wvGetCommentBounds (&comment_cpFirst,
+            if ((comment_cpLim == 0xffffffffL) || (comment_cpLim == i))
+            {
+                wvTrace (
+                        ("searching for the next comment begin cp is %d\n",
+                         i));
+                catrd = wvGetCommentBounds (&comment_cpFirst,
                             &comment_cpLim, i, atrd,
                             posAtrd, atrd_intervals,
                             &SttbfAtnbkmk, bkf, posBKF,
                             bkf_intervals, bkl, posBKL,
                             bkl_intervals);
-              wvTrace (
-                      ("begin and end are %d %d\n", comment_cpFirst,
-                       comment_cpLim));
-          }
+                wvTrace (
+                        ("begin and end are %d %d\n", comment_cpFirst,
+                         comment_cpLim));
+            }
 
-          if (i == comment_cpFirst)
-          {
-              wvHandleElement (ps, COMMENTBEGIN, (void *) catrd, 0);
-              comment_pendingclose = 1;
-          }
+            if (i == comment_cpFirst)
+            {
+                wvHandleElement (ps, COMMENTBEGIN, (void *) catrd, 0);
+                comment_pendingclose = 1;
+            }
 
-          if ((char_fcLim == 0xffffffff) || (char_fcLim == j))
-          {
-              wvTrace (("j i is %x %d\n", j, i));
-		      wvReleaseCHPX_FKP (&char_fkp);
-		      wvGetSimpleCharBounds (ver, &char_fkp,
-					     &char_fcFirst, &char_fcLim, i,
-					     &ps->clx, bteChpx, posChpx,
-					     char_intervals, ps->mainfd);
-		      wvTrace (
-			       ("char begins at %x ends %x, j is %x\n",
-				char_fcFirst, char_fcLim, j));
-              if (0 == char_pendingclose)
-              {
-                  /*
-			       if there's no character run open, but there should be then I believe that the fcFirst search
-			       has failed me, so I set it to now. I need to investigate this further. 
-                  */
-                  if (j != char_fcFirst)
-                  {
-                      wvWarning (
-                              ("There is no character run due to open but one should be, plugging the gap.\n"));
-                      char_fcFirst = j;
-                  }
-
-              }
-              else{
-                  /* lvm007@aha.ru fix: if currentfc>fcFirst but CHARPROP's changed look examples/charprops.doc*/
-                  if(char_fcFirst< j)
-                      char_fcFirst = j;
-              }
-          } 
+            if ((char_fcLim == 0xffffffff) || (char_fcLim == j))
+            {
+                wvTrace (("j i is %x %d\n", j, i));
+                wvReleaseCHPX_FKP (&char_fkp);
+                wvGetSimpleCharBounds (ver, &char_fkp,
+                        &char_fcFirst, &char_fcLim, i,
+                        &ps->clx, bteChpx, posChpx,
+                        char_intervals, ps->mainfd);
+                wvTrace (
+                        ("char begins at %x ends %x, j is %x\n",
+                         char_fcFirst, char_fcLim, j));
+                if (0 == char_pendingclose)
+                {
+                    /*
+                     if there's no character run open, but there should be then I believe that the fcFirst search
+			         has failed me, so I set it to now. I need to investigate this further. 
+                    */
+                    if (j != char_fcFirst)
+                    {
+                        wvWarning (
+                                ("There is no character run due to open but one should be, plugging the gap.\n"));
+                        char_fcFirst = j;
+                    } 
+                }
+                else{
+                    /* lvm007@aha.ru fix: if currentfc>fcFirst but CHARPROP's changed look examples/charprops.doc*/
+                    if(char_fcFirst< j)
+                        char_fcFirst = j;
+                }
+            } 
           
-          if (j == char_fcFirst)
-          {
-              wvTrace (("assembling CHP...\n"));
-		      /* a CHP's base style is in the para style */
-		      /* achp.istd = apap.istd; */
-		      char_dirty =
-				  wvAssembleSimpleCHP (ver, &achp, &apap,
-					       char_fcLim, &char_fkp,
-					       &ps->stsh);
-		      wvTrace (("CHP assembled.\n"));
-		      wvTrace (("font is %d\n", achp.ftcAscii));
-		      wvTrace (("char spec is %d\n", achp.ftcSym));
-		      wvHandleElement (ps, CHARPROPBEGIN, (void *) &achp,
-				       char_dirty);
-		      wvTrace (("char lid is %x\n", achp.lidDefault));
-		      char_pendingclose = 1;
-		  }
+            if (j == char_fcFirst)
+            {
+                wvTrace (("assembling CHP...\n"));
+                /* a CHP's base style is in the para style */
+                /* achp.istd = apap.istd; */
+                char_dirty =
+                    wvAssembleSimpleCHP (ver, &achp, &apap,
+                            char_fcLim, &char_fkp,
+                            &ps->stsh);
+                wvTrace (("CHP assembled.\n"));
+                wvTrace (("font is %d\n", achp.ftcAscii));
+                wvTrace (("char spec is %d\n", achp.ftcSym));
+                wvHandleElement (ps, CHARPROPBEGIN, (void *) &achp, char_dirty);
+                wvTrace (("char lid is %x\n", achp.lidDefault));
+                char_pendingclose = 1;
+            }
 
-          eachchar = wvGetChar (ps->mainfd, chartype); 
+            eachchar = wvGetChar (ps->mainfd, chartype); 
 
-          if ((eachchar == 0x07) && (!achp.fSpec))
-              ps->endcell = 1; 
-          ps->currentcp = i;
-          wvTrace (("char pos is %x %x\n", j, eachchar));
-          wvOutputTextChar (eachchar, chartype, ps, &achp);
-          
-      }
+            if ((eachchar == 0x07) && (!achp.fSpec))
+                ps->endcell = 1; 
+            ps->currentcp = i;
+            wvTrace (("char pos is %x %x\n", j, eachchar));
+            wvOutputTextChar (eachchar, chartype, ps, &achp);
+        }
 
-	  if (j == para_fcLim)
-	    {
-		wvHandleElement (ps, PARAEND, (void *) &apap, para_dirty);
-		para_pendingclose = 0;
-		para_fcLim = 0xffffffffL;
-	    }
+        if (j == para_fcLim)
+        {
+            wvHandleElement (ps, PARAEND, (void *) &apap, para_dirty);
+            para_pendingclose = 0;
+            para_fcLim = 0xffffffffL;
+        }
 
-	  if (i == comment_cpLim)
-	    {
-		wvHandleElement (ps, COMMENTEND, (void *) catrd, 0);
-		comment_pendingclose = 0;
-		comment_cpLim = 0xffffffffL;
-	    }
+        if (i == comment_cpLim)
+        {
+            wvHandleElement (ps, COMMENTEND, (void *) catrd, 0);
+            comment_pendingclose = 0;
+            comment_cpLim = 0xffffffffL;
+        }
 
-	  if (j == char_fcLim)
-	    {
-		wvHandleElement (ps, CHARPROPEND, (void *) &achp, char_dirty);
-		char_pendingclose = 0;
-		char_fcLim = 0xffffffffL;
-	    }
-
-      }
+        if (j == char_fcLim)
+        {
+            wvHandleElement (ps, CHARPROPEND, (void *) &achp, char_dirty);
+            char_pendingclose = 0;
+            char_fcLim = 0xffffffffL;
+        } 
+    }
 
  finish_processing:
     if (char_pendingclose)

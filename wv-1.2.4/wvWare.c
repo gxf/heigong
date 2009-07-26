@@ -143,6 +143,8 @@ wvHtmlGraphic (wvParseStruct * ps, Blip * blip)
 
     switch (blip->type)
       {
+/* hgMaster: some format is not needed */
+#if 0
       case msoblipWMF:
 	  wvAppendStr (&name, ".wmf");
 	  if (0 != HandleMetafile (ps, name, &blip->blip.metafile))
@@ -158,6 +160,7 @@ wvHtmlGraphic (wvParseStruct * ps, Blip * blip)
 	  if (0 != HandleMetafile (ps, name, &blip->blip.metafile))
 	      return (NULL);
 	  break;
+#endif
       case msoblipJPEG:
 	  wvAppendStr (&name, ".jpg");
 	  if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
@@ -1358,6 +1361,11 @@ mySpecCharProc (wvParseStruct * ps, U16 eachchar, CHP * achp)
             return (0);
     }
 
+#if 0
+    static long long ti = 0;
+    struct timeval start_tm, end_tm;
+    gettimeofday(&start_tm, NULL);
+#endif
     switch (eachchar)
     {
         case 0x05:
@@ -1399,7 +1407,12 @@ mySpecCharProc (wvParseStruct * ps, U16 eachchar, CHP * achp)
                 }
 
                 wvStream_goto (ps->data, p);
-
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
                 return (0);
             }
         case 0x08:
@@ -1436,6 +1449,12 @@ mySpecCharProc (wvParseStruct * ps, U16 eachchar, CHP * achp)
                                 wvFree (name);
                             }
                             else{
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
                                 wvStrangeNoGraphicData (config, 0x08);
                             }
                         }
@@ -1444,20 +1463,18 @@ mySpecCharProc (wvParseStruct * ps, U16 eachchar, CHP * achp)
                             wvError (("nooffspa was <=0!  Ignoring.\n"));
                         }
                     }
+
                 }
-	      else
-          {
-              FDOA *fdoa;
-              wvError (
-                      ("pre word8 0x08 graphic, unsupported at the moment\n"));
-              fdoa =
-                  wvGetFDOAFromCP (ps->currentcp, ps->fdoa, ps->fdoapos,
-                          ps->nooffdoa);
-              data->props = fdoa;
-          }
-
-
-
+                else
+                {
+                    FDOA *fdoa;
+                    wvError (
+                            ("pre word8 0x08 graphic, unsupported at the moment\n"));
+                    fdoa =
+                        wvGetFDOAFromCP (ps->currentcp, ps->fdoa, ps->fdoapos,
+                                ps->nooffdoa);
+                    data->props = fdoa;
+                }
 
 
 #if 0
@@ -1477,6 +1494,7 @@ mySpecCharProc (wvParseStruct * ps, U16 eachchar, CHP * achp)
 		      }
 		}
 #endif
+
 	      return (0);
 	  }
       case 0x28:
@@ -1510,6 +1528,12 @@ option to support correct symbol font conversion to a viewable format.\n");
 			      wvConvertSymbolToUnicode (achp->xchSym - 61440)));
 		    wvOutputFromUnicode (wvConvertSymbolToUnicode
 					 (achp->xchSym - 61440), charset);
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
 		    return (0);
 		}
 	      else if (0 == 
@@ -1534,6 +1558,12 @@ option to support correct symbol font conversion to a viewable format.\n");
 			      wvConvertMTExtraToUnicode (achp->xchSym - 61440)));
 		    wvOutputFromUnicode (wvConvertMTExtraToUnicode
 					 (achp->xchSym - 61440), charset);
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
 		    return (0);
 		}	
 	      else if (0 ==
@@ -1560,10 +1590,22 @@ option to support correct symbol font conversion to a viewable format.\n");
 			  wvFree (fontname);
 			  printf ("*");
 		      }
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
 		    return (0);
 		}
 	  }
       default:
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
 	  return (0);
       }
 

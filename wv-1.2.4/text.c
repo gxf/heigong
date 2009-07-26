@@ -130,6 +130,9 @@ wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
         if (ps->scharhandler)
             ret = ((*(ps->scharhandler)) (ps, eachchar, achp));
         return ret;
+#if 0
+        return 1;
+#endif 
     }
     else
     {
@@ -808,6 +811,9 @@ wvHandleElement (wvParseStruct * ps, wvTag tag, void *props, int dirty)
     }
     wvError (("No element handler registered!!\n"));
     return (0);
+#if 0
+    return 1;
+#endif
 }
 
 int
