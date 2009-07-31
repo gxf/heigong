@@ -168,6 +168,9 @@ class Char: public Glyph{
         bool            valid;      // If the char still need to exist in mem
         Attrib_Glyph    attrib;
 
+    public:
+        static void ClearCache();
+
     private:
         static FontsCache ftCache;
         static FontsManager ftMgr;

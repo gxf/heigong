@@ -68,7 +68,7 @@ typedef struct {
      UINT32 width;  /* width of image in pixels */
      UINT32 height; /* height of image in pixels */
      UINT16 depth;  /* depth of image in bits if IRGB type */
-     UINT8  data[4096 * 4096];    /* data rounded to full byte for each row */
+     UINT8  data[1200 * 800];    /* data rounded to full byte for each row */
      UINT32 pixlen; /* length of pixel if IRGB type, gif 使用该属性 */
      UINT32 new_width;
      UINT32 new_height;

@@ -11,6 +11,7 @@ void Line::AddGlyph(Glyph* glyph){
 void Line::Clear(){
     glyphs.clear();
 //    attrib.Reset();
+    Char::ClearCache();
     curWidth = margin;
 }
 

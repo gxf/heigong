@@ -13,6 +13,10 @@ static Logger ftlogger;
 FontsCache Char::ftCache;
 FontsManager Char::ftMgr(&ftlogger);
 
+void Char::ClearCache(){
+    ftCache.ForceEvict();
+}
+
 uint32 Char::magic_num = 'c' + 'h' + 'a' + 'r';
 
 std::ifstream & operator>>(std::ifstream &ifs, Char::ID & id){

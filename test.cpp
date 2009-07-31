@@ -1,6 +1,7 @@
 #include "inc/hg.h"
 #include <iostream>
 #include <unistd.h>
+#include <sys/time.h>
 
 static bool TestStartTerm(const char* filename){
     hHgMaster hHG;
