@@ -83,7 +83,7 @@ wvnLocaleToLIDConverter (U8 nLocale)
 }
 
 int
-wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
+wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp, int stop)
 {
     int ret = 0;
     U16 lid = 0;
@@ -95,6 +95,7 @@ wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
     /* For version <= WORD7, The charset used could
      * depend on the font's charset.
      */
+
     if ((v <= WORD7) && (!ps->fib.fFarEast))
     {
         FFN currentfont;
@@ -118,6 +119,7 @@ wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
     if (lid == 0x400 || lid == 0)
 	lid = ps->fib.lid;
 
+
     /* end testing adding a language */
 
     if (achp->fSpec)
@@ -127,12 +129,17 @@ wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
 	     handler 
 	     instead
 	    */
+#if 0
+    if (1 == stop){
+        fprintf(stderr, "schar\n");
+        usleep(1);
+    }
+#endif
         if (ps->scharhandler)
             ret = ((*(ps->scharhandler)) (ps, eachchar, achp));
-        return ret;
 #if 0
-        return 1;
-#endif 
+#endif
+        return ret;
     }
     else
     {
@@ -146,6 +153,12 @@ wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp)
                     /* versions 7 and 6 use unicode iff the far-east flag is set */
                     chartype = 1;
                 }
+#if 0
+    if (1 == stop){
+        fprintf(stderr, "char\n");
+        usleep(-1);
+    }
+#endif
             ret = ((*(ps->charhandler)) (ps, eachchar, chartype, lid)); 
             return ret;
         }

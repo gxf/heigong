@@ -402,60 +402,60 @@ fieldCharProc (wvParseStruct * ps, U16 eachchar, U8 chartype, U16 lid)
     static int ret;
 
     if (eachchar == 0x13)
-      {
-	  a = NULL;
-	  ret = 1;
-	  if (depth == 0)
-	    {
-		which = command;
-		command[0] = 0;
-		argumen[0] = 0;
-		i = 0;
-	    }
-	  depth++;
-      }
+    {
+        a = NULL;
+        ret = 1;
+        if (depth == 0)
+        {
+            which = command;
+            command[0] = 0;
+            argumen[0] = 0;
+            i = 0;
+        }
+        depth++;
+    }
     else if (eachchar == 0x14)
-      {
-	  if (depth == 1)
-	    {
-		command[i] = 0;
-		c = wvWideStrToMB (command);
-		if (wvHandleCommandField (ps, c))
-		    ret = 1;
-		else
-		    ret = 0;
-
-		wvError (
-			 ("command %s, ret is %d\n", wvWideStrToMB (command),
-			  ret));
-		wvFree (c);
-		which = argumen;
-		i = 0;
-	    }
-      }
+    {
+        if (depth == 1)
+        {
+            command[i] = 0;
+            c = wvWideStrToMB (command);
+            if (wvHandleCommandField (ps, c))
+                ret = 1;
+            else
+                ret = 0; 
+            
+            wvError (
+                    ("command %s, ret is %d\n", wvWideStrToMB (command),
+                     ret));
+            wvFree (c);
+            which = argumen;
+            i = 0;
+        }
+    }
     if (i >= 40000)
-      {
-	  wvError (("WHAT!\n"));
-	  return 0;
-      }
+    {
+        wvError (("WHAT!\n"));
+        return 0;
+    }
 
     which[i] = eachchar;
     if (chartype)
-	which[i] = wvHandleCodePage (which[i], lid);
+        which[i] = wvHandleCodePage (which[i], lid);
     i++;
 
     if (eachchar == 0x15)
-      {
-	  depth--;
-	  if (depth == 0)
-	    {
-		which[i] = 0;
-		a = wvWideStrToMB (argumen);
-		c = wvWideStrToMB (command);
-		wvHandleTotalField (c);
-		wvFree (a);
-		wvFree (c);
+    {
+        depth--;
+        if (depth == 0)
+        {
+            which[i] = 0;
+            a = wvWideStrToMB (argumen);
+            c = wvWideStrToMB (command);
+            wvHandleTotalField (c);
+            wvFree (a);
+            wvFree (c);
 	    }
-      }
+    }
     return (ret);
 }

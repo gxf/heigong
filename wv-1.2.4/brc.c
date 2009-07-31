@@ -123,6 +123,8 @@ wvGetBRC10FromBucket (BRC10 * abrc10, U8 * pointer)
 void
 wvInitBRC (BRC * abrc)
 {
+    /* gxf: performance fix */
+#if 0
     abrc->dptLineWidth = 0;
     abrc->brcType = 0;
     abrc->ico = 0;
@@ -130,6 +132,8 @@ wvInitBRC (BRC * abrc)
     abrc->fShadow = 0;
     abrc->fFrame = 0;
     abrc->reserved = 0;
+#endif
+    memset(abrc, 0x0, sizeof(*abrc));
 }
 
 int

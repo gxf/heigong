@@ -123,7 +123,8 @@ libwv_la_SOURCES = \
 	isbidi.c \
 	plcf.c	\
 	support.c \
-	laolareplace.c
+	laolareplace.c \
+	picdb.c
 
 OTHERHEADERS = \
 	bintree.h \
@@ -136,7 +137,8 @@ OTHERHEADERS = \
 	roman.h \
 	utf.h \
 	winmmap.h \
-	wvinternal.h
+	wvinternal.h \
+	picdb.h
 
 OTHERSCRIPTS = wvMime
 

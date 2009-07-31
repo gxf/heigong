@@ -132,30 +132,30 @@ int wvInitParser_gsf (wvParseStruct * ps, GsfInput *path)
 			   &ps->data, &ps->summary);
 
     switch (ret)
-      {
-      case 0:
-	  break;
-      case 2:
-	  ret = wvOpenPreOLE (path, &ps->mainfd, &ps->tablefd0, &ps->tablefd1,
+    {
+        case 0:
+            break;
+        case 2:
+            ret = wvOpenPreOLE (path, &ps->mainfd, &ps->tablefd0, &ps->tablefd1,
 			      &ps->data, &ps->summary);
-	  if (ret)
-	      return (ret);
-	  break;
-      case 3:
-      case 5:
-	  wvError (("Bad Ole\n"));
-	  return (3);
-      default:
-	  return (-1);
-      }
+            if (ret)
+                return (ret);
+            break;
+        case 3:
+        case 5:
+            wvError (("Bad Ole\n"));
+            return (3);
+        default:
+            return (-1);
+    }
 
     if (ps->mainfd == NULL)
-      {
-	  ret = 4;
-	  wvOLEFree (ps);
-	  wvError (("Not a word document\n"));
-	  return (-1);
-      }
+    {
+        ret = 4;
+        wvOLEFree (ps);
+        wvError (("Not a word document\n"));
+        return (-1);
+    }
 
     wvGetFIB (&ps->fib, ps->mainfd);
 
@@ -163,42 +163,42 @@ int wvInitParser_gsf (wvParseStruct * ps, GsfInput *path)
 
     /* Check the validity of the table stream. */
     if (ps->tablefd == NULL)
-      {
-	wvOLEFree(ps);
-	wvError(("Data Stream Corrupt or Not Readable\n"));
-	return (-1);
-      }
+    {
+        wvOLEFree(ps);
+        wvError(("Data Stream Corrupt or Not Readable\n"));
+        return (-1);
+    }
     
     /* When the data stream is null, it is highly probable
        that the document is corrupt */
     if (ps->data == NULL)
-      {
-	/* checking for the validity of the Clx data
-	   from the table stream for not encrypted files */
-	if (!ps->fib.fEncrypted && wvStream_goto(ps->tablefd, ps->fib.fcClx)==-1)
-	  {
-	    wvOLEFree(ps);
-	    wvError(("Data Stream Corrupt or Not Readable\n"));
-	    return (-1);
-	  }
+    {
+        /* checking for the validity of the Clx data
+         from the table stream for not encrypted files */
+        if (!ps->fib.fEncrypted && wvStream_goto(ps->tablefd, ps->fib.fcClx)==-1)
+        {
+            wvOLEFree(ps);
+            wvError(("Data Stream Corrupt or Not Readable\n"));
+            return (-1);
+        }
 
-	/* Reset the stream to the begining */
-	wvStream_rewind(ps->tablefd);
-      }
+        /* Reset the stream to the begining */
+        wvStream_rewind(ps->tablefd);
+    }
 
     ret = wvQuerySupported (&ps->fib, &reason);
 
     if ((ret & 0x7fff) != WORD8)
-	ps->data = ps->mainfd;
+        ps->data = ps->mainfd;
 
     if ((ret != WORD8) && (ret != WORD7) && (ret != WORD6) && (ret != WORD2))
-	/* WORD2 test */
-      {
-	  /* return the errors and the encrypted files */
-	  if (!(ret & 0x8000))
-	      wvError (("%s\n", wvReason (reason)));
-	  return (ret);
-      }
+    /* WORD2 test */
+    {
+        /* return the errors and the encrypted files */
+        if (!(ret & 0x8000))
+            wvError (("%s\n", wvReason (reason)));
+        return (ret);
+    }
     ret = 0;
     return ret;
 }
@@ -206,17 +206,17 @@ int wvInitParser_gsf (wvParseStruct * ps, GsfInput *path)
 int
 wvInitParser (wvParseStruct * ps, char *path)
 {
-  GsfInput *input;
-  int rval;
+    GsfInput *input;
+    int rval;
 
-  input = gsf_input_stdio_new (path, NULL);
-  rval = wvInitParser_gsf (ps, input);
+    input = gsf_input_stdio_new (path, NULL);
+    rval = wvInitParser_gsf (ps, input);
 
-  if (rval == 0)
-    ps->filename = path;
-  ps->input = input;
+    if (rval == 0)
+        ps->filename = path;
+    ps->input = input;
 
-  return rval;
+    return rval;
 }
 
 void
@@ -640,7 +640,7 @@ tokenTreeFreeAll (void)
 {
     int i;
     for (i = 0; i < tokenfreen; i++)
-	wvFree (tokenfreearr[i]);
+        wvFree (tokenfreearr[i]);
     tokenfreen = 0;
     tokenbufn = 0;
     tokenbuf = NULL;

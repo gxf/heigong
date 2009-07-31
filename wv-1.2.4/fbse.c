@@ -67,6 +67,86 @@ wvReleaseBlip (Blip * blip)
 }
 
 U32
+wvGetBlipNoFill (Blip * blip, wvStream * fd, wvStream * delay)
+{
+    U32 i, count, count2;
+    MSOFBH amsofbh;
+    long pos = 0;
+    count = wvGetFBSE (&blip->fbse, fd);
+    wvTrace (("count is %d\n", count));
+    if (blip->fbse.cbName == 0)
+        blip->name = NULL;
+    else
+        blip->name = (U16 *) wvMalloc (sizeof (U16) * blip->fbse.cbName);
+#if 0
+    for (i = 0; i < blip->fbse.cbName; i++)
+        blip->name[i] = read_16ubit (fd);
+#endif
+    /* gxf: performance fix */
+    U32 length = blip->fbse.cbName * 2;
+    read_nbytes(length, fd, blip->name);
+#if 0
+    if (fd->kind == GSF_STREAM)
+    {
+        gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, blip->name);
+    }
+    else if (fd->kind == FILE_STREAM)
+    {
+        fread(blip->name, sizeof(guint8), length, fd->stream.file_stream);
+    }
+    else
+    {
+	    memorystream_read(fd->stream.memory_stream, blip->name, length);
+    }
+#endif
+    i += length / 2;
+
+    count += blip->fbse.cbName * 2;
+    wvTrace (("count is %d\n", count));
+    wvTrace (("offset %x\n", blip->fbse.foDelay));
+
+    if (delay)
+    {
+        pos = wvStream_tell (delay);
+        if(blip->fbse.foDelay!=-1)
+            wvStream_goto (delay, blip->fbse.foDelay);
+        wvTrace (("offset %x\n", blip->fbse.foDelay));
+        fd = delay;
+    }
+
+    count2 = wvGetMSOFBH (&amsofbh, fd);
+    wvTrace (("count is %d\n", count2));
+    wvTrace (
+	     ("HERE is %x %x (%d)\n", wvStream_tell (fd), amsofbh.fbt,
+	      amsofbh.fbt - msofbtBlipFirst));
+    wvTrace (("type is %x\n", amsofbh.fbt));
+
+    switch (amsofbh.fbt - msofbtBlipFirst)
+    {
+        case msoblipWMF:
+        case msoblipEMF:
+        case msoblipPICT:
+            count2 += wvGetMetafile (&blip->blip.metafile, &amsofbh, fd);
+            break;
+        case msoblipJPEG:
+        case msoblipPNG:
+        case msoblipDIB:
+            count2 += wvGetBitmapNoFill (&blip->blip.bitmap, &amsofbh, fd);
+            break;
+    }
+    wvTrace (("count is %d\n", count2));
+    blip->type = amsofbh.fbt - msofbtBlipFirst;
+
+    if (delay)
+    {
+        wvStream_goto (delay, pos);
+        return (count);
+    }
+
+    return (count + count2);
+}
+
+U32
 wvGetBlip (Blip * blip, wvStream * fd, wvStream * delay)
 {
     U32 i, count, count2;
@@ -84,6 +164,8 @@ wvGetBlip (Blip * blip, wvStream * fd, wvStream * delay)
 #endif
     /* gxf: performance fix */
     U32 length = blip->fbse.cbName * 2;
+    read_nbytes(length, fd, blip->name);
+#if 0
     if (fd->kind == GSF_STREAM)
     {
         gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, blip->name);
@@ -96,6 +178,7 @@ wvGetBlip (Blip * blip, wvStream * fd, wvStream * delay)
     {
 	    memorystream_read(fd->stream.memory_stream, blip->name, length);
     }
+#endif
     i += length / 2;
 
     count += blip->fbse.cbName * 2;
@@ -135,10 +218,10 @@ wvGetBlip (Blip * blip, wvStream * fd, wvStream * delay)
     blip->type = amsofbh.fbt - msofbtBlipFirst;
 
     if (delay)
-      {
-	  wvStream_goto (delay, pos);
-	  return (count);
-      }
+    {
+        wvStream_goto (delay, pos);
+        return (count);
+    }
 
     return (count + count2);
 }
@@ -155,6 +238,8 @@ wvGetFBSE (FBSE * afbse, wvStream * fd)
 #endif
     /* gxf: performance fix */
     U32 length = 16;
+    read_nbytes(length, fd, afbse->rgbUid);
+#if 0
     if (fd->kind == GSF_STREAM)
     {
         gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, afbse->rgbUid);
@@ -167,6 +252,7 @@ wvGetFBSE (FBSE * afbse, wvStream * fd)
     {
 	    memorystream_read(fd->stream.memory_stream, afbse->rgbUid, length);
     }
+#endif
     afbse->tag = read_16ubit (fd);
     afbse->size = read_32ubit (fd);
     afbse->cRef = read_32ubit (fd);
@@ -187,43 +273,109 @@ wvCopyFBSE (FBSE * dest, FBSE * src)
 }
 
 U32
+wvGetBitmapNoFill (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
+{
+    U32 i, count;
+    char extra = 0;
+    wvTrace (("starting bitmap at %x\n", wvStream_tell (fd)));
+
+    /* gxf: performance fix */
+    read_nbytes(16, fd, (U8 *)abm->m_rgbUid);
+    count = 16;
+
+    abm->m_rgbUidPrimary[0] = 0;
+
+    switch (amsofbh->fbt - msofbtBlipFirst)
+    {
+        case msoblipPNG:
+            wvTrace (("msoblipPNG\n"));
+            /*  sprintf(buffer,"%s-wv-%d.png",aimage,no++); */
+            if (amsofbh->inst ^ msobiPNG)
+                extra = 1;
+            break;
+        case msoblipJPEG:
+            wvTrace (("msoblipJPEG\n"));
+            /*  sprintf(buffer,"%s-wv-%d.jpg",aimage,no++); */
+            if (amsofbh->inst ^ msobiJFIF)
+                extra = 1;
+            break;
+        case msoblipDIB:
+            wvTrace (("msoblipDIB\n"));
+            /*  sprintf(buffer,"%s-wv-%d.dib",aimage,no++); */
+            if (amsofbh->inst ^ msobiDIB)
+                extra = 1;
+            break;
+    }
+
+    /* gxf: Performance fix */
+    if (extra)
+    {
+        read_nbytes(16, fd, (U8 *)abm->m_rgbUidPrimary);
+        count += 16;
+    }
+
+    abm->m_bTag = read_8ubit (fd);
+    abm->m_pvBits = NULL;
+
+    count++;
+
+
+    /* fix by gxf: fast copy */
+    U32 length = amsofbh->cbLength - count;
+    guint8 buf[length];
+
+    /* Read process */
+    read_nbytes(length, fd, buf);
+    abm->m_pvBits = NULL;
+
+    count += length;
+    return count;
+}
+U32
 wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
 {
     U32 i, count;
     char extra = 0;
     wvStream * stm = NULL;
     wvTrace (("starting bitmap at %x\n", wvStream_tell (fd)));
+
+    /* gxf: performance fix */
+    read_nbytes(16, fd, (U8 *)abm->m_rgbUid);
+#if 0
     for (i = 0; i < 16; i++)
-	abm->m_rgbUid[i] = read_8ubit (fd);
+        abm->m_rgbUid[i] = read_8ubit (fd);
+#endif
     count = 16;
 
     abm->m_rgbUidPrimary[0] = 0;
 
     switch (amsofbh->fbt - msofbtBlipFirst)
-      {
-      case msoblipPNG:
-	  wvTrace (("msoblipPNG\n"));
-	  /*  sprintf(buffer,"%s-wv-%d.png",aimage,no++); */
-	  if (amsofbh->inst ^ msobiPNG)
-	      extra = 1;
-	  break;
-      case msoblipJPEG:
-	  wvTrace (("msoblipJPEG\n"));
-	  /*  sprintf(buffer,"%s-wv-%d.jpg",aimage,no++); */
-	  if (amsofbh->inst ^ msobiJFIF)
-	      extra = 1;
-	  break;
-      case msoblipDIB:
-	  wvTrace (("msoblipDIB\n"));
-	  /*  sprintf(buffer,"%s-wv-%d.dib",aimage,no++); */
-	  if (amsofbh->inst ^ msobiDIB)
-	      extra = 1;
-	  break;
-      }
+    {
+        case msoblipPNG:
+            wvTrace (("msoblipPNG\n"));
+            /*  sprintf(buffer,"%s-wv-%d.png",aimage,no++); */
+            if (amsofbh->inst ^ msobiPNG)
+                extra = 1;
+            break;
+        case msoblipJPEG:
+            wvTrace (("msoblipJPEG\n"));
+            /*  sprintf(buffer,"%s-wv-%d.jpg",aimage,no++); */
+            if (amsofbh->inst ^ msobiJFIF)
+                extra = 1;
+            break;
+        case msoblipDIB:
+            wvTrace (("msoblipDIB\n"));
+            /*  sprintf(buffer,"%s-wv-%d.dib",aimage,no++); */
+            if (amsofbh->inst ^ msobiDIB)
+                extra = 1;
+            break;
+    }
 
     /* gxf: Performance fix */
     if (extra)
     {
+        read_nbytes(16, fd, (U8 *)abm->m_rgbUidPrimary);
+#if 0
         U32 length = 16;
         if (fd->kind == GSF_STREAM)
         {
@@ -237,6 +389,7 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
         {
             memorystream_read(fd->stream.memory_stream, abm->m_rgbUidPrimary, length);
         }
+#endif
 #if 0
         for (i = 0; i < 16; i++)
             abm->m_rgbUidPrimary[i] = read_8ubit (fd);
@@ -260,18 +413,7 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
     guint8 buf[length];
 
     /* Read process */
-    if (fd->kind == GSF_STREAM){
-        if(NULL == (gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, buf)))
-            fprintf(stderr, "gsf reads err");
-    }
-    else if (fd->kind == FILE_STREAM){
-        int sz;
-        if ((sz = fread(buf, sizeof(guint8), length, fd->stream.file_stream)) != length)
-            fprintf(stderr, "read err, length: %d\n", sz);
-    }
-    else{ 
-	    memorystream_read(fd->stream.memory_stream, buf, length);
-    }
+    read_nbytes(length, fd, buf);
 
 #if 0
     static long long ti = 0;
@@ -285,13 +427,7 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
     }
     if (stm->kind == FILE_STREAM)
     {
-#if 0
-            for(i = 0; i < length; i++){
-                guint8 cpy = (guint8) TO_LE_8 (buf[i]);
-                buf[i] = cpy;
-            }
-#endif
-         int sz;
+        int sz;
         if((sz = (int)fwrite (buf, sizeof (guint8), length, stm->stream.file_stream)) != length)
              fprintf(stderr, "write err, length: %d\n", sz);
     }

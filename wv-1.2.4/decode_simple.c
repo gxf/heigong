@@ -491,7 +491,17 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
                 ps->endcell = 1; 
             ps->currentcp = i;
             wvTrace (("char pos is %x %x\n", j, eachchar));
+#if 0
             wvOutputTextChar (eachchar, chartype, ps, &achp);
+#endif
+            if (piececount == (ps->clx.nopcd - 1) && ( i > 23464)){
+#if 0
+                fprintf(stderr, "Total: %u, endcp: %d, cur I: %d\n", ps->clx.nopcd, endcp, i);
+#endif
+            wvOutputTextChar (eachchar, chartype, ps, &achp, 1);
+            }
+            else
+            wvOutputTextChar (eachchar, chartype, ps, &achp, 0);
         }
 
         if (j == para_fcLim)
@@ -568,7 +578,7 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
     wvFree (ps->liststartnos);
     wvFree (ps->listnfcs);
     for (i = 0; i < 9 * ps->nolfo; i++)
-	wvReleaseLVL (&(ps->finallvl[i]));
+        wvReleaseLVL (&(ps->finallvl[i]));
     wvFree (ps->finallvl);
 
     wvReleaseLST (&ps->lst, ps->noofLST);
@@ -596,15 +606,17 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
     wvReleaseSTSH (&ps->stsh);
     wvReleaseSTTBF (&SttbfAtnbkmk);
     wvReleaseSTTBF (&grpXstAtnOwners);
+
     if (ps->vmerges)
-      {
-	  for (i = 0; i < ps->norows; i++)
-	      wvFree (ps->vmerges[i]);
-	  wvFree (ps->vmerges);
-      }
+    {
+        for (i = 0; i < ps->norows; i++)
+            wvFree (ps->vmerges[i]);
+        wvFree (ps->vmerges);
+    }
     wvFree (ps->cellbounds);
 	wvOLEFree(ps);
     tokenTreeFreeAll ();
+
 }
 
 

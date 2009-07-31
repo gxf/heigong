@@ -202,10 +202,11 @@ wvGetBstoreContainer (BstoreContainer * item, MSOFBH * msofbh, wvStream * fd,
                     (Blip *) realloc (item->blip,
                             sizeof (Blip) * item->no_fbse);
                 count +=
-                    wvGetBlip ((&item->blip[item->no_fbse - 1]), fd, delay);
+                    wvGetBlipNoFill ((&item->blip[item->no_fbse - 1]), fd, delay);
                 wvTrace (
                         ("type is %d (number is %d\n",
                          item->blip[item->no_fbse - 1].type, item->no_fbse));
+                /* release stream immediately for it is not used */
                 break;
             default:
                 count += wvEatmsofbt (&amsofbh, fd);
@@ -560,33 +561,33 @@ wv0x01 (Blip * blip, wvStream * fd, U32 len)
     gettimeofday(&start_tm, NULL);
 #endif
     while (count < len)
-      {
-	  wvTrace (("count is %x,len is %x\n", count, len));
-	  count += wvGetMSOFBH (&amsofbh, fd);
-	  wvTrace (("type is %x\n	", amsofbh.fbt));
-	  switch (amsofbh.fbt)
-	    {
-	    case msofbtSpContainer:
-		wvTrace (("Container at %x\n", wvStream_tell (fd)));
-		count += wvGetFSPContainer (&item, &amsofbh, fd);
-		wvReleaseFSPContainer (&item);
-		break;
-	    case msofbtBSE:
-		wvTrace (("Blip at %x\n", wvStream_tell (fd)));
-		count += wvGetBlip (blip, fd, NULL);
+    {
+	    wvTrace (("count is %x,len is %x\n", count, len));
+	    count += wvGetMSOFBH (&amsofbh, fd);
+        wvTrace (("type is %x\n	", amsofbh.fbt));
+        switch (amsofbh.fbt)
+        {
+            case msofbtSpContainer:
+                wvTrace (("Container at %x\n", wvStream_tell (fd)));
+                count += wvGetFSPContainer (&item, &amsofbh, fd);
+                wvReleaseFSPContainer (&item);
+                break;
+            case msofbtBSE:
+                wvTrace (("Blip at %x\n", wvStream_tell (fd)));
+                count += wvGetBlip (blip, fd, NULL);
 #if 0
-    gettimeofday(&end_tm, NULL);
-    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
-          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
-    fprintf(stderr, "%llu\n", ti);
+                gettimeofday(&end_tm, NULL);
+                ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+                    (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+                fprintf(stderr, "%llu\n", ti);
 #endif
-		ret = 1;
-		break;
-	    default:
-		wvError (("Not a shape container\n"));
-		return (0);
-		break;
-	    }
+                ret = 1;
+                break;
+            default:
+                wvError (("Not a shape container\n"));
+                return (0);
+                break;
+        }
       }
     return (ret);
 }

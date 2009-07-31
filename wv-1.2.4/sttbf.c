@@ -212,7 +212,7 @@ wvPrintTitle (wvParseStruct * ps, STTBF * item)
 				     ("title char is %c\n",
 				      (item->u16strings[ibstAssocTitle][i])));
 			    wvOutputTextChar (item->u16strings[ibstAssocTitle]
-					      [i++], 0, ps, &achp);
+					      [i++], 0, ps, &achp, 0);
 			}
 		      return;
 		  }
@@ -223,7 +223,7 @@ wvPrintTitle (wvParseStruct * ps, STTBF * item)
 		  {
 		      while (item->s8strings[ibstAssocTitle][i])
 			  wvOutputTextChar (item->s8strings[ibstAssocTitle]
-					    [i++], 1, ps, &achp);
+					    [i++], 1, ps, &achp, 0);
 		      return;
 		  }
 	    }

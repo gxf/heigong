@@ -37,19 +37,19 @@ wvWideStrToMB (U16 * str)
 				   but you never know :-)
 				 */
     if (str == NULL)
-	return (NULL);
+        return (NULL);
 
     while (*str != 0)
-      {
-	  len = our_wctomb (target, *str);
-	  utf8 = (char *) realloc (utf8, len2 + len + 1);
-	  for (j = 0; j < len; j++)
-	      utf8[len2 + j] = target[j];
-	  len2 += len;
-	  str++;
-      }
+    {
+        len = our_wctomb (target, *str);
+        utf8 = (char *) realloc (utf8, len2 + len + 1);
+        for (j = 0; j < len; j++)
+            utf8[len2 + j] = target[j];
+        len2 += len;
+        str++;
+    }
     if (utf8 != NULL)
-	utf8[len2] = '\0';
+        utf8[len2] = '\0';
     return (utf8);
 }
 

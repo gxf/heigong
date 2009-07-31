@@ -27,6 +27,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "wv.h"
+#include "picdb.h"
 #include "getopt.h"
 #include <sys/time.h>
 
@@ -120,75 +121,90 @@ wvHtmlGraphic (wvParseStruct * ps, Blip * blip)
      */
     wvTrace (("type is %d\n", blip->type));
     switch (blip->type)
-      {
-      case msoblipJPEG:
-      case msoblipDIB:
-      case msoblipPNG:
-	  fd =  (blip->blip.bitmap.m_pvBits);
-	  test[2] = '\0';
-	  test[0] = read_8ubit (fd);
-
-	  test[1] = read_8ubit (fd);
-	  wvStream_rewind (fd);
-	  if (!(strcmp (test, "BM")))
-	    {
-		wvAppendStr (&name, ".bmp");
-		if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
-		    return (NULL);
-		return (name);
-	    }
-      default:
-	  break;
-      }
+    {
+        case msoblipJPEG:
+        case msoblipDIB:
+        case msoblipPNG:
+            fd =  (blip->blip.bitmap.m_pvBits);
+            test[2] = '\0';
+            test[0] = read_8ubit (fd); 
+            test[1] = read_8ubit (fd);
+            wvStream_rewind (fd);
+            if (!(strcmp (test, "BM")))
+            {
+                wvAppendStr (&name, ".bmp");
+                if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
+                    return (NULL);
+                return (name);
+            }
+        default:
+            break;
+    }
 
     switch (blip->type)
-      {
+    {
 /* hgMaster: some format is not needed */
+        case msoblipWMF:
+            wvAppendStr (&name, ".wmf");
 #if 0
-      case msoblipWMF:
-	  wvAppendStr (&name, ".wmf");
-	  if (0 != HandleMetafile (ps, name, &blip->blip.metafile))
-	      return (NULL);
-	  break;
-      case msoblipEMF:
-	  wvAppendStr (&name, ".emf");
-	  if (0 != HandleMetafile (ps, name, &blip->blip.metafile))
-	      return (NULL);
-	  break;
-      case msoblipPICT:
-	  wvAppendStr (&name, ".pict");
-	  if (0 != HandleMetafile (ps, name, &blip->blip.metafile))
-	      return (NULL);
-	  break;
+            if (0 != HandleMetafile (ps, name, &blip->blip.metafile))
+                return (NULL);
 #endif
-      case msoblipJPEG:
-	  wvAppendStr (&name, ".jpg");
-	  if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
-	      return (NULL);
-	  break;
-      case msoblipDIB:
-	  wvAppendStr (&name, ".dib");
-	  if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
-	      return (NULL);
-	  break;
-      case msoblipPNG:
-	  wvAppendStr (&name, ".png");
-	  if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
-	      return (NULL);
-	  break;
-      }
+            blip->blip.bitmap.m_pvBits = NULL;
+            break;
+        case msoblipEMF:
+            wvAppendStr (&name, ".emf");
+#if 0
+            if (0 != HandleMetafile (ps, name, &blip->blip.metafile))
+                return (NULL);
+#endif
+            blip->blip.bitmap.m_pvBits = NULL;
+            break;
+        case msoblipPICT:
+            wvAppendStr (&name, ".pict");
+#if 0
+            if (0 != HandleMetafile (ps, name, &blip->blip.metafile))
+                return (NULL);
+#endif
+            blip->blip.bitmap.m_pvBits = NULL;
+            break;
+        case msoblipJPEG: 
+            wvAppendStr (&name, ".jpg");
+            if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
+                return (NULL);
+            break;
+        case msoblipDIB:
+            wvAppendStr (&name, ".dib");
+            if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
+                return (NULL);
+            break;
+        case msoblipPNG:
+            wvAppendStr (&name, ".png");
+            if (0 != HandleBitmap (ps, name, &blip->blip.bitmap))
+                return (NULL);
+            break;
+    }
     return (name);
-}
-
+} 
 
 int
 HandleBitmap (wvParseStruct * ps, char *name, BitmapBlip * bitmap)
 {
+    /* hgMaster: do not need to generate pic twice here */
+    static pic_db database;
+    if (database.inited == 0){ 
+        picdb_construct(&database);
+    }
+    if(1 == picdb_lookup(&database, name)){
+        return 0;
+    }
+
     wvStream * pwv = bitmap->m_pvBits;
     FILE *fd = NULL;
     size_t size = 0, i;
 
     static char buf[BUF_SIZE];
+
     if (ps->dir) chdir (ps->dir);
     fd = fopen (name, "wb");
     if (ps->dir) chdir (wv_cwd);
@@ -201,10 +217,22 @@ HandleBitmap (wvParseStruct * ps, char *name, BitmapBlip * bitmap)
     size = wvStream_size (pwv);
     wvStream_rewind(pwv);
 
+#if 0
     for (i = 0; i < size; i++)
-      fputc (read_8ubit(pwv), fd);
+        fputc (read_8ubit(pwv), fd);
+#endif
+    /* gxf: performance fix */
+    U8 cpyBuf[size];
+    read_nbytes(size, pwv, cpyBuf); 
+    fwrite(cpyBuf, 1, size, fd);
+
     fclose (fd);
     wvTrace (("Name is %s\n", name));
+    picdb_insert(&database, name);
+    /* Notice, no free code (picdb_destory) is handled since
+     * this database is not register to context.
+     * However, the database is not large. Such memroy leak
+     * is acceptable for quick coding */
     return (0);
 }
 
@@ -231,33 +259,50 @@ HandleMetafile (wvParseStruct * ps, char *name, MetaFileBlip * bitmap)
     wvStream_rewind(pwv);
 
     if (bitmap->m_fCompression == msocompressionDeflate)
-	decompressf = setdecom ();
+        decompressf = setdecom ();
 
     if ( !decompressf)
-      {
-	for (i = 0; i < size; i++)
-	  fputc (read_8ubit(pwv), fd);
-      }
+    { 
+#if 0
+        for (i = 0; i < size; i++)
+            fputc (read_8ubit(pwv), fd);
+#endif
+        /* gxf: performance fix */
+        U8 buf[size];
+        wvStream_read(buf, size, sizeof(U8), pwv);
+        fwrite(buf, sizeof(U8), size, fd);
+    }
     else /* decompress here */
-      {
-	  FILE *tmp = tmpfile ();
-	  FILE *out = tmpfile ();
+    { 
+        FILE *tmp = tmpfile ();
+        FILE *out = tmpfile ();
 
-	  for (i = 0; i < size; i++)
-	    fputc (read_8ubit(pwv), tmp);
+        /* gxf: performance fix */
+        U8 buf[size];
+        wvStream_read(buf, size, sizeof(U8), pwv);
+        fwrite(buf, sizeof(U8), size, tmp);
+#if 0
+        for (i = 0; i < size; i++)
+            fputc (read_8ubit(pwv), tmp);
+#endif
 
-	  rewind (tmp);
-	  decompress (tmp, out, bitmap->m_cbSave, bitmap->m_cb);
-	  fclose (tmp);
+        rewind (tmp);
+        decompress (tmp, out, bitmap->m_cbSave, bitmap->m_cb);
+        fclose (tmp);
 
-	  rewind(out);
+        rewind(out);
 
-	  for (i = 0; i < bitmap->m_cb; i++)
-	    fputc ( fgetc(out), fd);
+        /* gxf: performance fix */
+#if 0
+        for (i = 0; i < bitmap->m_cb; i++)
+            fputc ( fgetc(out), fd);
+#endif
+        U8 buf1[bitmap->m_cb];
+        fread(buf1, sizeof(U8), bitmap->m_cb, out);
+        fwrite(buf1, sizeof(U8), bitmap->m_cb, fd);
 
-	  fclose(out);
-
-      }
+        fclose(out);
+    }
 
     fclose (fd);
     wvTrace (("Name is %s\n", name));
@@ -1399,7 +1444,11 @@ mySpecCharProc (wvParseStruct * ps, U16 eachchar, CHP * achp)
                                 (int) wvTwipsToVPixels (picf.dyaGoal),
                                 name);
                         if (ps->dir) chdir (wv_cwd);
+                        if (NULL != blip.blip.bitmap.m_pvBits){
+                            wvStream_close_stream (blip.blip.bitmap.m_pvBits);
+                        }
                         wvFree (name);
+                        /* free stream immediately after use */
                     }
                     else{
                         wvStrangeNoGraphicData (config, 0x01);
@@ -1619,32 +1668,32 @@ int
 myCharProc (wvParseStruct * ps, U16 eachchar, U8 chartype, U16 lid)
 {
     switch (eachchar)
-      {
-      case 19:
-	  wvTrace (("field began\n"));
-	  ps->fieldstate++;
-	  ps->fieldmiddle = 0;
-	  fieldCharProc (ps, eachchar, chartype, lid);	/* temp */
-	  return (0);
-	  break;
-      case 20:
-	  wvTrace (("field middle\n"));
-	  fieldCharProc (ps, eachchar, chartype, lid);
-	  ps->fieldmiddle = 1;
-	  return (0);
-	  break;
-      case 21:
-	  wvTrace (("field began\n"));
-	  ps->fieldmiddle = 0;
-	  ps->fieldstate--;
-	  fieldCharProc (ps, eachchar, chartype, lid);	/* temp */
-	  return (0);
-	  break;
-      case 0x08:
-	  wvError (
-		   ("hmm did we loose the fSpec flag ?, this is possibly a bug\n"));
-	  break;
-      }
+    {
+        case 19:
+            wvTrace (("field began\n"));
+            ps->fieldstate++;
+            ps->fieldmiddle = 0;
+            fieldCharProc (ps, eachchar, chartype, lid);	/* temp */
+            return (0);
+            break;
+        case 20:
+            wvTrace (("field middle\n"));
+            fieldCharProc (ps, eachchar, chartype, lid);
+            ps->fieldmiddle = 1;
+            return (0);
+            break;
+        case 21:
+            wvTrace (("field began\n"));
+            ps->fieldmiddle = 0;
+            ps->fieldstate--;
+            fieldCharProc (ps, eachchar, chartype, lid);	/* temp */
+            return (0);
+            break;
+        case 0x08:
+            wvError (
+                    ("hmm did we loose the fSpec flag ?, this is possibly a bug\n"));
+            break;
+    }
 
     if (ps->fieldstate)
       {
@@ -1660,9 +1709,9 @@ myCharProc (wvParseStruct * ps, U16 eachchar, U8 chartype, U16 lid)
 	wvTrace (("lid is %x\n", lid));
 
     if (charset != NULL)
-	wvOutputHtmlChar (eachchar, chartype, charset, lid);
+        wvOutputHtmlChar (eachchar, chartype, charset, lid);
     else
-	wvOutputHtmlChar (eachchar, chartype, wvAutoCharset (ps), lid);
+        wvOutputHtmlChar (eachchar, chartype, wvAutoCharset (ps), lid);
     return (0);
 }
 

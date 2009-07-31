@@ -29,8 +29,11 @@ void
 wvGetATRD (ATRD * item, wvStream * fd)
 {
     int i;
+#if 0
     for (i = 0; i < 10; i++)
-	item->xstUsrInitl[i] = read_16ubit (fd);
+        item->xstUsrInitl[i] = read_16ubit (fd);
+#endif
+    read_nbytes(20, fd, item->xstUsrInitl);
     item->ibst = (S16) read_16ubit (fd);
     item->ak = read_16ubit (fd);
     item->grfbmc = read_16ubit (fd);
@@ -70,8 +73,11 @@ wvGetATRD_PLCF (ATRD ** atrd, U32 ** pos, U32 * noatrd, U32 offset, U32 len,
 		return (1);
 	    }
 	  wvStream_goto (fd, offset);
+#if 0
 	  for (i = 0; i < *noatrd + 1; i++)
 	      (*pos)[i] = read_32ubit (fd);
+#endif
+      read_nbytes(*noatrd + 1, fd, pos);
 	  for (i = 0; i < *noatrd; i++)
 	      wvGetATRD (&((*atrd)[i]), fd);
       }

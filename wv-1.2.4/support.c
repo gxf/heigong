@@ -57,6 +57,7 @@ indentation.
 
 #include "wv.h"
 #include "wvinternal.h"
+#include <sys/time.h>
 
 #if defined(WORDS_BIGENDIAN) || !defined(MATCHED_TYPE)
 
@@ -94,61 +95,76 @@ indentation.
 #endif
 
 static wvStream_list *streams = NULL;
-static U32 wvStream_close_stream(wvStream * in);
+U32 wvStream_close_stream(wvStream * in);
 
 void
 wvOLEFree (wvParseStruct * ps)
 {
-  if(wvQuerySupported (&ps->fib, NULL) != WORD2 && !ps->fib.fEncrypted) {
-    wvStream_list *tempList = streams;
+#if 0
+    static long long ti = 0;
+    struct timeval start_tm, end_tm;
+    gettimeofday(&start_tm, NULL);
+#endif
 
-    while (tempList != NULL)
-      {
-	  wvStream_close(tempList->stream);
-	  tempList = tempList->next;
-      }
+    if(wvQuerySupported (&ps->fib, NULL) != WORD2 && !ps->fib.fEncrypted) {
+        wvStream_list *tempList = streams;
 
-    while (streams != NULL)
-      {
-	  tempList = streams->next;
-	  wvFree (streams);
-	  streams = tempList;
-      }
-  }
+#if 0
+        while (tempList != NULL)
+        {
+            wvStream_close(tempList->stream);
+            tempList = tempList->next;
+        }
+
+        while (streams != NULL)
+        {
+            tempList = streams->next;
+            wvFree (streams);
+            streams = tempList;
+        }
+#endif
+    }
 
     if (ps->ole_file != NULL)
-      {
-	  g_object_unref (G_OBJECT(ps->ole_file));
-	  ps->ole_file = NULL;
-      }
+    {
+        g_object_unref (G_OBJECT(ps->ole_file));
+        ps->ole_file = NULL;
+    }
 
     if (ps->input != NULL)
-      {
-	g_object_unref (G_OBJECT(ps->input));
-	ps->input = NULL;
-      }
+    {
+        g_object_unref (G_OBJECT(ps->input));
+        ps->input = NULL;
+    }
+
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
 }
 
 wvStream *
 wvStream_TMP_create (size_t size)
 {
-  FILE * fp;
-  wvStream * stm = NULL;
+    FILE * fp;
+    wvStream * stm = NULL;
 
-  fp = tmpfile ();
+    fp = tmpfile ();
   
-  if (fp) {
-    wvStream_FILE_create (&stm, fp);
-  } else {
-    char * buf;
+    if (fp) {
+        wvStream_FILE_create (&stm, fp);
+    } 
+    else {
+        char * buf;
     
-    buf = malloc(size);
+        buf = malloc(size);
     
-    if (buf)
-      wvStream_memory_create (&stm, buf, size);
-  }
-
-  return stm;
+        if (buf)
+            wvStream_memory_create (&stm, buf, size);
+    } 
+    return stm;
 }
 
 void
@@ -214,6 +230,22 @@ size_t memorystream_read(MemoryStream *stream, void *buf, size_t count)
       wvTrace(("read out of bounds\n"));
     }
   return ret;
+}
+
+void read_nbytes(U32 length, wvStream* fd, U8 * buf)
+{
+    if (fd->kind == GSF_STREAM)
+    {
+        gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, buf);
+    }
+    else if (fd->kind == FILE_STREAM)
+    {
+        fread(buf, sizeof(guint8), length, fd->stream.file_stream);
+    }
+    else
+    {
+        memorystream_read(fd->stream.memory_stream, buf, length);
+    }
 }
 
 U32
@@ -301,35 +333,35 @@ U32
 wvStream_read (void *ptr, size_t size, size_t nmemb, wvStream * in)
 {
     if (in->kind == GSF_STREAM)
-      {
-	gsf_input_read (GSF_INPUT (in->stream.gsf_stream), size*nmemb, ptr);
-	return size*nmemb;
-      }
+    {
+          gsf_input_read (GSF_INPUT (in->stream.gsf_stream), size*nmemb, ptr);
+          return size*nmemb;
+    }
     else if (in->kind == FILE_STREAM)
-      {
-	  return (fread (ptr, size, nmemb, in->stream.file_stream));
-      }
+    {
+        return (fread (ptr, size, nmemb, in->stream.file_stream));
+    }
     else
-      {
-	return memorystream_read(in->stream.memory_stream, ptr, size * nmemb);
-      }
+    {
+        return memorystream_read(in->stream.memory_stream, ptr, size * nmemb);
+    }
 }
 
 void
 wvStream_rewind (wvStream * in)
 {
     if (in->kind == GSF_STREAM)
-      {
-	gsf_input_seek (GSF_INPUT (in->stream.gsf_stream), 0, G_SEEK_SET);
-      }
+    {
+        gsf_input_seek (GSF_INPUT (in->stream.gsf_stream), 0, G_SEEK_SET);
+    }
     else if (in->kind == FILE_STREAM)
-      {
-	  rewind (in->stream.file_stream);
-      }
+    {
+        rewind (in->stream.file_stream);
+    }
     else
-      {
-	in->stream.memory_stream->current = 0;
-      }
+    {
+        in->stream.memory_stream->current = 0;
+    }
 }
 
 U32
@@ -424,52 +456,60 @@ wvStream_size (wvStream * in)
 U32
 wvStream_close(wvStream * in)
 {
-  wvStream_list *s;
-  U32 ret;
+    if (in == NULL){
+        return 0;
+    }
+    wvStream_list *s;
+    U32 ret;
 
-  ret = wvStream_close_stream (in);
+    ret = wvStream_close_stream (in);
+    in = NULL;
 
-  for ( s = streams;s != NULL; s=s->next)
+#if 0
+    for ( s = streams;s != NULL; s=s->next)
     {
-      if (s->stream == in)
-	{
-	  s->stream = 0;
-	}
+        if (s->stream == in)
+        {
+            s->stream = 0;
+        }
     }
    
-   return ret;
+#endif
+    return ret;
 }
 
-static U32
+U32
 wvStream_close_stream (wvStream * in)
 {
     if ( !in )
-      return 0;
+        return 0;
 
     if (in->kind == GSF_STREAM)
-      {
-	g_object_unref (G_OBJECT(in->stream.gsf_stream));
-	in->stream.gsf_stream = NULL;
-	  wvFree (in);
-	  return 0;
-      }
+    {
+        g_object_unref (G_OBJECT(in->stream.gsf_stream));
+        in->stream.gsf_stream = NULL;
+        wvFree (in);
+        return 0;
+    }
+    else if (in->kind == FILE_STREAM)
+    {
+        U32 ret;
+        ret = (U32) fclose (in->stream.file_stream);
+        wvFree (in);
+        return (ret);
+    }
+    else if (in->kind == MEMORY_STREAM)
+    {
+        free (in->stream.memory_stream->mem);
+        free (in->stream.memory_stream);
+        wvFree (in);
+        return 0;
+    }
     else
-    if (in->kind == FILE_STREAM)
-      {
-	  U32 ret;
-	  ret = (U32) fclose (in->stream.file_stream);
-	  wvFree (in);
-	  return (ret);
-      }
-    else
-    if (in->kind == MEMORY_STREAM)
-      {
-	  free (in->stream.memory_stream->mem);
-	  free (in->stream.memory_stream);
-	  wvFree (in);
-	  return 0;
-      }
+        return 0;
+#if 0
     else abort();
+#endif
 }
 
 /* wvStream-kind-independent functions below */

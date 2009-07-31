@@ -817,7 +817,7 @@ encoded into the first 22 bytes.
 		    ps->endcell = 1;
 
 		wvTrace (("char pos is %x %x\n", j, eachchar));
-		wvOutputTextChar (eachchar, chartype, ps, &achp);
+		wvOutputTextChar (eachchar, chartype, ps, &achp, 0);
 	    }
 
 	  if (j == para_fcLim)

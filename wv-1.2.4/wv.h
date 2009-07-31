@@ -16,26 +16,26 @@ extern "C" {
  * routines, in which case kind == FILE_STREAM.
  */
     typedef enum {
-	GSF_STREAM,
-	FILE_STREAM,
-	MEMORY_STREAM
+        GSF_STREAM,
+        FILE_STREAM,
+        MEMORY_STREAM
     } wvStreamKind;
 
     typedef struct {
-      char *mem;
-      unsigned long current;
-      unsigned long size;
+        char *mem;
+        unsigned long current;
+        unsigned long size;
     } MemoryStream;
     
     typedef union {
-	FILE *file_stream;
-	GsfInput *gsf_stream;
-	MemoryStream *memory_stream;
+        FILE *file_stream;
+        GsfInput *gsf_stream;
+        MemoryStream *memory_stream;
     } wvInternalStream;
 
     typedef struct {
-	wvStreamKind kind;
-	wvInternalStream stream;
+        wvStreamKind kind;
+        wvInternalStream stream;
     } wvStream;
 
 
@@ -2932,8 +2932,12 @@ returns the same as wvOLEDecode with the addition that
 			       U32 * fcLim, U32 currentfc,	/*CLX *clx, */
 			       BTE * bte, U32 * pos, int nobte, wvStream * fd);
 
+#if 0
     int wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps,
 			  CHP * achp);
+#endif
+    int wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps,
+			  CHP * achp, int stop);
     void wvOutputFromUnicode (U16 eachchar, char *outputtype);
 
     int wvConvertUnicodeToHtml (U16 char16);
@@ -3364,11 +3368,13 @@ returns the same as wvOLEDecode with the addition that
 
     void wvCopyBlip (Blip * dest, Blip * src);
     U32 wvGetBlip (Blip * blip, wvStream * fd, wvStream * delay);
+    U32 wvGetBlipNoFill (Blip * blip, wvStream * fd, wvStream * delay);
     void wvReleaseBlip (Blip * blip);
 
     U32 wvGetMetafile (MetaFileBlip * amf, MSOFBH * amsofbh, wvStream * fd);
     void wvCopyMetafile (MetaFileBlip * dest, MetaFileBlip * src);
     U32 wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd);
+    U32 wvGetBitmapNoFill (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd);
     void wvCopyBitmap (BitmapBlip * dest, BitmapBlip * src);
 
     typedef struct _FOPTE {
@@ -4462,8 +4468,8 @@ Property       PID            Type            Default        Description
  * we can clean up nicely.
  */
     struct twvStream_list {
-	wvStream *stream;
-	struct twvStream_list *next;
+        wvStream *stream;
+        struct twvStream_list *next;
     };
     typedef struct twvStream_list wvStream_list;
 

@@ -43,70 +43,69 @@ int wvOLEDecode_gsf (wvParseStruct * ps, GsfInput *path, wvStream ** mainfd, wvS
     ole_file = gsf_infile_msole_new (path, NULL);
 
     if (ole_file != NULL)
-      {
-	  GsfInput *temp_stream;
+    {
+        GsfInput *temp_stream;
 
-	  ps->ole_file = GSF_INPUT(ole_file);
+        ps->ole_file = GSF_INPUT(ole_file);
 
-	  wvTrace (("Opened VFS\n"));
-	  if ((temp_stream = gsf_infile_child_by_name (ole_file, "WordDocument")) == NULL)
-	    {
-		*mainfd = NULL;
-		wvTrace (("Opening \"WordDocument\" stream\n"));
-	    }
-	  else
-	    {
-		wvTrace (("Opened \"WordDocument\" stream\n"));
-		wvStream_gsf_create (mainfd, temp_stream);
-	    }
+        wvTrace (("Opened VFS\n"));
+        if ((temp_stream = gsf_infile_child_by_name (ole_file, "WordDocument")) == NULL)
+        {
+            *mainfd = NULL;
+            wvTrace (("Opening \"WordDocument\" stream\n"));
+        }
+        else
+        {
+            wvTrace (("Opened \"WordDocument\" stream\n"));
+            wvStream_gsf_create (mainfd, temp_stream);
+        }
 
-	  if ((temp_stream = gsf_infile_child_by_name (ole_file, "1Table")) == NULL)
-	    {
-		*tablefd1 = NULL;
-		wvTrace (("Opening \"1Table\" stream\n"));
-	    }
-	  else
-	    {
-		wvTrace (("Opened \"1Table\" stream\n"));
-		wvStream_gsf_create (tablefd1, temp_stream);
-	    }
+        if ((temp_stream = gsf_infile_child_by_name (ole_file, "1Table")) == NULL)
+        {
+            *tablefd1 = NULL;
+            wvTrace (("Opening \"1Table\" stream\n"));
+        }
+        else
+        {
+            wvTrace (("Opened \"1Table\" stream\n"));
+            wvStream_gsf_create (tablefd1, temp_stream);
+        }
 
-	  if ((temp_stream = gsf_infile_child_by_name (ole_file, "0Table")) == NULL)
-	    {
-		*tablefd0 = NULL;
-		wvTrace (("Opening \"0Table\" stream\n"));
-	    }
-	  else
-	    {
-		wvTrace (("Opened \"0Table\" stream\n"));
-		wvStream_gsf_create (tablefd0, temp_stream);
-
-	    }
+        if ((temp_stream = gsf_infile_child_by_name (ole_file, "0Table")) == NULL)
+        {
+            *tablefd0 = NULL;
+            wvTrace (("Opening \"0Table\" stream\n"));
+        }
+        else
+        {
+            wvTrace (("Opened \"0Table\" stream\n"));
+            wvStream_gsf_create (tablefd0, temp_stream);
+        }
 	  
-	  if ((temp_stream = gsf_infile_child_by_name (ole_file, "Data")) == NULL)
+        if ((temp_stream = gsf_infile_child_by_name (ole_file, "Data")) == NULL)
 	    {
-		*data = NULL;
-		wvTrace (("Opening \"Data\" stream\n"));
+            *data = NULL;
+            wvTrace (("Opening \"Data\" stream\n"));
 	    }
-	  else
+        else
 	    {
-		wvTrace (("Opened \"Data\" stream\n"));
-		wvStream_gsf_create (data, temp_stream);
-	    }
-
-	  if ((temp_stream = gsf_infile_child_by_name (ole_file, "\005SummaryInformation")) == NULL)
-	    {
-		*summary = NULL;
-		wvTrace (("Opening \"\\005SummaryInformation\" stream\n"));
-	    }
-	  else
-	    {
-		wvTrace (("Opened \"\\005SummaryInformation\" stream\n"));
-		wvStream_gsf_create (summary, temp_stream);
+            wvTrace (("Opened \"Data\" stream\n"));
+            wvStream_gsf_create (data, temp_stream);
 	    }
 
-	  result = 0;
-      }
+        if ((temp_stream = gsf_infile_child_by_name (ole_file, "\005SummaryInformation")) == NULL)
+        {
+            *summary = NULL;
+            wvTrace (("Opening \"\\005SummaryInformation\" stream\n"));
+        }
+        else
+        {
+            wvTrace (("Opened \"\\005SummaryInformation\" stream\n"));
+            wvStream_gsf_create (summary, temp_stream);
+	    }
+
+        result = 0;
+    }
 
     return (result);
 }
