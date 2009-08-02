@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include <stdio.h>
+#include <stack>
 
 class Char;
 class Logger;
@@ -10,8 +11,9 @@ class Logger;
 class DocStream{
     public:
         DocStream(Logger * log, const char * tmpfilen = DEFAULT_TMP_FILE_NAME):
-            tmpFile(tmpfilen), fd(NULL), bgMode(false),
-            fileEnds(false), offset(0), logger(log)
+            tmpFile(tmpfilen), fd(NULL), fileEnds(false), 
+            bg_pipe_fd(NULL), bg_file_fd(NULL), bgMode(false),
+            file_off(0), logger(log)
         {}
         ~DocStream(){
             if(fd){ CloseFile(); }
@@ -30,6 +32,7 @@ class DocStream{
 
         DocStream & operator>>(Char & ch);
         DocStream & operator<<(Char & ch);
+        DocStream & operator<<(const char* str);
 
         inline bool operator!(){ return (fd) ? false : true; }
 
@@ -38,18 +41,31 @@ class DocStream{
         void SetOffset(long int offset);
 
     private:
+        uint8 GetChar();
+        void UnGetChar(uint8 ch);
         void AdjustCmd(char*cmd, int length);
 
     private:
         const char*         tmpFile;
         FILE*               fd;
-        bool                bgMode;     // Background parsing mode
         bool                fileEnds;
 
+        // Background mode related
     private:
-        long int            offset;     // Current file offset
+        // pipe file descriptor for backgound mode
+        FILE*               bg_pipe_fd;      
+        // tmp file descriptor for backgound mode
+        FILE*               bg_file_fd;      
+        // Background parsing mode
+        bool                bgMode;     
+
 
     private:
+        long int            file_off;   // Current file offset
+
+
+    private:
+        std::stack<uint8>   ch_buf;
         Logger*             logger;
 };
 

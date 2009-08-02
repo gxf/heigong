@@ -51,7 +51,7 @@ bool DocStream::OpenFile(const char* filename, bool background){
 
     int strlength   = std::strlen(filename) + 1;
     strlength       += std::strlen(tmpFile);
-    strlength		+= 256; 
+    strlength       += 256; 
 
     char cmd[strlength];
     std::memset(cmd, 0x0, strlength);
@@ -66,10 +66,16 @@ bool DocStream::OpenFile(const char* filename, bool background){
         LOG_EVENT(cmd);
 
         // Open pipe for processing
-        if (!(fd = popen(cmd, "r"))){
+        if (!(bg_pipe_fd = popen(cmd, "r"))){
             LOG_ERROR("Fail to open pipe.");
             return false;
         }
+        if (!(bg_file_fd = fopen(tmpFile, "r"))){
+            LOG_ERROR("Fail to open tmp file.");
+            return false;
+        }
+        fd = bg_pipe_fd;
+
         fileEnds = false;
 
         return true;
@@ -95,10 +101,16 @@ bool DocStream::ReOpenFile(){
 bool DocStream::CloseFile()
 {
     if (true == bgMode){
-        if(-1 == pclose(fd)){
+        if(-1 == pclose(bg_pipe_fd)){
             LOG_ERROR("Fail to close pipe.");
             return false;
         }
+        if(-1 == fclose(bg_file_fd)){
+            LOG_ERROR("Fail to close file.");
+            return false;
+        }
+        bg_pipe_fd = NULL;
+        bg_file_fd = NULL;
     }
     else{
         fclose(fd);
@@ -117,24 +129,33 @@ bool DocStream::CloseFile()
 }
 
 DocStream & DocStream::operator>>(int & ch){
-    ch = getc(fd);
+    ch = GetChar();
 
     if (EOF == ch){
         fileEnds = true;
         // TODO: recover stream
         throw Except_EOF();
     }
-    else{
-        if (offset > 0){
-            --offset;
-        }
-    }
     return *this;
 }
 
 DocStream& DocStream::operator<<(int &ch){
-    ungetc(ch, fd);
-    offset++;
+    UnGetChar(ch);
+    return *this;
+}
+
+DocStream& DocStream::operator<<(const char *str){
+    int length = std::strlen(str);
+#if 0
+    int i = 0;
+    while(i < length){
+        UnGetChar((int)str[i]);
+        i++;
+    }
+#endif
+    while(--length >= 0){
+        UnGetChar((int)str[length]);
+    }
     return *this;
 }
 
@@ -153,16 +174,15 @@ DocStream & DocStream::operator>>(Char & ch){
 
     switch(ch.GetEncoding()){
         case EM_ASCII:
-            c_val = getc(fd);
+            c_val = GetChar();
             if(EOF == c_val){
                 fileEnds = true;
                 throw Except_EOF();
             }
             ch.SetVal(c_val);
-            offset++;
             break;
         case EM_UTF_8:
-            c_val = getc(fd);
+            c_val = GetChar();
             if(EOF == c_val){
                 fileEnds = true;
                 // TODO: recover stream
@@ -171,25 +191,21 @@ DocStream & DocStream::operator>>(Char & ch){
             val.f.byte1 = (uchar8)c_val;
             if (/*val.f.byte1 >= 0x00 &&*/ val.f.byte1 <= 0x7F){
                 ch.SetCharLength(1);
-                if (offset > 0){ --offset; }
             }
             else if (val.f.byte1 >= 0xC0 && val.f.byte1 <= 0xDF){
-                val.f.byte2 = getc(fd);
+                val.f.byte2 = GetChar();
                 ch.SetCharLength(2);
-                if (offset > 0){ offset = (offset - 2) ? (offset - 2) : 0; }
             }
             else if (val.f.byte1 >= 0xE0 && val.f.byte1 <= 0xEF){
-                val.f.byte2 = getc(fd);
-                val.f.byte3 = getc(fd);
+                val.f.byte2 = GetChar();
+                val.f.byte3 = GetChar();
                 ch.SetCharLength(3);
-                if (offset > 0){ offset = (offset - 3) ? (offset - 3) : 0; }
             }
             else if (val.f.byte1 >= 0xF0 && val.f.byte1 <= 0xF4){
-                val.f.byte2 = getc(fd);
-                val.f.byte3 = getc(fd);
-                val.f.byte4 = getc(fd);
+                val.f.byte2 = GetChar();
+                val.f.byte3 = GetChar();
+                val.f.byte4 = GetChar();
                 ch.SetCharLength(4);
-                if (offset > 0){ offset = (offset - 4) ? (offset - 4) : 0; }
             }
             else{
                 LOG_ERROR("Unsupported UTF-8 encoding!");
@@ -218,32 +234,27 @@ DocStream & DocStream::operator<<(Char & ch){
 
     switch(ch.GetEncoding()){
         case EM_ASCII:
-            ungetc(val.f.byte1, fd);
-            offset++;
+            UnGetChar(val.f.byte1);
             fileEnds = false;
             break;
         case EM_UTF_8:
             if (val.f.byte1 <= 0x7F){
-                ungetc(val.f.byte1, fd);
-                offset++;
+                UnGetChar(val.f.byte1);
             }
             else if (val.f.byte1 >= 0xC0 && val.f.byte1 <= 0xDF){
-                ungetc(val.f.byte2, fd);
-                ungetc(val.f.byte1, fd);
-                offset += 2;
+                UnGetChar(val.f.byte2);
+                UnGetChar(val.f.byte1);
             }
             else if (val.f.byte1 >= 0xE0 && val.f.byte1 <= 0xEF){
-                ungetc(val.f.byte3, fd);
-                ungetc(val.f.byte2, fd);
-                ungetc(val.f.byte1, fd);
-                offset += 3;
+                UnGetChar(val.f.byte3);
+                UnGetChar(val.f.byte2);
+                UnGetChar(val.f.byte1);
             }
             else if (val.f.byte1 >= 0xF0 && val.f.byte1 <= 0xF4){
-                ungetc(val.f.byte4, fd);
-                ungetc(val.f.byte3, fd);
-                ungetc(val.f.byte2, fd);
-                ungetc(val.f.byte1, fd);
-                offset += 3;
+                UnGetChar(val.f.byte4);
+                UnGetChar(val.f.byte3);
+                UnGetChar(val.f.byte2);
+                UnGetChar(val.f.byte1);
             }
             else{
                 LOG_ERROR("Unsupported UTF-8 encoding!");
@@ -268,10 +279,36 @@ void DocStream::SetOffset(long int off){
     else{
         LOG_ERROR("File descriptor is invalid.");
     }
-    offset = 0;
+    while(false == ch_buf.empty())
+        ch_buf.pop();
 }
 
 long int DocStream::GetCurOffset(){ 
     // return the stream position but ingore unputc(s) in stream
-    return ftell(fd) - offset; 
+    return ftell(fd) - ch_buf.size();
+//    return file_off - ch_buf.size();
 }
+
+uint8 DocStream::GetChar(){
+    uint8 ret;
+    if (false == ch_buf.empty()){
+        ret = ch_buf.top();
+        ch_buf.pop();
+        return ret;
+    }
+    else{
+        ret = getc(fd);
+        if (EOF == ret){
+            fileEnds = true;
+            throw Except_EOF();
+        }
+        ++file_off;
+        return ret;
+    }
+}
+
+void DocStream::UnGetChar(uint8 ch){
+    ch_buf.push(ch);
+    --file_off;
+}
+

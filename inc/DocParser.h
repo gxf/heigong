@@ -55,6 +55,7 @@ class DocParser{
         void getGraphAttrib(int & ch, Graph & img);
        	void getMyFont(int &ch, Attrib_Glyph & ga);
         void skipBlanks(int & ch);
+        void skipTill(const char* tok[], int len);
         bool procLabel(int & ch);
         void procWord(int & ch);
 

@@ -593,6 +593,11 @@ myelehandler (wvParseStruct * ps, wvTag tag, void *props, int dirty)
 	data->charset = charset;
     data->props = props;
 
+#if 0
+    static long long ti = 0;
+    struct timeval start_tm, end_tm;
+    gettimeofday(&start_tm, NULL);
+#endif
     switch (tag)
       {
       case PARABEGIN:
@@ -625,7 +630,7 @@ myelehandler (wvParseStruct * ps, wvTag tag, void *props, int dirty)
 		    ((PAP *) (data->props))->ilfo = 0;
 		}
 	      /* test end */
-	      wvEndCharProp (ps, data);	/* danger will break in the future */
+	      /* wvEndCharProp (ps, data);	* danger will break in the future */
 	      wvEndPara (data);
 	      if (tilfo)
 		  ((PAP *) (data->props))->ilfo = tilfo;
@@ -637,6 +642,12 @@ myelehandler (wvParseStruct * ps, wvTag tag, void *props, int dirty)
 	  break;
       case CHARPROPEND:
 	  wvEndCharProp (ps, data);
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
 	  break;
       case SECTIONBEGIN:
 	  wvBeginSection (data);
@@ -1667,6 +1678,11 @@ option to support correct symbol font conversion to a viewable format.\n");
 int
 myCharProc (wvParseStruct * ps, U16 eachchar, U8 chartype, U16 lid)
 {
+#if 0
+    static long long ti = 0;
+    struct timeval start_tm, end_tm;
+    gettimeofday(&start_tm, NULL);
+#endif
     switch (eachchar)
     {
         case 19:
@@ -1708,10 +1724,18 @@ myCharProc (wvParseStruct * ps, U16 eachchar, U8 chartype, U16 lid)
     if ((chartype) && (wvQuerySupported (&ps->fib, NULL) == WORD8))
 	wvTrace (("lid is %x\n", lid));
 
-    if (charset != NULL)
+    if (charset != NULL){
         wvOutputHtmlChar (eachchar, chartype, charset, lid);
-    else
+    }
+    else{
         wvOutputHtmlChar (eachchar, chartype, wvAutoCharset (ps), lid);
+    }
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
     return (0);
 }
 

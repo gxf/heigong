@@ -322,10 +322,13 @@ wvGetBitmapNoFill (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
 
     /* fix by gxf: fast copy */
     U32 length = amsofbh->cbLength - count;
-    guint8 buf[length];
 
     /* Read process */
-    read_nbytes(length, fd, buf);
+    forward_nbytes(length, fd);
+#if 0
+        guint8 buf[length];
+        read_nbytes(length, fd, buf);
+#endif
     abm->m_pvBits = NULL;
 
     count += length;

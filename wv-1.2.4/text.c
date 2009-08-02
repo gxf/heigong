@@ -153,12 +153,6 @@ wvOutputTextChar (U16 eachchar, U8 chartype, wvParseStruct * ps, CHP * achp, int
                     /* versions 7 and 6 use unicode iff the far-east flag is set */
                     chartype = 1;
                 }
-#if 0
-    if (1 == stop){
-        fprintf(stderr, "char\n");
-        usleep(-1);
-    }
-#endif
             ret = ((*(ps->charhandler)) (ps, eachchar, chartype, lid)); 
             return ret;
         }
@@ -818,8 +812,19 @@ wvOutputFromUnicode (U16 eachchar, char *outputtype)
 int
 wvHandleElement (wvParseStruct * ps, wvTag tag, void *props, int dirty)
 {
+#if 0
+    static long long ti = 0;
+    struct timeval start_tm, end_tm;
+    gettimeofday(&start_tm, NULL);
+#endif
     if (ps->elehandler){
         int ret = ((*(ps->elehandler)) (ps, tag, props, dirty));
+#if 0
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
+#endif
         return ret;
     }
     wvError (("No element handler registered!!\n"));

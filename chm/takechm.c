@@ -376,6 +376,8 @@ static void output(htmlDocPtr doc, const char *path)
     FILE *out;
     char fpath[2048];
     snprintf(fpath, 2048, "%s%s", bpath, path);
+
+    mkdirs(fpath);
     out = fopen(fpath, "w");
 
     htmlSetMetaEncoding(doc, "utf-8");

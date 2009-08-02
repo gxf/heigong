@@ -39,6 +39,7 @@
 #include "xmlparse.h"
 #endif
 #endif
+#include <sys/time.h>
 
 static int g_fontsize = 21;
 static char g_fontname[100] = "Times New Roman";
@@ -1076,20 +1077,57 @@ exstartElement (void *userData, const char *name, const char **atts)
 	    }
 	  break;
       case TT_TEXTB:
-	  text =
-	      (char *) wvMalloc (strlen (mydata->sd->elements[TT_TEXT].str[0])
-				 + 1);
-	  strcpy (text, mydata->sd->elements[TT_TEXT].str[0]);
-	  str = mydata->retstring;
-	  wvExpand (mydata, text, strlen (text));
-	  wvAppendStr (&str, mydata->retstring);
-	  wvFree (mydata->retstring);
-	  mydata->retstring = str;
-	  wvFree (text);
-	  mydata->currentlen = strlen (mydata->retstring);
-	  txt = 1;
+#if 0
+          text =
+              (char *) wvMalloc (strlen (mydata->sd->elements[TT_TEXT].str[0])
+                      + 1);
+          strcpy (text, mydata->sd->elements[TT_TEXT].str[0]);
+          str = mydata->retstring;
+          wvExpand (mydata, text, strlen (text));
+          wvAppendStr (&str, mydata->retstring);
+          wvFree (mydata->retstring);
+          mydata->retstring = str;
+          wvFree (text);
+          mydata->currentlen = strlen (mydata->retstring);
+          txt = 1;
+          <begin>&lt;p&gt;&lt;div name=&quot;<stylename/>&quot; align=&quot;<just/>&quot; style=&quot;<paramargin/> <paraborder/> padding: <mmPadTop/> <mmPadRight/> <mmPadBottom/> <mmPadLeft/>; &quot;&gt; 
+
+          &lt;p style=&quot;text-indent: <mmParaLeft1/>; text-align: <just/>; line-height: <mmLineHeight/>; color: <parafgcolor/>; background-color: <parabgcolor/>; &quot;&gt;
+          </begin>
+#endif
+
+          {
+              char indent[64];
+              char align[8];
+              char height[64];
+
+              int justification = ((PAP *) (mydata->props))->jc;
+
+              sprintf (indent, "%.2fmm", (double) wvTwipsToMM ( (S16) ((PAP *) (mydata->props))->dxaLeft1));
+
+              switch (justification) {
+              case 2:
+                  strcpy(align, "right");
+                  break;
+              case 1:
+                  strcpy(align, "center");
+                  break;
+              default:
+                  strcpy(align, "left");
+              }
+
+              if (wvTwipsToMM (((PAP *) (mydata->props))->lspd.dyaLine))
+                  sprintf (height, "%fmm",
+		       fabs (wvTwipsToMM
+			     (((PAP *) (mydata->props))->lspd.dyaLine)));
+              else
+                  strcpy (height, "normal");
+
+              printf("<p><div>\n<p style=\"text-indent:%s; text-align:%s; line-height:%s; \">", indent, align, height);
+          }
 	  break;
       case TT_TEXTE:
+#if 0
 	  if (txt)
 	    {
 		text =
@@ -1106,6 +1144,8 @@ exstartElement (void *userData, const char *name, const char **atts)
 		mydata->currentlen = strlen (mydata->retstring);
 		txt = 0;
 	    }
+#endif
+          printf("</p></div>");
 	  break;
       case TT_OLISTB:
 	  if (wvIsListEntry
@@ -1500,9 +1540,13 @@ exstartElement (void *userData, const char *name, const char **atts)
       case TT_DKYELLOWB:
       case TT_DKGRAYB:
       case TT_LTGRAYB:
+#if 0
 	  HANDLE_B_CHAR_ELE (token_type - 1, ico, color,
 			     (U32) (token_type - TT_BLACKB) / 3 +
 			     1) break;
+#else
+          break;
+#endif
 
 
       case TT_SINGLEUE:
@@ -1536,9 +1580,12 @@ exstartElement (void *userData, const char *name, const char **atts)
       case TT_DKYELLOWE:
       case TT_DKGRAYE:
       case TT_LTGRAYE:
+#if 0
 	  HANDLE_E_CHAR_ELE (token_type - 2, ico, color,
 			     (token_type - TT_BLACKE) / 3 +
 			     1) break;
+#endif
+          break;
 
       case TT_LasVegasB:
       case TT_BackgroundBlinkB:
@@ -1563,6 +1610,7 @@ exstartElement (void *userData, const char *name, const char **atts)
 			      TT_LasVegasE) / 3 + 1) break;
 
       case TT_FONTSTRB:
+#if 0
 	  wvTrace (("flag is %d\n", ((CHP *) (mydata->props))->ico));
 	  wvTrace (("str is %s\n", mydata->sd->elements[TT_FONTSTR].str[0]));
 	  if ((((CHP *) (mydata->props))->ico) && (fontstr == 0))
@@ -1581,9 +1629,11 @@ exstartElement (void *userData, const char *name, const char **atts)
 		mydata->currentlen = strlen (mydata->retstring);
 		fontstr = 1;
 	    }
+#endif
 
 	  break;
       case TT_FONTSTRE:
+#if 0
 	  wvTrace (("str is %s\n", mydata->sd->elements[TT_FONTSTR].str[0]));
 	  if (fontstr)
 	    {
@@ -1601,6 +1651,7 @@ exstartElement (void *userData, const char *name, const char **atts)
 		mydata->currentlen = strlen (mydata->retstring);
 		fontstr = 0;
 	    }
+#endif
 	  break;
 
       case TT_ANIMATIONB:
@@ -3623,6 +3674,7 @@ wvInitExpandData (expand_data * data)
 int
 wvExpand (expand_data * myhandle, char *buf, int len)
 {
+    /*fprintf(stderr, "%d ==> %s\n", len, buf);*/
 	int ret = 0;
 
 	xmlSAXHandler hdl;
@@ -3635,6 +3687,9 @@ wvExpand (expand_data * myhandle, char *buf, int len)
 	hdl.endElement = exendElement;
 	hdl.characters = excharData;
 
+    static long long ti = 0;
+    struct timeval start_tm, end_tm;
+    gettimeofday(&start_tm, NULL);
 	ctxt = xmlCreateMemoryParserCtxt ((const char *) buf, len);
 	if (ctxt == NULL)
 	{
@@ -3652,6 +3707,10 @@ wvExpand (expand_data * myhandle, char *buf, int len)
 
 	free_libxml2_parser (ctxt);
 
+    gettimeofday(&end_tm, NULL);
+    ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
+          (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
+    fprintf(stderr, "%llu\n", ti);
 	return ret;
 }
 #else
@@ -3920,6 +3979,8 @@ wvIsEmptyPara (PAP * apap, expand_data * data, int inc)
     return (0);
 }
 
+static int __myfont = 0;
+
 void
 wvBeginCharProp (wvParseStruct *ps, expand_data * data, PAP * apap)
 {
@@ -3951,6 +4012,7 @@ wvBeginCharProp (wvParseStruct *ps, expand_data * data, PAP * apap)
 	&& (data->sd->elements[TT_CHAR].str)
 	&& (data->sd->elements[TT_CHAR].str[0] != NULL))
       {
+#if 0
 	  wvExpand (data, data->sd->elements[TT_CHAR].str[0],
 		    strlen (data->sd->elements[TT_CHAR].str[0]));
 	  if (data->retstring)
@@ -3959,16 +4021,37 @@ wvBeginCharProp (wvParseStruct *ps, expand_data * data, PAP * apap)
 		printf ("%s", data->retstring);
 		wvFree (data->retstring);
 	    }
+// <begin>&lt;myfont name=&quot;<fontname/>&quot; size=&quot;<fontsize/>&quot;&gt;</begin>
+        //char buf[100];
+
+        //sprintf(buf, "<myfont name=\"%s\" size=\"%d\">", g_fontname, g_fontsize);
+        //wvAppendStr(&data->retstring, buf);
+        //data->currentlen = strlen (data->retstring);
+#else
+
+        if (__myfont == 1) {
+          printf("</myfont>");
+        }
+        printf("<myfont name=\"%s\" size=\"%d\">", g_fontname, g_fontsize);
+        __myfont = 1;
+#endif
       }
 }
 
 void
 wvEndCharProp (wvParseStruct *ps, expand_data * data)
 {
+    if (__myfont == 1) {
+        __myfont = 0;
+    } else {
+        return;
+    }
+
     wvTrace (("ending character run\n"));
     if ((data->sd != NULL) && (data->sd->elements[TT_CHAR].str)
 	&& (data->sd->elements[TT_CHAR].str[1] != NULL))
       {
+#if 0
 	  wvExpand (data, data->sd->elements[TT_CHAR].str[1],
 		    strlen (data->sd->elements[TT_CHAR].str[1]));
 	  if (data->retstring)
@@ -3977,5 +4060,7 @@ wvEndCharProp (wvParseStruct *ps, expand_data * data)
 		printf ("%s", data->retstring);
 		wvFree (data->retstring);
 	    }
+#endif
+          printf("</myfont>");
       }
 }

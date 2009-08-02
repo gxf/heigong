@@ -232,6 +232,23 @@ size_t memorystream_read(MemoryStream *stream, void *buf, size_t count)
   return ret;
 }
 
+size_t memorystream_seek(MemoryStream *stream, size_t count)
+{
+  size_t ret;
+  if ( stream->current + count <= stream->size)
+    {
+      stream->current += count;
+      ret = count;
+    }
+  else
+    {
+      ret = stream->size - stream->current;
+      stream->current = stream->size;
+      wvTrace(("read out of bounds\n"));
+    }
+  return ret;
+}
+
 void read_nbytes(U32 length, wvStream* fd, U8 * buf)
 {
     if (fd->kind == GSF_STREAM)
@@ -245,6 +262,19 @@ void read_nbytes(U32 length, wvStream* fd, U8 * buf)
     else
     {
         memorystream_read(fd->stream.memory_stream, buf, length);
+    }
+}
+
+void forward_nbytes(U32 length, wvStream* fd)
+{
+    if (fd->kind == GSF_STREAM){
+        gsf_input_seek(GSF_INPUT (fd->stream.gsf_stream), length, SEEK_CUR);
+    }
+    else if(fd->kind == FILE_STREAM){
+        fseek(fd->stream.file_stream, length, SEEK_CUR);
+    }
+    else{
+        memorystream_seek(fd->stream.memory_stream, length);
     }
 }
 

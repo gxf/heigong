@@ -512,6 +512,8 @@ void DocParser::ParseTable(int & ch){
     // Parse row by row
     while(!match_b("</table>")){
         getTR(ch, tab);
+        const char * tok[] = {"<tr>", "</table>"};
+        skipTill(tok, 2);
     }
 
     glyphBuffer.push_back(tab);
@@ -524,8 +526,12 @@ void DocParser::getTR(int & ch, Table* tab){
         while(!match_b("</tr>")){
             getTD(ch, tr, xoffset);
             // Work around
+#if 0
             match_b("<myfont>");
             match_b("</myfont>");
+#endif
+            const char* wa[] = {"</tr>", "<td"};
+            skipTill(wa, 2);
         }
         tab->AddTR(tr);
     }
@@ -848,6 +854,21 @@ long int DocParser::getInteger(){
     while(term != ch);
 
     return std::strtol(str.c_str(), '\0', 10);
+}
+
+void DocParser::skipTill(const char* tok[], int len){
+    int ch;
+    while(true){
+        int i;
+        for (i = 0;i < len; i++){
+            if(true == match(tok[i])){
+                docStream << tok[i];
+                return;
+            }
+        }
+        // Skip this if not match
+        docStream >> ch;
+    }
 }
 
 double DocParser::getFloat(int term){
