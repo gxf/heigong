@@ -31,7 +31,7 @@
 #define TO_LE_8(val) (val)
 
 void
-wvCopyBlip (Blip * dest, Blip * src)
+wvCopyBlip (Blip * dest, Blip * src, wvStream * fd)
 {
     int i;
     wvCopyFBSE (&dest->fbse, &src->fbse);
@@ -46,18 +46,18 @@ wvCopyBlip (Blip * dest, Blip * src)
     else
 	dest->name = NULL;
     switch (dest->type)
-      {
-      case msoblipWMF:
-      case msoblipEMF:
-      case msoblipPICT:
-	  wvCopyMetafile (&dest->blip.metafile, &(src->blip.metafile));
-	  break;
-      case msoblipJPEG:
-      case msoblipPNG:
-      case msoblipDIB:
-	  wvCopyBitmap (&dest->blip.bitmap, &(src->blip.bitmap));
-	  break;
-      }
+    { 
+        case msoblipWMF:
+        case msoblipEMF:
+        case msoblipPICT:
+            wvCopyMetafile (&dest->blip.metafile, &(src->blip.metafile));
+            break;
+        case msoblipJPEG:
+        case msoblipPNG:
+        case msoblipDIB:
+            wvCopyBitmap (&dest->blip.bitmap, &(src->blip.bitmap), fd);
+            break;
+    }
 }
 
 void
@@ -85,20 +85,6 @@ wvGetBlipNoFill (Blip * blip, wvStream * fd, wvStream * delay)
     /* gxf: performance fix */
     U32 length = blip->fbse.cbName * 2;
     read_nbytes(length, fd, blip->name);
-#if 0
-    if (fd->kind == GSF_STREAM)
-    {
-        gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, blip->name);
-    }
-    else if (fd->kind == FILE_STREAM)
-    {
-        fread(blip->name, sizeof(guint8), length, fd->stream.file_stream);
-    }
-    else
-    {
-	    memorystream_read(fd->stream.memory_stream, blip->name, length);
-    }
-#endif
     i += length / 2;
 
     count += blip->fbse.cbName * 2;
@@ -323,6 +309,8 @@ wvGetBitmapNoFill (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
     /* fix by gxf: fast copy */
     U32 length = amsofbh->cbLength - count;
 
+    abm->offset = wvStream_tell(fd);
+    abm->length = length;
     /* Read process */
     forward_nbytes(length, fd);
 #if 0
@@ -377,26 +365,11 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
     /* gxf: Performance fix */
     if (extra)
     {
-        read_nbytes(16, fd, (U8 *)abm->m_rgbUidPrimary);
-#if 0
-        U32 length = 16;
-        if (fd->kind == GSF_STREAM)
-        {
-            gsf_input_read (GSF_INPUT (fd->stream.gsf_stream), length, abm->m_rgbUidPrimary);
-        }
-        else if (fd->kind == FILE_STREAM)
-        {
-            fread(abm->m_rgbUidPrimary, sizeof(guint8), length, fd->stream.file_stream);
-        }
-        else
-        {
-            memorystream_read(fd->stream.memory_stream, abm->m_rgbUidPrimary, length);
-        }
-#endif
 #if 0
         for (i = 0; i < 16; i++)
             abm->m_rgbUidPrimary[i] = read_8ubit (fd);
 #endif
+        read_nbytes(16, fd, (U8 *)abm->m_rgbUidPrimary);
         count += 16;
     }
 
@@ -424,37 +397,16 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
     gettimeofday(&start_tm, NULL);
 #endif
     /* output process */
-    if (stm->kind == GSF_STREAM){
-        wvTrace (("Unsupported output stream\n"));
-        exit(0);
-    }
-    if (stm->kind == FILE_STREAM)
-    {
-        int sz;
-        if((sz = (int)fwrite (buf, sizeof (guint8), length, stm->stream.file_stream)) != length)
-             fprintf(stderr, "write err, length: %d\n", sz);
-    }
-    else{
+    write_nbytes(length, buf, stm);
 #if 0
-            for(i = 0; i < length; i++){
-                guint8 cpy = (guint8) TO_LE_8 (buf[i]);
-                *((U8 *)(stm->stream.memory_stream->mem + 
-                            stm->stream.memory_stream->current)) = cpy;
-                stm->stream.memory_stream->current++;
-            }
+    for (i = 0; i < length; i++)
+        write_8ubit (stm, read_8ubit (fd));
 #endif
-        memcpy(stm->stream.memory_stream->mem, buf, length);
-        stm->stream.memory_stream->current += length;
-    }
 #if 0
     gettimeofday(&end_tm, NULL);
     ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
           (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
     fprintf(stderr, "%llu\n", ti);
-#endif
-#if 0
-    for (i = 0; i < length; i++)
-        write_8ubit (stm, read_8ubit (fd));
 #endif
 
     wvStream_rewind (stm);
@@ -469,17 +421,34 @@ wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd)
 }
 
 void
-wvCopyBitmap (BitmapBlip * dest, BitmapBlip * src)
+wvCopyBitmap (BitmapBlip * dest, BitmapBlip * src, wvStream * fd)
 {
     U8 i;
     for (i = 0; i < 16; i++)
-      {
-	  dest->m_rgbUid[i] = src->m_rgbUid[i];
-	  dest->m_rgbUidPrimary[i] = src->m_rgbUidPrimary[i];
-      }
+    {
+        dest->m_rgbUid[i] = src->m_rgbUid[i];
+        dest->m_rgbUidPrimary[i] = src->m_rgbUidPrimary[i];
+    }
 
     dest->m_bTag = src->m_bTag;
     dest->m_pvBits = src->m_pvBits;
+
+    /* Delay stream reading to the time it really requires */
+    wvStream * stm = NULL;
+    if (dest->m_pvBits == NULL){
+        long cur_offset = wvStream_tell(fd);
+
+        stm = wvStream_TMP_create (src->length);
+        guint8 buf[src->length];
+        read_nbytes(src->length, fd, buf);
+        write_nbytes(src->length, buf, stm);
+        wvStream_rewind (stm);
+        dest->m_pvBits = stm;
+
+        wvStream_offset(fd, cur_offset);
+    }
+    dest->offset = 0;
+    dest->length = 0;
 }
 
 

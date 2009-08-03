@@ -417,19 +417,19 @@ U32
 wvStream_offset (wvStream * in, long offset)
 {
     if (in->kind == GSF_STREAM)
-      {
-	gsf_input_seek (GSF_INPUT (in->stream.gsf_stream), offset, G_SEEK_CUR);
-	return (U32)gsf_input_tell(GSF_INPUT (in->stream.gsf_stream));
-      }
+    {
+        gsf_input_seek (GSF_INPUT (in->stream.gsf_stream), offset, G_SEEK_CUR);
+        return (U32)gsf_input_tell(GSF_INPUT (in->stream.gsf_stream));
+    }
     else if (in->kind == FILE_STREAM)
-      {
-	  return ((U32) fseek (in->stream.file_stream, offset, SEEK_CUR));
-      }
+    {
+        return ((U32) fseek (in->stream.file_stream, offset, SEEK_CUR));
+    }
     else
-      {
-	in->stream.memory_stream->current += offset;
-	return  in->stream.memory_stream->current;
-      }
+    {
+        in->stream.memory_stream->current += offset;
+        return  in->stream.memory_stream->current;
+    }
 }
 
 U32
@@ -452,7 +452,7 @@ wvStream_offset_from_end (wvStream * in, long offset)
       }
 }
 
-U32
+long
 wvStream_tell (wvStream * in)
 {
     if (in->kind == GSF_STREAM)
@@ -662,6 +662,32 @@ dread_8ubit (wvStream * in, U8 ** list)
 	  (*list)++;
 	  return (sread_8ubit (temp));
       }
+}
+
+int
+write_nbytes(U32 length, U8 * buf, wvStream* stm){
+    if (stm->kind == GSF_STREAM){
+        wvTrace (("Unsupported output stream\n"));
+        exit(0);
+    }
+    if (stm->kind == FILE_STREAM)
+    {
+        int sz;
+        if((sz = (int)fwrite (buf, sizeof (guint8), length, stm->stream.file_stream)) != length)
+             fprintf(stderr, "write err, length: %d\n", sz);
+    }
+    else{
+#if 0
+            for(i = 0; i < length; i++){
+                guint8 cpy = (guint8) TO_LE_8 (buf[i]);
+                *((U8 *)(stm->stream.memory_stream->mem + 
+                            stm->stream.memory_stream->current)) = cpy;
+                stm->stream.memory_stream->current++;
+            }
+#endif
+        memcpy(stm->stream.memory_stream->mem, buf, length);
+        stm->stream.memory_stream->current += length;
+    }
 }
 
 int

@@ -3344,15 +3344,18 @@ returns the same as wvOLEDecode with the addition that
     } MetaFileBlip;
 
     typedef struct _BitmapBlip {
-	/* The secondary, or data, UID - should always be set. */
-	U8 m_rgbUid[16];
-	/* The primary UID - this defaults to 0, in which case the primary ID is
-	   that of the internal data. NOTE!: The primary UID is only saved to disk
-	   if (blip_instance ^ blip_signature == 1). Blip_instance is MSOFBH.finst and
-	   blip_signature is one of the values defined in MSOBI */
-	U8 m_rgbUidPrimary[16];	/* optional based on the above check */
-	U8 m_bTag;
-	wvStream *m_pvBits;		/* raster bits of the blip */
+        /* The secondary, or data, UID - should always be set. */
+        U8 m_rgbUid[16];
+        /* The primary UID - this defaults to 0, in which case the primary ID is
+         * that of the internal data. NOTE!: The primary UID is only saved to disk
+         * if (blip_instance ^ blip_signature == 1). Blip_instance is MSOFBH.finst and
+         * blip_signature is one of the values defined in MSOBI */
+        U8 m_rgbUidPrimary[16];	/* optional based on the above check */
+        U8 m_bTag;
+        wvStream *m_pvBits;		/* raster bits of the blip */
+        /* gxf: performance fix, delayed reading of stream */
+        long offset;
+        U32 length;
     } BitmapBlip;
 
 
@@ -3366,7 +3369,7 @@ returns the same as wvOLEDecode with the addition that
 	} blip;
     } Blip;
 
-    void wvCopyBlip (Blip * dest, Blip * src);
+    void wvCopyBlip (Blip * dest, Blip * src, wvStream * fd);
     U32 wvGetBlip (Blip * blip, wvStream * fd, wvStream * delay);
     U32 wvGetBlipNoFill (Blip * blip, wvStream * fd, wvStream * delay);
     void wvReleaseBlip (Blip * blip);
@@ -3375,7 +3378,7 @@ returns the same as wvOLEDecode with the addition that
     void wvCopyMetafile (MetaFileBlip * dest, MetaFileBlip * src);
     U32 wvGetBitmap (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd);
     U32 wvGetBitmapNoFill (BitmapBlip * abm, MSOFBH * amsofbh, wvStream * fd);
-    void wvCopyBitmap (BitmapBlip * dest, BitmapBlip * src);
+    void wvCopyBitmap (BitmapBlip * dest, BitmapBlip * src, wvStream * fd);
 
     typedef struct _FOPTE {
 	/* this should be 16 bits for bitfields, and then 32 bit op */
@@ -4453,7 +4456,7 @@ Property       PID            Type            Default        Description
     U32 wvStream_offset (wvStream * stream, long offset);
     U32 wvStream_offset_from_end (wvStream * stream, long offset);
     U32 wvStream_size (wvStream * stream);
-    U32 wvStream_tell (wvStream * stream);
+    long wvStream_tell (wvStream * stream);
 
 /* These functions take care of memory/file management for wvStreams */
     void wvStream_FILE_create (wvStream ** in, FILE * inner);

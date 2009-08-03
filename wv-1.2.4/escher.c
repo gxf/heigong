@@ -486,40 +486,33 @@ wv0x08 (Blip * blip, S32 spid, wvParseStruct * ps)
     if (answer == NULL)
 	wvError (("Damn found nothing\n"));
     else if (answer->fopte)
-      {
-	  while (answer->fopte[i].pid != 0)
-	    {
-		if (answer->fopte[i].pid == 260)
-		  {
-		      wvTrace (
-			       ("has a blip reference of %d\n",
-				answer->fopte[i].op));
-		      wvTrace (
-			       ("no blips is %d\n",
-				item.dggcontainer.bstorecontainer.no_fbse));
-		      wvTrace (
-			       ("type is %d (number is %d\n",
-				item.dggcontainer.bstorecontainer.blip[item.
-								       dggcontainer.
-								       bstorecontainer.
-								       no_fbse -
-								       1].type,
-				item.dggcontainer.bstorecontainer.no_fbse));
-		      if (answer->fopte[i].op <=
-			  item.dggcontainer.bstorecontainer.no_fbse)
-			{
-			    wvTrace (("Copied Blip\n"));
-			    wvCopyBlip (blip,
-					&(item.dggcontainer.bstorecontainer.
-					  blip[answer->fopte[i].op - 1]));
-			    wvTrace (("type is %d\n", blip->type));
-			    ret = 1;
-			    break;
-			}
-		  }
-		i++;
-	    }
-      }
+    {
+        while (answer->fopte[i].pid != 0)
+        {
+            if (answer->fopte[i].pid == 260)
+            {
+                wvTrace (
+                        ("has a blip reference of %d\n",
+                         answer->fopte[i].op));
+                wvTrace (
+                        ("no blips is %d\n",
+                         item.dggcontainer.bstorecontainer.no_fbse));
+                wvTrace (
+                        ("type is %d (number is %d\n",
+                         item.dggcontainer.bstorecontainer.blip[item.dggcontainer.bstorecontainer.no_fbse - 1].type, item.dggcontainer.bstorecontainer.no_fbse));
+                if (answer->fopte[i].op <=
+                        item.dggcontainer.bstorecontainer.no_fbse)
+                {
+                    wvTrace (("Copied Blip\n"));
+                    wvCopyBlip (blip, &(item.dggcontainer.bstorecontainer.blip[answer->fopte[i].op - 1]), ps->tablefd);
+                    wvTrace (("type is %d\n", blip->type));
+                    ret = 1;
+                    break;
+                }
+            }
+            i++;
+        }
+    }
     wvTrace (("spid is %x\n", spid));
     wvReleaseEscher (&item);
     return (ret);
