@@ -297,13 +297,16 @@ uint8 DocStream::GetChar(){
         return ret;
     }
     else{
-        ret = getc(fd);
-        if (EOF == ret){
+        int32 val = getc(fd);
+        if (EOF == val || val < 0){
             fileEnds = true;
             throw Except_EOF();
         }
-        ++file_off;
-        return ret;
+        else{
+            ret = (uint8)val;
+            ++file_off;
+            return ret;
+        }
     }
 }
 
