@@ -13,7 +13,7 @@ class DocStream{
         DocStream(Logger * log, const char * tmpfilen = DEFAULT_TMP_FILE_NAME):
             tmpFile(tmpfilen), fd(NULL), fileEnds(false), 
             bg_pipe_fd(NULL), bg_file_fd(NULL), bgMode(false),
-            file_off(0), logger(log)
+            file_off(0), bg_off(0), logger(log)
         {}
         ~DocStream(){
             if(fd){ CloseFile(); }
@@ -62,7 +62,7 @@ class DocStream{
 
     private:
         long int            file_off;   // Current file offset
-
+        long int            bg_off;     // Current background parsing offset
 
     private:
         std::stack<uint8>   ch_buf;

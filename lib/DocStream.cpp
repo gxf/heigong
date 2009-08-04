@@ -270,23 +270,47 @@ DocStream & DocStream::operator<<(Char & ch){
 }
 
 void DocStream::SetOffset(long int off){
-    if (fd){
+    if (false == bgMode){
+        if (fd){
+            if (-1 == fseek(fd, off, SEEK_SET)){
+                LOG_ERROR("fail to seek offset in file.");
+                printf("offset: %ld\n", off);
+            }
+        }
+        else{
+            LOG_ERROR("File descriptor is invalid.");
+        }
+    }
+    else if (true == bgMode && off > file_off){
+        // Background parsing: forward searching synchronization is 
+        // dealt by pipe mechanism, this really should not happen
+        LOG_ERROR("Fail to set file offset.");
+//        assert(false);
+        return;
+    }
+    else if (true == bgMode && off <= file_off){
+        // Switch to file descriptor
+        fd = bg_file_fd;
         if (-1 == fseek(fd, off, SEEK_SET)){
             LOG_ERROR("fail to seek offset in file.");
             printf("offset: %ld\n", off);
         }
+        // Record back ground parsing offset here
+        bg_off = file_off;
     }
-    else{
-        LOG_ERROR("File descriptor is invalid.");
-    }
-    while(false == ch_buf.empty())
+    // Empty the UnGetChar buffer
+    while(false == ch_buf.empty()){
         ch_buf.pop();
+    }
+    file_off = off;
 }
 
 long int DocStream::GetCurOffset(){ 
     // return the stream position but ingore unputc(s) in stream
-    return ftell(fd) - ch_buf.size();
-//    return file_off - ch_buf.size();
+//    printf("ftell: %ld, file_off: %ld", ftell(fd), file_off);
+//    return ftell(fd) - ch_buf.size();
+
+    return file_off - ch_buf.size();// - comps;
 }
 
 uint8 DocStream::GetChar(){
@@ -297,9 +321,16 @@ uint8 DocStream::GetChar(){
         return ret;
     }
     else{
+        if ((true == bgMode) && (fd == bg_file_fd) && (file_off >= bg_off)){
+            // Switch descriptor to pipe to avoid reading ahead of generating
+            fd = bg_pipe_fd;
+        }
         int32 val = getc(fd);
         if (EOF == val || val < 0){
             fileEnds = true;
+            if (true == bgMode){
+                bgMode = false;
+            }
             throw Except_EOF();
         }
         else{
@@ -312,6 +343,5 @@ uint8 DocStream::GetChar(){
 
 void DocStream::UnGetChar(uint8 ch){
     ch_buf.push(ch);
-    --file_off;
 }
 

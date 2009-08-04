@@ -91,8 +91,11 @@ void* May12th::Display(int page_num){
     if (page_num > ctx->pgMgr.GetToWorkPageNum()){
         // Forward Display
         int i = ctx->pgMgr.GetToWorkPageNum(); 
+        Display(i);
+        if(i++ >= ctx->pgMgr.GetMaxPageNum())
+            return NULL;
         while(i < page_num){
-            Display(i);
+            Display(ctx->pgMgr.NextPage());
             if(i++ >= ctx->pgMgr.GetMaxPageNum())
                 return NULL;
         }

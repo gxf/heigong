@@ -100,6 +100,36 @@ static bool TestBookMarkRoutine(const char* filename){
     return true;
 }
 
+static bool TestLargePageRangeRoutine(const char* filename){
+    hHgMaster hHG;
+    if(!(hHG = HG_Init(filename, 600, 800))){
+        std::cout << "Fail to init engine."
+            << std::endl;
+        return false;
+    }
+    if(!(HG_StartParse(hHG))){
+        std::cout << "Fail to start parsing." 
+            << std::endl;
+        HG_Term(hHG);
+        return false;
+    }
+    p_page_info pPage;
+    uint32 page_nums[8] = {5, 1, 10, 2, 20, 3, 40, 4};
+    uint32 i = 0;
+    while(NULL != (pPage = HG_GetPage(hHG, page_nums[i]))){
+        // Replace me to do whatever you want
+        std::cout << "Got page " << page_nums[i]
+            << std::endl;
+        ++i;
+        HG_FreePage(hHG, pPage);
+    }
+    if(!HG_Term(hHG)){
+        std::cout << "Fail to term engine" << std::endl;
+        return false; 
+    }
+    return true;
+}
+
 int main(int argc, char** argv){
     // Argument check
     if (argc > 3 || argc < 2){
@@ -114,6 +144,7 @@ int main(int argc, char** argv){
         return 0;
     }
 
+    std::cout << "=========================" << std::endl;
     if(false == TestStartTerm(argv[1])){
         std::cout << "Start & Term test fails." << std::endl;
         return 0;
@@ -122,6 +153,7 @@ int main(int argc, char** argv){
         std::cout << "Start & Term test passes." << std::endl;
     }
 
+    std::cout << "=========================" << std::endl;
     if(false == TestBasicRoutine(argv[1])){
         std::cout << "Basic Routine test fails." << std::endl;
         return 0;
@@ -130,12 +162,22 @@ int main(int argc, char** argv){
         std::cout << "Basic Routine test passes." << std::endl;
     }
 
+    std::cout << "=========================" << std::endl;
     if(false == TestBookMarkRoutine(argv[1])){
         std::cout << "Bookmark Routine test fails." << std::endl;
         return 0;
     }
     else{
         std::cout << "Bookmark Routine test passes." << std::endl;
+    }
+
+    std::cout << "=========================" << std::endl;
+    if(false == TestLargePageRangeRoutine(argv[1])){
+        std::cout << "Large Page Range Access Routine test fails." << std::endl;
+        return 0;
+    }
+    else{
+        std::cout << "Large Page Range Access Routine test passes." << std::endl;
     }
 
     return 0;
