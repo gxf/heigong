@@ -21,8 +21,12 @@ typedef int STATUS ;
 	typedef long long INT64;
 #endif // WIN32
 
+#ifndef LOCAL
 #define LOCAL  static
+#endif
+#ifndef FAST
 #define FAST register
+#endif
 
 typedef int (*FUNCPTR)();
 typedef void (* VOIDFUNCPTR)(); 

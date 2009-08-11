@@ -32,7 +32,11 @@ class Glyph : public Serializer{
             bitmap_w(0), bitmap_h(0), bitmap(NULL),
             logger(log)
         {};
-        virtual ~Glyph(){}
+        virtual ~Glyph(){
+            bitmap = NULL;
+            bitmap_w = 0;
+            bitmap_h = 0;
+        }
 
     public:
         virtual bool Draw(RenderMan&) = 0;

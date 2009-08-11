@@ -3687,9 +3687,11 @@ wvExpand (expand_data * myhandle, char *buf, int len)
 	hdl.endElement = exendElement;
 	hdl.characters = excharData;
 
+#if 0
     static long long ti = 0;
     struct timeval start_tm, end_tm;
     gettimeofday(&start_tm, NULL);
+#endif
 	ctxt = xmlCreateMemoryParserCtxt ((const char *) buf, len);
 	if (ctxt == NULL)
 	{
@@ -3707,10 +3709,12 @@ wvExpand (expand_data * myhandle, char *buf, int len)
 
 	free_libxml2_parser (ctxt);
 
+#if 0
     gettimeofday(&end_tm, NULL);
     ti += (end_tm.tv_sec * 1e6 + end_tm.tv_usec) -
           (start_tm.tv_sec * 1e6 + start_tm.tv_usec);
     fprintf(stderr, "%llu\n", ti);
+#endif
 	return ret;
 }
 #else

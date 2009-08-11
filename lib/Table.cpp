@@ -109,6 +109,13 @@ Glyph* Table_Data_Cell::Dup(){
     }
     return tdc;
 #endif
+    std::deque<Glyph*>::iterator itr = glyphBuffer.begin();
+    while(itr != glyphBuffer.end()){
+        Char * pch = dynamic_cast<Char *>(*itr);
+        if (pch)
+            pch->valid = true;
+        ++itr;
+    }
     cellLayout.Reset();
     return this;
 }

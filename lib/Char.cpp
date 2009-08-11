@@ -87,6 +87,8 @@ bool Char::Relocate(int x, int y){
 }
 
 bool Char::Draw(RenderMan & render){
+    // If the char is rendered, it is not necessay to be exist in memory anymore
+    valid = false;
     return render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
 }
 
@@ -111,9 +113,12 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
     }
     ftMgr.GetGlyphSlot((FT_ULong)GetVal(EM_UTF_32), &glyphSlot);
     baseline = ((glyphSlot->metrics.horiBearingY) >> 6);
-    ftCache.CacheFont(this, 
-            glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
-            glyphSlot->bitmap.buffer);
+    // Maybe the bitmap is allocated already
+    if (bitmap == NULL){
+        ftCache.CacheFont(this, 
+                glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
+                glyphSlot->bitmap.buffer);
+    }
     ftMgr.SetFontSize(DEFAULT_FONT_SIZE);
     LAYOUT_RET ret = 
         layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
@@ -146,6 +151,7 @@ Glyph * Char::UngetSet(){
     ch->charLen     = this->charLen;
     ch->id          = this->id;
     ch->attrib      = this->attrib;
+    ch->valid       = true;
     return ch;
 }
 
@@ -167,7 +173,7 @@ Glyph* Char::Dup(){
     ch->val         = this->val;
     ch->charLen     = this->charLen;
     ch->id          = this->id;
-    ch->valid       = this->valid;
+    ch->valid       = true;
     ch->attrib      = this->attrib;
 
     return ch;
@@ -190,5 +196,6 @@ void Char::Deserialize(std::ifstream & ifs){
     DESER_OBJ(charLen);
     DESER_OBJ(id);
     DESER_OBJ(attrib);
+    valid = true;
 }
 

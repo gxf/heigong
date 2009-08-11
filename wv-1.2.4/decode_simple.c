@@ -305,7 +305,8 @@ wvDecodeSimple (wvParseStruct * ps, subdocument whichdoc)
         for (i = begincp, j = beginfc; (i < endcp /*&& i<ps->fib.ccpText */ );
                 i++, j += wvIncFC (chartype))
         {
-            /* character properties */
+            
+            /*usleep(7000); character properties */
             if (j == char_fcLim)
             {
                 wvHandleElement (ps, CHARPROPEND, (void *) &achp,

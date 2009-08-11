@@ -285,6 +285,13 @@ STATUS jpegLoad(char *fullname, ImageOptions *image_ops)
          image_file_close(fd);
          return ERROR;
      }
+     if (image->data){
+         free(image->data);
+         image->data = NULL;
+     }
+//     image->data = (UINT8*)malloc(image->width * image->height * image->depth / 4);
+     image->data = (UINT8*)malloc(image->width * image->height * image->depth);
+
 
      rowbytes = image->width * 2;
      rows = row_buffer;

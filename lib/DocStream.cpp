@@ -75,6 +75,11 @@ bool DocStream::OpenFile(const char* filename, bool background){
             return false;
         }
         fd = bg_pipe_fd;
+        // Sync for the first word
+        int32 data;
+        operator>>(data);
+        operator<<(data);
+        
 
         fileEnds = false;
 

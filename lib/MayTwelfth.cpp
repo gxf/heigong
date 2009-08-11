@@ -161,6 +161,7 @@ void* May12th::Display(int page_num){
                         else
                             img = ctx->render.Flush(&ctx->bufMgr);
                         ctx->pgMgr.EndPage(page_num, &ctx->render);
+                        Char::ClearCache();
                         finished = true;
                         break;
                     case Glyph::GY_EOF:
@@ -171,6 +172,7 @@ void* May12th::Display(int page_num){
                         else
                             img = ctx->render.Flush(&ctx->bufMgr);
                         ctx->pgMgr.EndPage(page_num, &ctx->render);
+                        Char::ClearCache();
                         finished = true;
                         break;
                     case Glyph::GY_ERROR:

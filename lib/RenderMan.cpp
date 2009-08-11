@@ -224,12 +224,17 @@ void* RenderMan::Flush(BufferManager * bufMgr){
     glFlush();
     SDL_GL_SwapBuffers();
 #else
-    RenderToFile(pFb, width, height, "framebuffer.pgm");
+//    RenderToFile(pFb, width, height, "framebuffer.pgm");
 #endif
-    if (bufMgr)
+#ifdef API_BASED
+    if (bufMgr){
         return bufMgr->Insert(pFb, width, height, 8);
+    }
     else
         return NULL;
+#else
+    return NULL;
+#endif
 }
 
 void RenderMan::GetFBSize(Page* pg){

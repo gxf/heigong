@@ -6,6 +6,8 @@
  * @brief  图像显示的接口函数
  */
 #include "image.h"
+#include <stdlib.h>
+#include <string.h>
 
 extern Image *global_image;
 /** 
@@ -23,23 +25,28 @@ extern Image *global_image;
  */
 STATUS fillImage(UINT8 *data_source,UINT32 width,UINT32 height, UINT32 stride,INT32 src_x,INT32 src_y)
 {
-     
      UINT32 i,j,x,y;
      UINT8 * source,*dest;
      Image * image = global_image;
 
      for(i=0;i<height;i++){
-	  dest = data_source + i*stride;
-	  source = image->data + (src_y+i)*image->width*2;
-	  for(j=0;j<width;j++){
-	       x = j + src_x;
-	       y = i + src_y;
-	       if(x>=image->width || y>=image->height)
-		    *(UINT16*)dest = 0;
-	       else
-		    *(UINT16*)dest = *(UINT16*)(source + x*2);
-	       dest+=2;
-	  }
+         dest = data_source + i*stride;
+         source = image->data + (src_y+i)*image->width*2;
+         for(j=0;j<width;j++){
+             x = j + src_x;
+             y = i + src_y;
+             if(x>=image->width || y>=image->height)
+                 *(UINT16*)dest = 0;
+             else
+                 *(UINT16*)dest = *(UINT16*)(source + x*2);
+             dest+=2;
+         }
      }
-     return OK;
+     memcpy(data_source, global_image->data,width * height * 2);
+    return OK;
 }
+
+UINT8* getImage(){
+    return global_image->data;
+}
+

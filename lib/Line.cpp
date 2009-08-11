@@ -9,9 +9,19 @@ void Line::AddGlyph(Glyph* glyph){
 }
 
 void Line::Clear(){
+    std::vector<Glyph*>::iterator itr = glyphs.begin();
+#if 0
+    while (itr != glyphs.end()){
+        Char* pchr = dynamic_cast<Char*>(*itr);
+        if(pchr){
+            pchr->valid = false;
+        }
+        ++itr;
+    }
+#endif
     glyphs.clear();
 //    attrib.Reset();
-    Char::ClearCache();
+//    Char::ClearCache();
     curWidth = margin;
 }
 

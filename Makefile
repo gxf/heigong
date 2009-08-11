@@ -10,6 +10,7 @@ clean:
 	for dir in $(SUBDIRS); do $(MAKE) clean -C $$dir; done
 
 hgtest: test.o libhg.a
+#	g++ $< -L. -lhg -lfreetype -lpng -ljpeg -o $@
 	g++ $< -L. -lhg -lGL -lGLU -lGLEW -lSDL -lfreetype -lpng -ljpeg -o $@
 
 test.o: test.cpp inc/hg.h

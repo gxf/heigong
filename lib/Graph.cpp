@@ -9,7 +9,6 @@
 #include <cassert>
 
 ImageOptions global_IO;
-Image output_image;
 
 uint32 Graph::magic_num = 'g' + 'r' + 'a' + 'p' + 'h';
 
@@ -46,7 +45,7 @@ Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
         sprintf(info, "Fail to open file %s", file.c_str());
         LOG_ERROR(info);
         return GY_ERROR;
-    } 
+    }
 
     IF_T type = DetectFormat(file.c_str(), fp);
 
@@ -344,8 +343,9 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
     req_width   = global_IO.width;
     req_height  = global_IO.height;
 
-    fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
-    ConvertJPG((void*)output_image.data, req_width, req_height);
+    ConvertJPG((void*)getImage(), req_width, req_height);
+
+    freeImage();
 
     uint8* bmap;
     int n_w, n_h;
@@ -359,7 +359,6 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
         }
     }
 
-    freeImage();
 
     LAYOUT_RET ret;
     ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
@@ -411,10 +410,10 @@ Glyph::GY_ST_RET Graph::SetupGIF(LayoutManager& layout, FILE* fp){
     req_width   = global_IO.width;
     req_height  = global_IO.height;
 
-    LOG_EVENT("fill image.");
-    fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
-    LOG_EVENT("convert image.");
-    ConvertJPG((void*)output_image.data, req_width, req_height);
+//    LOG_EVENT("fill image.");
+//    fillImage(output_image.data, req_width, req_height, req_width * 2, 0, 0);
+//    LOG_EVENT("convert image.");
+    ConvertJPG((void*)getImage(), req_width, req_height);
 
     LOG_EVENT("resize image.");
     uint8* bmap;
@@ -535,7 +534,9 @@ void* Graph::ResizeImpl(void* bmap, int32 w_old, int32 h_old, int32 w_new, int32
 
 bool Graph::Draw(RenderMan& render){
     if (bitmap != NULL){
-        return render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
+        bool ret = render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
+        delete [] (uint8*)bitmap;
+        return ret;
     }
     else
         return false;

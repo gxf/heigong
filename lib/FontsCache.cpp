@@ -79,7 +79,7 @@ void * FontsCache::AquireMem(int size){
 }
 
 void FontsCache::ReleaseMem(char mem[]){
-    delete [] mem;
+    if (mem) delete [] mem;
 }
 
 void FontsCache::ForceEvict(){
@@ -87,6 +87,7 @@ void FontsCache::ForceEvict(){
 }
 
 void FontsCache::Evict(){
+    elems.erase(std::unique(elems.begin(),elems.end()), elems.end());
     std::vector<Char*>::iterator itr = elems.begin();
     while(itr != elems.end()){
         if(false == (*itr)->valid){

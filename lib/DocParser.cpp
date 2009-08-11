@@ -426,7 +426,7 @@ void DocParser::getStyle(int &ch, Attrib_Line & lineAttr){
                     else if(strcmp(align, "right") == 0){
                         lineAttr.align = A_RIGHT;
                     }
-                    delete align;
+                    delete [] align;
                 }
                 break;
             case 'l':
@@ -472,7 +472,7 @@ void DocParser::getGraphAttrib(int & ch, Graph & img){
                     // Note: User's resposibility to release string
                     char* pfile = getString(' ');  
                     img.SetSrcFile(pfile);
-                    delete pfile;
+                    delete [] pfile;
                 }
                 // Skip other labels
                 break;

@@ -14,7 +14,7 @@ static struct {
      const char *name;
 } ImageTypes[] = {
      {jpegLoad,	"JFIF style jpeg Image"},
-     {gifLoad,	"GIF Image"},
+//     {gifLoad,	"GIF Image"},
 //     {bmpLoad,	"Windows, OS/2 RLE Image"},
      {NULL,		NULL}
 };
@@ -78,13 +78,21 @@ STATUS loadImage(ImageOptions * image_ops)
      if(global_image==NULL)
          goto err;
 
+     global_image->data = NULL;
      for (a = 0; ImageTypes[a].loader; a++) {
 	    if(ImageTypes[a].loader((char*)fullname, image_ops)==OK)
 	       return OK;
      }
 
 err:
-     if(global_image) {free(global_image);global_image=NULL;}
+     if(global_image) {
+         if(global_image->data){
+             free(global_image->data);
+             global_image->data = NULL;
+         }
+         free(global_image);
+         global_image=NULL;
+     }
      if(rgb_row_buffer2) {free(rgb_row_buffer2);rgb_row_buffer2=NULL;}     
      if(rgb_row_buffer) {free(rgb_row_buffer);rgb_row_buffer=NULL;}
      if(row_buffer) {free(row_buffer);row_buffer=NULL;}
@@ -97,7 +105,14 @@ err:
  */
 STATUS freeImage()
 {
-     if(global_image) {free(global_image);global_image=NULL;}
+     if(global_image) {
+         if(global_image->data){
+             free(global_image->data);
+             global_image->data = NULL;
+         }
+         free(global_image);
+         global_image=NULL;
+     }
      if(rgb_row_buffer2) {free(rgb_row_buffer2);rgb_row_buffer2=NULL;}
      if(rgb_row_buffer) {free(rgb_row_buffer);rgb_row_buffer=NULL;}
      if(row_buffer) {free(row_buffer);row_buffer=NULL;}
