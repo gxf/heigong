@@ -874,6 +874,8 @@ void DocParser::skipTill(const char* tok[], int len){
 double DocParser::getFloat(int term){
     std::string str;
     int ch;
+    double base = 0.01;
+    bool dot_add = false;
     docStream >> ch;
     skipBlanks(ch);
     if ('\"' == ch){ 
@@ -881,12 +883,21 @@ double DocParser::getFloat(int term){
         docStream >> ch;
     }
     do{
-        str += (char)ch;
+        if ((char)ch != '.'){
+            str += (char)ch;
+        }
+        else{
+            dot_add = true;
+        }
         docStream >> ch;
+        if (true == dot_add)
+            base *= 10;
     }
     while(term != ch);
 
-    return std::strtod(str.c_str(), NULL);
+    long val = std::strtol(str.c_str(), '\0', 10);
+    return (double)val/base;
+//    return std::strtod(str.c_str(), NULL);
 }
 
 char* DocParser::getString(int term){

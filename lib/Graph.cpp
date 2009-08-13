@@ -289,7 +289,7 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
         for(i = h - 1;i >= 0 ; i--){
             p = (Color *)bmap[i];
             for(j = 0;j < w; j += channel){
-                *(uchar8*)nbmap = (6969 * (long int)p->R + 23434 * (long int)p->G + 2365 * (long int)p->B)/32768;
+                *(uchar8*)nbmap = (uchar8)((6969 * (long int)p->R + 23434 * (long int)p->G + 2365 * (long int)p->B)/32768);
                 nbmap++;
                 p++;
             }
@@ -304,7 +304,7 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
         for(i = h - 1; i >= 0; i--){
             pa = (Color_A*)bmap[i];
             for(j = 0; j < w; j += channel){
-                *(uchar8*)nbmap = (6969 * (long int)pa->R + 23434 * (long int)pa->G + 2365 * (long int)pa->B)/32768;
+                *(uchar8*)nbmap = (uchar8)((6969 * (long int)pa->R + 23434 * (long int)pa->G + 2365 * (long int)pa->B)/32768);
                 nbmap++;
                 pa++;
             }
