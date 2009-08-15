@@ -124,6 +124,11 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
         layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
                           glyphSlot->bitmap.rows, baseline);
     pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
+
+#ifdef NOGL
+    pos.y -= bitmap_h;
+#endif
+
     switch(ret){
         case LO_OK:
             layout.AddGlyph(this);

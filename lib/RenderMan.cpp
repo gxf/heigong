@@ -124,7 +124,11 @@ bool RenderMan::RenderHorizLine(int x, int y, uint32 width, uint32 length, Color
     uint8 line[width * length];
     memset(line, 0x0, sizeof(line));
 
+#ifndef NOGL
     Position pos(x, SCREEN_HEIGHT - y);
+#else
+    Position pos(x, y);
+#endif
     fb.Write(pos, length, width, line);
     return true;
 }
@@ -139,7 +143,11 @@ bool RenderMan::RenderVerticLine(int x, int y, uint32 width, uint32 length, Colo
     uint8 line[width * length];
     memset(line, 0x0, sizeof(line));
 
+#ifndef NOGL
     Position pos(x, SCREEN_HEIGHT - (y + length));
+#else
+    Position pos(x, y + length);
+#endif
     fb.Write(pos, width, length, line);
 
     return true;
@@ -175,7 +183,11 @@ bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap)
     LOG_EVENT(buf);
 #endif
 
+#ifndef NOGL
     Position pos(x, SCREEN_HEIGHT - y);
+#else
+    Position pos(x, y);
+#endif
     fb.Write(pos, width, height, pixmap);
     return true;
 }

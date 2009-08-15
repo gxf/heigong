@@ -67,8 +67,13 @@ bool Table_Data_Cell::Draw(RenderMan& render){
 bool Table_Data_Cell::DrawBorder(RenderMan& render){
     // Render column seperator
     Color col(255, 255, 255);
+#ifndef NOGL
     render.RenderVerticLine(borderPos.x, borderPos.y, borderSize, borderHeight, col);
     render.RenderVerticLine(borderPos.x + width, borderPos.y, borderSize, borderHeight, col);
+#else
+    render.RenderVerticLine(borderPos.x, borderPos.y - borderHeight, borderSize, borderHeight, col);
+    render.RenderVerticLine(borderPos.x + width, borderPos.y - borderHeight, borderSize, borderHeight, col);
+#endif
     return true;
 }
 

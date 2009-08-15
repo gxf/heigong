@@ -211,6 +211,10 @@ Glyph::GY_ST_RET Graph::SetupPNG(LayoutManager& layout, FILE* fp){
     LAYOUT_RET ret;
     ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
 
+#ifdef NOGL
+    pos.y -= bitmap_h;
+#endif
+
     printf("graph pos: x=%d, y=%d\n", pos.x, pos.y);
     switch(ret){
         case LO_OK:
@@ -241,7 +245,11 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
     if (channel == 3){
         bitmap = new uchar8[w * h / channel];
         uchar8* nbmap = (uchar8 *)bitmap;
-        for(i = h - 1;i >= 0 ; i--){
+#ifndef NOGL
+        for(i = h - 1;i >= 0; i--){
+#else
+        for(i = 0;i < h; i++){
+#endif
 #if 0
             p = (Color *)bmap[i];
             for(j = 0;j < w; j += channel){
@@ -265,7 +273,11 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
     else if (channel == 4){
         bitmap = new uchar8[w * h / channel];
         uchar8* nbmap = (uchar8 *)bitmap;
-        for(i = h - 1; i >= 0; i--){
+#ifndef NOGL
+        for(i = h - 1;i >= 0; i--){
+#else
+        for(i = 0;i < h; i++){
+#endif
             pa = (Color_A*)bmap[i];
             for(j = 0; j < w; j += channel){
                 *(uchar8*)nbmap = (uchar8)((6969 * (long int)pa->R + 23434 * (long int)pa->G + 2365 * (long int)pa->B)/32768);
@@ -326,6 +338,10 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
 
     LAYOUT_RET ret;
     ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
+
+#ifdef NOGL
+    pos.y -= bitmap_h;
+#endif
 
     LOG_EVENT_STR3("JPG position", pos.x, pos.y);
     switch(ret){
@@ -398,6 +414,10 @@ Glyph::GY_ST_RET Graph::SetupGIF(LayoutManager& layout, FILE* fp){
     LAYOUT_RET ret;
     ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
 
+#ifdef NOGL
+    pos.y -= bitmap_h;
+#endif
+
     LOG_EVENT_STR3("GIF position", pos.x, pos.y);
     switch(ret){
         case LO_OK:
@@ -429,13 +449,17 @@ void Graph::ConvertJPG(void* bmap, int w, int h){
     bitmap = new uchar8[w * h * channel];
     uchar8* nbmap = (uchar8 *)bitmap;
     
+#ifndef NOGL
     for(j = h - 1; j >= 0; j--){
-	for(i = 0; i < w; i ++){
-	    ind = j * w + i;
-	    color = *((uint16*)((uchar8*)bmap + ind * 2));
-	    r = (color & 0x1F)<<3;
-	    g = (color & 0x7E0)>>3;
-	    b = (color & 0xF800)>>8;
+#else
+    for(j = 0; j < h; j++){
+#endif
+        for(i = 0; i < w; i ++){
+            ind = j * w + i;
+            color = *((uint16*)((uchar8*)bmap + ind * 2));
+            r = (color & 0x1F)<<3;
+            g = (color & 0x7E0)>>3;
+            b = (color & 0xF800)>>8;
             *(uchar8*)nbmap = (6969 * (long int)r + 23434 * (long int)g + 2365 * (long int)b)/32768;
             nbmap++;
         }
