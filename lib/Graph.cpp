@@ -234,64 +234,28 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
     // Convert image from RGB to Grayscale
 
     bitmap = NULL;
-    Color* p = NULL;
+//    Color* p = NULL;
     Color_A * pa = NULL;
     int i = 0, j = 0;
-#if 0
-    switch(col_t){ 
-        case PNG_COLOR_TYPE_GRAY:
-            LOG_EVENT("Color need not to convert.");
-            break;
-        case PNG_COLOR_TYPE_PALETTE:
-            LOG_ERROR("Unsupported png color format conversion: PNG_COLOR_TYPE_PALETTE");
-            break;
-        case PNG_COLOR_TYPE_RGB:
-            bitmap = new uchar8[w * h];
-            for(;i < h ; i++){
-                p = (Color *)bmap[i];
-                for(;j < w; j += 3){
-                    *(uchar8*)bitmap = (6969 * (long int)p->R + 23434 * (long int)p->G + 2365 * (long int)p->B)/32768;
-                    printf("p: %x, R: %x, G: %x, B: %x, Gray: %x\n", (int)p, (int)p->R, (int)p->G, (int)p->B, *(uchar8*)bitmap);
-                    bitmap = (uchar8*)bitmap + 1;
-                    p++;
-                }
-            }
-            bitmap_w = w / 3;
-            bitmap_h = h;
-            LOG_EVENT("Color converted from RGB to Grayscale.");
-            break;
-        case PNG_COLOR_TYPE_RGB_ALPHA:
-            bitmap = new uchar8[w * h];
-            for(;i < h ; i++){
-                pa = (Color_A*)bmap[i];
-                for(;j < w; j += 4){
-                    *(uchar8*)bitmap = (6969 * (long int)pa->R + 23434 * (long int)pa->G + 2365 * (long int)pa->B)/32768;
-                    printf("pa: %x, R: %x, G: %x, B: %x, Gray: %x\n", (int)pa, (int)pa->R, (int)pa->G, (int)pa->B, *(uchar8*)bitmap);
-                    bitmap = (uchar8*)bitmap + 1;
-                    pa++;
-                }
-            }
-            bitmap_w = w / 4;
-            bitmap_h = h;
-            LOG_EVENT("Color converted from RGBA to Grayscale.");
-            break;
-        case PNG_COLOR_TYPE_GRAY_ALPHA:
-            LOG_ERROR("Unsupported png color format conversion: PNG_COLOR_TYPE_GRAY_ALPHA");
-            break;
-        default:
-            LOG_ERROR("Unsupported png color format.");
-            break;
-    }
-#endif
+
     if (channel == 3){
         bitmap = new uchar8[w * h / channel];
         uchar8* nbmap = (uchar8 *)bitmap;
         for(i = h - 1;i >= 0 ; i--){
+#if 0
             p = (Color *)bmap[i];
             for(j = 0;j < w; j += channel){
                 *(uchar8*)nbmap = (uchar8)((6969 * (long int)p->R + 23434 * (long int)p->G + 2365 * (long int)p->B)/32768);
                 nbmap++;
                 p++;
+            }
+#endif
+            // ARM fix: Arm doesn't support addressing 3 bytes offset from the base
+            uint8 * p = (uint8 *)bmap[i];
+            for(j = 0;j < w; j += channel){
+                *(uchar8*)nbmap = (uchar8)((6969 * (long int)p[0] + 23434 * (long int)p[1] + 2365 * (long int)p[2])/32768);
+                nbmap++;
+                p += 3;
             }
         }
         bitmap_w = w / channel;

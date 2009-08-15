@@ -491,7 +491,7 @@ void DocParser::ParseTable(int & ch){
     // Parse table attributes
     while('>' != ch){
         if (match_b("width=")){
-            uint32 tab_width = (uint32)(getFloat('\"') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL) / 100);
+            uint32 tab_width = (uint32)(getFloat('%') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL) / 100);
             tab->SetWidth(tab_width); 
             tab->SetOffset((SCREEN_WIDTH - 2 * MARGIN_VERTICAL -tab_width) / 2);
         }
@@ -872,32 +872,45 @@ void DocParser::skipTill(const char* tok[], int len){
 }
 
 double DocParser::getFloat(int term){
+    // ARM notice: strtod is not portable to ARM
     std::string str;
     int ch;
-    double base = 0.01;
-    bool dot_add = false;
+    uint32 base = 1;
+    int term_e = 0;
+    bool negative   = false;
+    bool dot_add    = false;
+
     docStream >> ch;
     skipBlanks(ch);
+
     if ('\"' == ch){ 
-        term = '\"';
+        term_e = '\"';
         docStream >> ch;
     }
+
     do{
-        if ((char)ch != '.'){
+        if ((char)ch == '-'){ negative = true; }
+        else if ((char)ch == '.'){ dot_add = true; }
+        else{
             str += (char)ch;
         }
-        else{
-            dot_add = true;
-        }
         docStream >> ch;
-        if (true == dot_add)
-            base *= 10;
+        if (true == dot_add){ base *= 10; }
     }
-    while(term != ch);
+    while(term != ch && term_e != ch);
+
+    // Set right stream position
+    if (term_e != term && '\"' == term_e){
+        while (ch != term_e)
+            docStream >> ch;
+    }
 
     long val = std::strtol(str.c_str(), '\0', 10);
-    return (double)val/base;
+    if (true == negative){
+        val = 0 - val;
+    }
 //    return std::strtod(str.c_str(), NULL);
+    return (double)(val * 10) / base;
 }
 
 char* DocParser::getString(int term){
