@@ -92,18 +92,18 @@ class Char: public Glyph{
                     pt(size)
                 {
                     if (NULL != n){
-                        name = std::string(n);
+//                        name = std::string(n);
                     }
                 }
             public:
                 ID(ID & id){
-                    name    = id.name;
+//                    name    = id.name;
                     pt      = id.pt;
                 }
 
                 ID & operator=(const ID & id){
                     if (this != &id){
-                        name    = id.name;
+//                        name    = id.name;
                         pt      = id.pt;
                     }
                     return *this;
@@ -114,7 +114,7 @@ class Char: public Glyph{
                 friend std::ofstream & operator<<(std::ofstream &ofs, ID & id);
 
             public:
-                std::string name;   // key to name
+//                std::string name;   // key to name
                 int         pt;
 
             private:
@@ -139,7 +139,7 @@ class Char: public Glyph{
         inline void SetBaseline(int b){ baseline = b; }
         inline void SetID(ID cid){ id = cid; }
         inline void SetSize(int s){ id.pt = s; }
-        inline void SetFont(const char* n) { id.name = std::string(n); }
+//        inline void SetFont(const char* n) { id.name = std::string(n); }
         inline void SetAttrib(Attrib_Glyph & attr){ attrib = attr; }
 
         inline void* GetBitmap() { return bitmap; }

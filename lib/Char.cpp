@@ -20,13 +20,13 @@ void Char::ClearCache(){
 uint32 Char::magic_num = 'c' + 'h' + 'a' + 'r';
 
 std::ifstream & operator>>(std::ifstream &ifs, Char::ID & id){
-    ifs >> id.name;
+//    ifs >> id.name;
     ifs >> id.pt;
     return ifs;
 }
 
 std::ofstream & operator<<(std::ofstream &ofs, Char::ID & id){ 
-    ofs << id.name; 
+//    ofs << id.name; 
     ofs << id.pt;
     return ofs;
 }
@@ -34,13 +34,15 @@ std::ofstream & operator<<(std::ofstream &ofs, Char::ID & id){
 Char::Char(Logger* log):
     Glyph(log), baseline(0), 
     encodeMode(EM_UTF_8), val(0), charLen(1),
-    id(NULL, 0), valid(true)
+    id(NULL, 0), 
+    valid(true)
 {}
 
 Char::Char(Logger* log, uint32 v):
     Glyph(log), baseline(0), 
     encodeMode(EM_UTF_8), val(v), charLen(1),
-    id(NULL, 0), valid(true)
+    id(NULL, 0), 
+    valid(true)
 {}
 
 Char::~Char(){

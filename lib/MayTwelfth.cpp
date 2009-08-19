@@ -23,8 +23,15 @@ May12th::~May12th(){
 void May12th::Init(uint32 fontSize){
     if (false == inited){
         ctx->render.Init();
-        if (false == ctx->docParse.Init(filename, convert, bgMode)){
-            exit(0);
+        if (true == slMode){
+            if (false == ctx->docParse.Init((std::string(work_dir) + std::string(DEFAULT_TMP_FILE_NAME)).c_str(), convert, bgMode)){
+                exit(0);
+            }
+        }
+        else{
+            if (false == ctx->docParse.Init(filename, convert, bgMode)){
+                exit(0);
+            }
         }
         ctx->layout.NewPage();
         ctx->layout.SetLineSpacing(fontSize/4);
@@ -57,7 +64,9 @@ bool May12th::StartBackGround(){
 bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                       uint32 * depth, void** img){
     if (true == slMode){
-        *img = SerializedDisplay(page_num);
+        if (NULL == (*img = SerializedDisplay(page_num))){
+            return false;
+        }
         return true;
     }
     if((int)page_num > ctx->pgMgr.GetMaxPageNum()){

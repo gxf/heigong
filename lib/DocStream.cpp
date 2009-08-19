@@ -277,12 +277,6 @@ DocStream & DocStream::operator<<(Char & ch){
 void DocStream::SetOffset(long int off){
     if (false == bgMode){
         if (fd){
-#if 0
-            if (0 == off){
-                rewind(fd);
-            }
-#endif
-    printf("ftell: %ld, file_off: %ld", ftell(fd), file_off);
             if (-1 == fseek(fd, off, SEEK_SET)){
                 LOG_ERROR("fail to seek offset in file.");
                 printf("offset: %ld\n", off);

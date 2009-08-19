@@ -42,7 +42,7 @@ static unsigned char head_data[15] = {
 static bool TestBasicRoutine(const char* filename){
     hHgMaster hHG;
 	char name[100];
-    if(!(hHG = HG_Init(filename, work_dir, true, 600, 800))){
+    if(!(hHG = HG_Init(filename, work_dir, false, 600, 800))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -88,6 +88,61 @@ static bool TestBasicRoutine(const char* filename){
 		fwrite((char*)pPage->img, 1, pPage->height*pPage->width, fd);
 		fclose(fd);
         ++page_num;
+        HG_FreePage(hHG, pPage);
+    }
+    if(!HG_Term(hHG)){
+        std::cout << "Fail to term engine" << std::endl;
+        return false; 
+    }
+
+    // 
+    //
+    // This time, use the info generated.
+    //
+    //
+    if(!(hHG = HG_Init(filename, work_dir, true, 600, 800))){
+        std::cout << "Fail to init engine."
+            << std::endl;
+        return false;
+    }
+    if(!(HG_StartParse(hHG))){
+        std::cout << "Fail to start parsing." 
+            << std::endl;
+        HG_Term(hHG);
+        return false;
+    }
+	
+    p = ( char* )filename + strlen( filename );
+    i = strlen(filename);
+	while(i--){
+		if( *p == '/' ){
+			p++;
+			break;
+		}
+		if( *p == '.' ){
+			*p = 0;
+		}
+		p--;
+	}
+	
+	memset(name, 0, sizeof(name));
+	sprintf(name, "%s-%05d.pgm", p,0);
+	printf("open file:%s\n",name);
+    while(page_num > 0 && (NULL != (pPage = HG_GetPage(hHG, page_num)))){
+		memset(name, 0, sizeof(name));
+		sprintf(name,"%s_%05d.pgm",p,page_num);
+        // Replace me to do whatever you want
+        std::cout << "***************************************Got page**************************************** " << page_num
+            << std::endl;
+		fd = fopen(name, "wb");
+		if( fd == NULL ){
+			printf("file open error:%s\n",name);
+			break;
+		}
+		fwrite(head_data, 1, sizeof(head_data), fd);
+		fwrite((char*)pPage->img, 1, pPage->height*pPage->width, fd);
+		fclose(fd);
+        --page_num;
         HG_FreePage(hHG, pPage);
     }
     if(!HG_Term(hHG)){
