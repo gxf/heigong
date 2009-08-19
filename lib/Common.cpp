@@ -17,7 +17,7 @@ std::ifstream & operator>>(std::ifstream & ifs, Attrib_Glyph & ag){
     ifs >> ag.bold;
     ifs >> ag.italic;
     ifs >> ag.size;
-    ifs >> ag.font;
+//    ifs >> ag.font;
     return ifs;
 }
 
@@ -25,7 +25,7 @@ std::ofstream & operator<<(std::ofstream & ofs, Attrib_Glyph & ag){
     ofs << ag.bold;
     ofs << ag.italic;
     ofs << ag.size;
-    ofs << ag.font;
+//    ofs << ag.font;
     return ofs;
 }
 

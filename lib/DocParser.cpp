@@ -3,6 +3,7 @@
 #include "TableLayout.h"
 #include "DocParser.h"
 #include <stdlib.h>
+#include <string>
 #include <cstring>
 #include <cstdlib>
 #include <fstream>
@@ -14,7 +15,7 @@
 
 DocParser::DocParser(Logger* log):
     listMode(LM_NONE), headerMode(false),
-    docStream(log), 
+    docStream(log, (std::string(work_dir)+std::string(DEFAULT_TMP_FILE_NAME)).c_str()), 
     logger(log)
 {}
 
@@ -387,7 +388,7 @@ void DocParser::getMyFont(int &ch, Attrib_Glyph & glyphAttr){
             case 'n':
                 if (match("ame") && match_b("=")){
                     // TODO: FONT translate
-                    glyphAttr.font = "";
+//                    glyphAttr.font = "";
                 }
                 break;
             case 's':

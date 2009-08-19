@@ -11,9 +11,11 @@
 #include <iostream>
 #include <unistd.h>
 
+char* work_dir = DEFAULT_WORK_DIR;
 static Logger* logger;
+static bool direct = false;
 
-hHgMaster HG_Init(const char* file, uint32 screen_width, uint32 screen_height){
+hHgMaster HG_Init(const char* file, const char* path, bool render_only, uint32 screen_width, uint32 screen_height){
     // Negtive number protector
     if (screen_width > 10000 || screen_height > 10000){
         return NULL;
@@ -22,17 +24,27 @@ hHgMaster HG_Init(const char* file, uint32 screen_width, uint32 screen_height){
     if (!logger){
         return NULL;
     }
-    May12th * engine = new May12th(logger, file, true);
+    direct = render_only;
+    work_dir = new char8[std::strlen(path) + 1];
+    std::memcpy(work_dir, path, std::strlen(path) + 1);
+
+    May12th * engine = new May12th(logger, file, !render_only);
     if (!engine){
         delete logger;
         return NULL;
     }
+
     return reinterpret_cast<hHgMaster>(engine);
 }
 
 bool HG_StartParse(hHgMaster hHG){
     May12th * engine = reinterpret_cast<May12th*>(hHG);
-    return engine->StartBackGround();
+    if (!direct){
+        return engine->StartBackGround();
+    }
+    else{
+        return engine->StartForeGround();
+    }
 }
 
 p_page_info HG_GetPage(hHgMaster hHG, uint32 pg_num){

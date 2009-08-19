@@ -56,13 +56,13 @@ bool DocStream::OpenFile(const char* filename, bool background){
     char cmd[strlength];
     std::memset(cmd, 0x0, strlength);
     if (false == bgMode){
-        sprintf(cmd, "./wvWare -x ./wvHtml.xml -d ./wvTmp -b wvImage %s > %s", filen, tmpFile);
+        sprintf(cmd, "./wvWare -x ./wvHtml.xml -d %s -b wvImage %s > %s", work_dir, filen, tmpFile);
         LOG_EVENT(cmd); 
         system(cmd); 
         return OpenFileDirect(tmpFile);
     }
     else{
-        sprintf(cmd, "./wvWare -x ./wvHtml.xml -d ./wvTmp -b wvImage %s | tee %s", filen, tmpFile);
+        sprintf(cmd, "./wvWare -x ./wvHtml.xml -d %s -b wvImage %s | tee %s", work_dir, filen, tmpFile);
         LOG_EVENT(cmd);
 
         // Open pipe for processing
@@ -277,6 +277,12 @@ DocStream & DocStream::operator<<(Char & ch){
 void DocStream::SetOffset(long int off){
     if (false == bgMode){
         if (fd){
+#if 0
+            if (0 == off){
+                rewind(fd);
+            }
+#endif
+    printf("ftell: %ld, file_off: %ld", ftell(fd), file_off);
             if (-1 == fseek(fd, off, SEEK_SET)){
                 LOG_ERROR("fail to seek offset in file.");
                 printf("offset: %ld\n", off);

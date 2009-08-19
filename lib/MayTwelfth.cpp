@@ -9,7 +9,7 @@ const int May12th::screen_width = SCREEN_WIDTH;
 const int May12th::screen_height= SCREEN_HEIGHT;
 
 May12th::May12th(Logger* log, const char* fn, bool conv):
-    inited(false), convert(conv), bgMode(false),
+    inited(false), convert(conv), bgMode(false), slMode(false),
     filename(fn), encoding(EM_UTF_8), ctx(NULL), logger(log)
 {
     ctx = new Context(log, screen_width, screen_height);
@@ -40,14 +40,26 @@ void May12th::RenderAll(){
     }
 }
 
+bool May12th::StartForeGround(){
+    bgMode = false;
+    slMode = true;
+    Init(DEFAULT_FONT_SIZE);
+    return true;
+}
+
 bool May12th::StartBackGround(){
     bgMode = true;
+    slMode = false;
     Init(DEFAULT_FONT_SIZE);
     return true;
 }
 
 bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                       uint32 * depth, void** img){
+    if (true == slMode){
+        *img = SerializedDisplay(page_num);
+        return true;
+    }
     if((int)page_num > ctx->pgMgr.GetMaxPageNum()){
         *width  = 0;
         *height = 0;
@@ -172,6 +184,75 @@ void* May12th::Display(int page_num){
                         else
                             img = ctx->render.Flush(&ctx->bufMgr);
                         ctx->pgMgr.EndPage(page_num, &ctx->render);
+                        Char::ClearCache();
+                        finished = true;
+                        break;
+                    case Glyph::GY_ERROR:
+                        LOG_ERROR("Internal error.");
+//                        finished = true;
+                        break;
+                    default:
+                        LOG_ERROR("Unsupported setting up return value of glyph.");
+                        finished = true;
+                        break;
+                }
+            case DocParser::DP_EOF:
+//                finished = true;
+                break;
+            case DocParser::DP_INVALID:
+                LOG_ERROR("DocParser return invalid stream!");
+//                finished = true;
+                break;
+            case DocParser::DP_ERROR:
+                LOG_ERROR("DocParser return parse error!");
+//                finished = true;
+                break;
+            default:
+                LOG_ERROR("Unsupported DocParser return type!");
+//                finished = true;
+                break;
+        }
+    }
+    return img;
+}
+
+void* May12th::SerializedDisplay(int page_num){
+    ctx->layout.Reset();
+    ctx->pgMgr.RestorePage(page_num);
+
+    ctx->render.Clear();
+
+    Glyph* glyph;
+    DocParser::DP_RET_T dp_ret = DocParser::DP_OK;
+
+    bool finished = false;
+    void* img = NULL;
+    while(!finished){
+        dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->layout);
+        Glyph::GY_ST_RET gy_ret = Glyph::GY_OK; 
+        Table* tab = NULL;
+        switch(dp_ret){
+            case DocParser::DP_OK:
+                gy_ret = glyph->Setup(ctx->layout);
+                tab = dynamic_cast<Table *>(glyph);
+                switch(gy_ret){
+                    case Glyph::GY_OK:
+                        // Table render is trigered here
+                        if (tab){ tab->Draw(ctx->render); }
+                        break;
+                    case Glyph::GY_NEW_PAGE:
+                        // Table render is trigered here
+                        if (tab){ tab->Draw(ctx->render); }
+                        img = ctx->render.Flush(&ctx->bufMgr);
+    //                    ctx->pgMgr.EndPage(page_num, &ctx->render);
+                        Char::ClearCache();
+                        finished = true;
+                        break;
+                    case Glyph::GY_EOF:
+     //                   ctx->pgMgr.SetMaxPageNum(page_num);
+                        ctx->layout.curLine->DrawFlush(&ctx->render);
+                        img = ctx->render.Flush(&ctx->bufMgr);
+//                        ctx->pgMgr.EndPage(page_num, &ctx->render);
                         Char::ClearCache();
                         finished = true;
                         break;

@@ -4,11 +4,13 @@
 #include <fstream>
 #include <string>
 
+typedef long long int64;
 typedef int    int32;
 typedef short  int16;
 typedef char   char8; 
 typedef char8  int8; 
 
+typedef unsigned long long uint64;
 typedef unsigned int    uint32;
 typedef unsigned short  uint16;
 typedef unsigned char   uchar8; 
@@ -42,6 +44,60 @@ class Position{
 
 };
 
+#if 0
+class hgFloat{
+    public:
+        hgFloat(int64 v = 0, uint32 b = 0): val(v), base(b){}
+
+    public:
+        int32 operator int32(){
+            return (int32)(val / base);
+        }
+
+        inline hgFloat operator+(hgFloat& f){
+            hgFloat ret;
+            if (f.base > base){
+                ret.base = base;
+                ret.val = f.base * f.val / base + val;
+            }
+            else if (f.base == base){
+                ret.base = base;
+                ret.val = f.val + val;
+            }
+            else{
+                ret.base = f.base;
+                ret.val = base * val / f.base + f.val;
+            }
+            return ret;
+        }
+
+        inline hgFloat operator-(hgFloat& f){
+            hgFloat ret;
+            if (f.base > base){
+                ret.base = base;
+                ret.val = val - f.base * f.val / base;
+            }
+            else if (f.base == base){
+                ret.base = base;
+                ret.val = val - f.val;
+            }
+            else{
+                ret.base = f.base;
+                ret.val = base * val / f.base - f.val;
+            }
+            return ret;
+        }
+
+        inline hgFloat operator*(int32& d){
+        }
+
+        hg
+    public:
+        int64   val;
+        uint32  base;
+};
+#endif
+
 // Attributes for line
 enum ALIGNMENT{
     A_LEFT = 0,
@@ -54,11 +110,11 @@ class Attrib_Glyph{
         bool bold;
         bool italic;
         int  size;
-        std::string font;
+//        std::string font;
 
     public:
         Attrib_Glyph():
-          bold(false), italic(false), size(0), font("")
+          bold(false), italic(false), size(0)//, font("")
         {}
 
         // Trivial consturctor & copy constructor;
@@ -68,7 +124,7 @@ class Attrib_Glyph{
             bold    = false; 
             italic  = false;
             size    = 0;
-            font.clear();
+//            font.clear();
         }
 
     public:
@@ -124,11 +180,14 @@ enum ENCODING_MODE{
 #define DEFAULT_FONT    "/usr/share/fonts/truetype/ttf-droid/DroidSansFallback.ttf"
 #define DEFAULT_FONT_SIZE   12
 
-#define DEFAULT_RESERVED_PAGE   8
-#define DEFAULT_MAX_PAGE_SIZE   0x800000
+#define DEFAULT_RESERVED_PAGE       8
+#define DEFAULT_MAX_PAGE_SIZE       0x800000
 #define DEFAULT_FONTS_CACHE_SIZE    1024*1024
 
 #define DEFAULT_TMP_FILE_NAME   "tmp.hg"
+#define DEFAULT_WORK_DIR        "./"
+
+extern char* work_dir;
 #endif
 
 

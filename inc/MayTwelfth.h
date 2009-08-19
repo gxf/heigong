@@ -19,11 +19,13 @@ class May12th{
         void MainLoop();
 //        void PerCharDisplay(int page_num);
         void* Display(int page_num);
+        void* SerializedDisplay(int page_num);
 
         inline Context* GetContext(){ return ctx; }
 
     public:
         void RenderAll();
+        bool StartForeGround();
         bool StartBackGround();
         bool GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                      uint32 * depth, void** img);
@@ -44,6 +46,7 @@ class May12th{
         bool            inited;     // Status to show if engine is inited
         bool            convert;    // Need html conversion
         bool            bgMode;     // Background Mode
+        bool            slMode;     // Serialized Mode
         const char*     filename;
         ENCODING_MODE   encoding;
 

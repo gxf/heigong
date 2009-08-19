@@ -45,7 +45,7 @@ int PageManager::RepeatPage(){
 void PageManager::StartPage(){
     HDocState docState = docParser.ShadowDocState();
     static char dbuf[100];
-    sprintf(dbuf, "%d\0", numToRender);
+    sprintf(dbuf, "%s%d\0", work_dir, numToRender);
     std::string pers_page(dbuf);
     pers_page += ".pg";
     docState->StoreState(pers_page.c_str());
@@ -79,7 +79,7 @@ void PageManager::EndPage(int page_num, RenderMan* render){
 bool PageManager::RestorePage(int page_num){
     HDocState hds = new DocState(logger);
     static char dbuf[100];
-    sprintf(dbuf, "%d\0", page_num);
+    sprintf(dbuf, "%s%d\0", work_dir, page_num);
     std::string pers_page(dbuf);
     pers_page +=  ".pg";
     hds ->RecoverState(pers_page.c_str());

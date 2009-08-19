@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include <stdio.h>
+#include <cstring>
 #include <stack>
 
 class Char;
@@ -10,12 +11,19 @@ class Logger;
 
 class DocStream{
     public:
-        DocStream(Logger * log, const char * tmpfilen = DEFAULT_TMP_FILE_NAME):
-            tmpFile(tmpfilen), fd(NULL), fileEnds(false), 
+        DocStream(Logger * log, const char * tmpfilen = DEFAULT_WORK_DIR DEFAULT_TMP_FILE_NAME):
+            tmpFile(NULL), fd(NULL), fileEnds(false), 
             bg_pipe_fd(NULL), bg_file_fd(NULL), bgMode(false),
             file_off(0), bg_off(0), logger(log)
-        {}
+        {
+            tmpFile = new char8(std::strlen(tmpfilen) + 1);
+            std::memcpy((void*)tmpFile, tmpfilen, std::strlen(tmpfilen) + 1); 
+        }
         ~DocStream(){
+            if (tmpFile){
+                delete [] tmpFile;
+                tmpFile = NULL;
+            }
             if(fd){ CloseFile(); }
         }
 
@@ -46,8 +54,8 @@ class DocStream{
         void AdjustCmd(char*cmd, int length);
 
     private:
-        const char*         tmpFile;
-        FILE*               fd;
+        char*   tmpFile;
+        FILE*   fd;
         bool                fileEnds;
 
         // Background mode related
