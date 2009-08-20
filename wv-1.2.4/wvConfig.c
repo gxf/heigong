@@ -1103,7 +1103,9 @@ exstartElement (void *userData, const char *name, const char **atts)
 
               int justification = ((PAP *) (mydata->props))->jc;
 
-              sprintf (indent, "%.2fmm", (double) wvTwipsToMM ( (S16) ((PAP *) (mydata->props))->dxaLeft1));
+              char tmp[100] = {0};
+              f2s(wvTwipsToMM ( (S16) ((PAP *) (mydata->props))->dxaLeft1), tmp);
+              sprintf (indent, "%smm", tmp);
 
               switch (justification) {
               case 2:
@@ -1116,10 +1118,11 @@ exstartElement (void *userData, const char *name, const char **atts)
                   strcpy(align, "left");
               }
 
-              if (wvTwipsToMM (((PAP *) (mydata->props))->lspd.dyaLine))
-                  sprintf (height, "%fmm",
-		       fabs (wvTwipsToMM
-			     (((PAP *) (mydata->props))->lspd.dyaLine)));
+              if (wvTwipsToMM (((PAP *) (mydata->props))->lspd.dyaLine)){
+                  char tmp[100] = {0};
+                  f2s(fabs (wvTwipsToMM (((PAP *) (mydata->props))->lspd.dyaLine)), tmp);
+                  sprintf (height, "%smm", tmp);
+              }
               else
                   strcpy (height, "normal");
 

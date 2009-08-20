@@ -120,3 +120,22 @@ main (int argc, char *argv[])
     wvOLEFree (&ps);
     return 0;
 }
+
+void f2s(float val, char* str){
+    /* Notice: the str must be long enough */
+    int dp_pos = 0; /* Decimal point position */
+
+    while (val - (int)val > 0){
+        val *= 10;
+        dp_pos++;
+    }
+    sprintf(str, "%d", (int)val);
+    int len = strlen(str);
+    char* p = str;
+    int i = len + 1;
+    while (i > dp_pos){
+        str[i] = str[i - 1];
+    }
+    str[dp_pos] = '.';
+    str[len + 2] = '\0';
+}

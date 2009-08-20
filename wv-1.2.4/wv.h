@@ -4775,6 +4775,7 @@ has got
 /* & finally */
     extern const char* wv_version;
 	
+    void f2s(float val, char* str);
 #ifdef __cplusplus
 }
 #endif

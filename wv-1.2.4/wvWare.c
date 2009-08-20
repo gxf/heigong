@@ -1910,3 +1910,72 @@ char * name_to_url (char * name)
 
   return (url);
 }
+
+
+#if 0
+void f2s(float val, char* str){
+    /* Notice: the str must be long enough */
+    int dp_pos = 0; /* Decimal point position */
+
+    while (val - (int)val > 0){
+        val = val * 10;
+        dp_pos++;
+    }
+    sprintf(str, "%d", (int)val);
+    int len = strlen(str);
+    char* p = str;
+    int i = len + 1;
+    while (i > dp_pos){
+        str[i] = str[i - 1];
+    }
+    str[dp_pos] = '.';
+    str[len + 2] = '\0';
+#endif
+void f2s(float db,char *db_str){
+    int   DecP=1,loop;  
+    float _db;  
+    int   db_arr[17];  
+    if(db>=0.0)
+    {  
+        while(db>=10.0)
+        {  
+            DecP++;  
+            db/=10;  
+        }  
+        for(loop=0;loop<17;loop++)  
+        {  
+            if(loop==DecP)  
+            {  
+                db_arr[loop]=-2;
+                continue;  
+            }  
+            db_arr[loop]=(int)db;  
+            db-=db_arr[loop];  
+            db*=10.0;  
+        }  
+        for(loop=0;loop<17;loop++)  
+            db_str[loop]=db_arr[loop]+48;      
+    }  
+    else
+    {  
+        _db=-db;  
+        while(_db>=10.0)  
+        {  
+            DecP++;  
+            _db/=10;  
+        }  
+        for(loop=0;loop<17;loop++)  
+        {  
+            if(loop==DecP)  
+            {  
+                db_arr[loop]=-2;  
+                continue;  
+            }  
+            db_arr[loop]=(int)(_db);  
+            _db-=db_arr[loop];  
+            _db*=10.0;  
+        }  
+        for(loop=0;loop<17;loop++)  
+            db_str[loop]=db_arr[loop]+48;      
+    }    
+}   
