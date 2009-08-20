@@ -33,7 +33,13 @@ void DocStream::AdjustCmd(char* cmd, int length){
 }
 
 bool DocStream::OpenFileDirect(const char* filename){
-    if(!(fd = fopen(filename, "r"))){
+    uint32 retry = 10;
+    // Sync for fd ready
+    while(!(fd = fopen(filename, "r")) && retry >= 0){
+        usleep(TIME_WAIT);
+        retry--;
+    }
+    if (!fd){
         LOG_ERROR("fail to open doc file.");
         return false;
     }
@@ -65,12 +71,25 @@ bool DocStream::OpenFile(const char* filename, bool background){
         sprintf(cmd, "./wvWare -x ./wvHtml.xml -d %s -b wvImage %s | tee %s", work_dir, filen, tmpFile);
         LOG_EVENT(cmd);
 
+        uint8 retry = 10;
+
         // Open pipe for processing
-        if (!(bg_pipe_fd = popen(cmd, "r"))){
+        // Sync for pipe fd ready
+        while (!(bg_pipe_fd = popen(cmd, "r")) && retry >= 0){
+            usleep(TIME_WAIT);
+            retry--;
+        }
+        if (!bg_pipe_fd){
             LOG_ERROR("Fail to open pipe.");
             return false;
         }
-        if (!(bg_file_fd = fopen(tmpFile, "r"))){
+        retry = 10;
+        // Sync for file fd ready
+        if (!(bg_file_fd = fopen(tmpFile, "r")) && retry >= 0){
+            usleep(TIME_WAIT);
+            retry--;
+        }
+        if (!bg_file_fd){
             LOG_ERROR("Fail to open tmp file.");
             return false;
         }

@@ -187,6 +187,8 @@ enum ENCODING_MODE{
 #define DEFAULT_TMP_FILE_NAME   "tmp.hg"
 #define DEFAULT_WORK_DIR        "./"
 
+#define TIME_WAIT   100
+
 extern char* work_dir;
 #endif
 

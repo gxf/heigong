@@ -15,7 +15,8 @@ uint32 Graph::magic_num = 'g' + 'r' + 'a' + 'p' + 'h';
 Graph::Graph(Logger* log):
     Glyph(log), file_name(NULL), file_path(NULL)
 {
-    file_path = (char*)"./";
+    file_path = new int8[std::strlen(work_dir) + 1];
+    std::memcpy(file_path, work_dir, std::strlen(work_dir) + 1);
 }
 
 Graph::~Graph(){
@@ -24,6 +25,10 @@ Graph::~Graph(){
     }
     if (bitmap != NULL){
         delete [] (char*)bitmap;
+    }
+    if (file_path != NULL){
+        delete [] (int8*)file_path;
+        file_path = NULL;
     }
 }
 
