@@ -33,7 +33,7 @@ void DocStream::AdjustCmd(char* cmd, int length){
 }
 
 bool DocStream::OpenFileDirect(const char* filename){
-    uint32 retry = 10;
+    int32 retry = TIMES_RETRY;
     // Sync for fd ready
     while(!(fd = fopen(filename, "r")) && retry >= 0){
         usleep(TIME_WAIT);
@@ -71,7 +71,7 @@ bool DocStream::OpenFile(const char* filename, bool background){
         sprintf(cmd, "./wvWare -x ./wvHtml.xml -d %s -b wvImage %s | tee %s", work_dir, filen, tmpFile);
         LOG_EVENT(cmd);
 
-        uint8 retry = 10;
+        int32 retry = TIMES_RETRY;
 
         // Open pipe for processing
         // Sync for pipe fd ready
@@ -83,7 +83,7 @@ bool DocStream::OpenFile(const char* filename, bool background){
             LOG_ERROR("Fail to open pipe.");
             return false;
         }
-        retry = 10;
+        retry = TIMES_RETRY;
         // Sync for file fd ready
         if (!(bg_file_fd = fopen(tmpFile, "r")) && retry >= 0){
             usleep(TIME_WAIT);
@@ -141,14 +141,17 @@ bool DocStream::CloseFile()
     }
 
     fd = NULL;
-    char cmd[100];
-    sprintf(cmd, "rm -f %s", tmpFile);
-    LOG_EVENT(cmd);
+    // For debug only
+    if (!bgMode){
+        char cmd[100];
+        sprintf(cmd, "rm -f %s", tmpFile);
+        LOG_EVENT(cmd);
 
-//    system(cmd);
-    sprintf(cmd, "rm -f *.png *.jpg *.emf *.wmf *.pg");
-    LOG_EVENT(cmd);
-    system(cmd);
+        //    system(cmd);
+        sprintf(cmd, "rm -f *.png *.jpg *.emf *.wmf *.pg");
+        LOG_EVENT(cmd);
+        system(cmd);
+    }
     return true;
 }
 

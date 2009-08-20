@@ -5,14 +5,11 @@
 #include <cstring>
 #include <cassert>
 
-const int May12th::screen_width = SCREEN_WIDTH;
-const int May12th::screen_height= SCREEN_HEIGHT;
-
 May12th::May12th(Logger* log, const char* fn, bool conv):
     inited(false), convert(conv), bgMode(false), slMode(false),
     filename(fn), encoding(EM_UTF_8), ctx(NULL), logger(log)
 {
-    ctx = new Context(log, screen_width, screen_height);
+    ctx = new Context(log, scr_width, scr_height);
 }
 
 May12th::~May12th(){

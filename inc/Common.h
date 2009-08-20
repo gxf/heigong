@@ -166,8 +166,8 @@ enum ENCODING_MODE{
 #define MARGIN_VERTICAL     30
 #define MARGIN_HORIZONTAL   30
 
-#define PAGE_WIDTH (SCREEN_WIDTH - 2 * MARGIN_HORIZONTAL)
-#define PAGE_HEIGHT (SCREEN_HEIGHT - 2 * MARGIN_VERTICAL)
+#define PAGE_WIDTH  (scr_width - 2 * MARGIN_HORIZONTAL)
+#define PAGE_HEIGHT (scr_height - 2 * MARGIN_VERTICAL)
 
 #define TABLE_MARGIN_VERTICAL     0
 #define TABLE_MARGIN_HORIZONTAL   2
@@ -187,9 +187,13 @@ enum ENCODING_MODE{
 #define DEFAULT_TMP_FILE_NAME   "tmp.hg"
 #define DEFAULT_WORK_DIR        "./"
 
-#define TIME_WAIT   100
+#define TIME_WAIT   1000
+#define TIMES_RETRY 100
 
 extern char* work_dir;
+extern uint32 scr_width;
+extern uint32 scr_height;
+
 #endif
 
 

@@ -492,9 +492,9 @@ void DocParser::ParseTable(int & ch){
     // Parse table attributes
     while('>' != ch){
         if (match_b("width=")){
-            uint32 tab_width = (uint32)(getFloat('%') * (SCREEN_WIDTH - 2 * MARGIN_VERTICAL) / 100);
+            uint32 tab_width = (uint32)(getFloat('%') * (scr_width - 2 * MARGIN_VERTICAL) / 100);
             tab->SetWidth(tab_width); 
-            tab->SetOffset((SCREEN_WIDTH - 2 * MARGIN_VERTICAL -tab_width) / 2);
+            tab->SetOffset((scr_width - 2 * MARGIN_VERTICAL -tab_width) / 2);
         }
         else if (match_b("border=")){
             tab->SetBorder(getInteger());

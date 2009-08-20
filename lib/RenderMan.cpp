@@ -125,7 +125,7 @@ bool RenderMan::RenderHorizLine(int x, int y, uint32 width, uint32 length, Color
     memset(line, 0x0, sizeof(line));
 
 #ifndef NOGL
-    Position pos(x, SCREEN_HEIGHT - y);
+    Position pos(x, scr_height - y);
 #else
     Position pos(x, y);
 #endif
@@ -144,7 +144,7 @@ bool RenderMan::RenderVerticLine(int x, int y, uint32 width, uint32 length, Colo
     memset(line, 0x0, sizeof(line));
 
 #ifndef NOGL
-    Position pos(x, SCREEN_HEIGHT - (y + length));
+    Position pos(x, scr_height - (y + length));
 #else
     Position pos(x, y + length);
 #endif
@@ -184,7 +184,7 @@ bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap)
 #endif
 
 #ifndef NOGL
-    Position pos(x, SCREEN_HEIGHT - y);
+    Position pos(x, scr_height - y);
 #else
     Position pos(x, y);
 #endif
@@ -198,7 +198,7 @@ bool RenderMan::RenderPixMap(int x, int y, int width, int height, void* pixmap){
     LOG_EVENT(buf);
 #if 0
     glColor3f(1.0f, 1.0f, 0.0f);
-    glWindowPos2i(x, SCREEN_HEIGHT - y);
+    glWindowPos2i(x, scr_height - y);
     glDrawPixels(width, height, GL_RGB, GL_UNSIGNED_BYTE, (GLubyte*)pixmap);
 #endif
 
@@ -250,14 +250,14 @@ void* RenderMan::Flush(BufferManager * bufMgr){
 }
 
 void RenderMan::GetFBSize(Page* pg){
-    pg -> SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+    pg -> SetSize(scr_width, scr_height);
 }
 
 void RenderMan::GetFrameBuffer(Page* pg){
 #ifndef RENDER2FILE
     glFlush();
 //    glReadBuffer(GL_FRONT);
-    glReadPixels(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_LUMINANCE, GL_UNSIGNED_BYTE, pg -> GetFB());
+    glReadPixels(0, 0, scr_width, scr_height, GL_LUMINANCE, GL_UNSIGNED_BYTE, pg -> GetFB());
 #endif
 }
 

@@ -11,7 +11,10 @@
 #include <iostream>
 #include <unistd.h>
 
-char* work_dir = DEFAULT_WORK_DIR;
+// Global variable
+char* work_dir      = DEFAULT_WORK_DIR;
+uint32 scr_width    = SCREEN_WIDTH;
+uint32 scr_height   = SCREEN_HEIGHT;
 static Logger* logger;
 static bool direct = false;
 
@@ -20,6 +23,8 @@ hHgMaster HG_Init(const char* file, const char* path, bool render_only, uint32 s
     if (screen_width > 10000 || screen_height > 10000){
         return NULL;
     }
+    scr_width  = screen_width;
+    scr_height = screen_height;
     logger = new Logger;
     if (!logger){
         return NULL;

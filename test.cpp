@@ -6,6 +6,10 @@
 #include <stdio.h>
 
 static const char * work_dir = "/tmp/";
+static const uint32 page_w = 600;
+static const uint32 page_h = 800;
+//static const uint32 page_w = 768;
+//static const uint32 page_h = 1024;
 
 static bool TestStartTerm(const char* filename){
     hHgMaster hHG;
@@ -42,7 +46,7 @@ static unsigned char head_data[15] = {
 static bool TestBasicRoutine(const char* filename){
     hHgMaster hHG;
 	char name[100];
-    if(!(hHG = HG_Init(filename, work_dir, false, 600, 800))){
+    if(!(hHG = HG_Init(filename, work_dir, false, page_w, page_h))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -100,7 +104,7 @@ static bool TestBasicRoutine(const char* filename){
     // This time, use the info generated.
     //
     //
-    if(!(hHG = HG_Init(filename, work_dir, true, 600, 800))){
+    if(!(hHG = HG_Init(filename, work_dir, true, page_w, page_h))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;

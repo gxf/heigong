@@ -39,10 +39,6 @@ class May12th{
 //        bool RenderChar(Char &);
 
     private:
-        const static int screen_width;
-        const static int screen_height;
-
-    private:
         bool            inited;     // Status to show if engine is inited
         bool            convert;    // Need html conversion
         bool            bgMode;     // Background Mode
