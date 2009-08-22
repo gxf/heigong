@@ -25,7 +25,7 @@ typedef struct{
 // RETURN:
 //     Handler to engine context - if success
 //     NULL - if fails
-hHgMaster HG_Init(const char* file, const char* path, bool render_only, uint32 screen_width, uint32 screen_height);
+hHgMaster HG_Init(const char* file, const char* path, bool asynchronize, bool render_only, bool serialized, uint32 screen_width, uint32 screen_height);
 
 // BRIEF:
 //     This function start the engineer to parse the DOC file set.

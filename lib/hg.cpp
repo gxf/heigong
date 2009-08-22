@@ -16,9 +16,12 @@ char* work_dir      = DEFAULT_WORK_DIR;
 uint32 scr_width    = SCREEN_WIDTH;
 uint32 scr_height   = SCREEN_HEIGHT;
 static Logger* logger;
-static bool direct = false;
 
-hHgMaster HG_Init(const char* file, const char* path, bool render_only, uint32 screen_width, uint32 screen_height){
+static bool r_only  = false;
+static bool serd    = false; // Serialized
+static bool async   = false;
+
+hHgMaster HG_Init(const char* file, const char* path, bool asynchronize, bool render_only, bool serialized, uint32 screen_width, uint32 screen_height){
     // Negtive number protector
     if (screen_width > 10000 || screen_height > 10000){
         return NULL;
@@ -29,11 +32,14 @@ hHgMaster HG_Init(const char* file, const char* path, bool render_only, uint32 s
     if (!logger){
         return NULL;
     }
-    direct = render_only;
+    r_only  = render_only;
+    serd    = serialized;
+    async   = asynchronize;
+
     work_dir = new char8[std::strlen(path) + 1];
     std::memcpy(work_dir, path, std::strlen(path) + 1);
 
-    May12th * engine = new May12th(logger, file, !render_only);
+    May12th * engine = new May12th(logger, file, !serialized);
     if (!engine){
         delete logger;
         return NULL;
@@ -44,11 +50,21 @@ hHgMaster HG_Init(const char* file, const char* path, bool render_only, uint32 s
 
 bool HG_StartParse(hHgMaster hHG){
     May12th * engine = reinterpret_cast<May12th*>(hHG);
-    if (!direct){
-        return engine->StartBackGround();
+    if (true == serd){
+        if (true == r_only){ 
+            return engine->StartForeGroundSerializedNoConv();
+        }
+        else{
+            return engine->StartForeGroundSerialized();
+        }
     }
     else{
-        return engine->StartForeGround();
+        if (true == async){
+            return engine->StartBackGround();
+        }
+        else{
+            return engine->StartForeGround();
+        }
     }
 }
 

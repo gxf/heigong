@@ -57,10 +57,10 @@ bool DocStream::OpenFile(const char* filename, bool background){
 
     int strlength   = std::strlen(filename) + 1;
     strlength       += std::strlen(tmpFile);
-    strlength       += 256; 
+    strlength       += 12560; 
 
     char cmd[strlength];
-    std::memset(cmd, 0x0, strlength);
+    std::memset(cmd, '\0', strlength);
     if (false == bgMode){
         sprintf(cmd, "./wvWare -x ./wvHtml.xml -d %s -b wvImage %s > %s", work_dir, filen, tmpFile);
         LOG_EVENT(cmd); 
@@ -150,7 +150,7 @@ bool DocStream::CloseFile()
         //    system(cmd);
         sprintf(cmd, "rm -f *.png *.jpg *.emf *.wmf *.pg");
         LOG_EVENT(cmd);
-        system(cmd);
+//        system(cmd);
     }
     return true;
 }

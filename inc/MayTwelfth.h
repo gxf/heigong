@@ -26,6 +26,8 @@ class May12th{
     public:
         void RenderAll();
         bool StartForeGround();
+        bool StartForeGroundSerialized();
+        bool StartForeGroundSerializedNoConv();
         bool StartBackGround();
         bool GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                      uint32 * depth, void** img);

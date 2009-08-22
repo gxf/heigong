@@ -20,7 +20,8 @@ May12th::~May12th(){
 void May12th::Init(uint32 fontSize){
     if (false == inited){
         ctx->render.Init();
-        if (true == slMode){
+        // If it is serialized mode, choose the tmp file as input
+        if (true == slMode && (true == convert)){
             if (false == ctx->docParse.Init((std::string(work_dir) + std::string(DEFAULT_TMP_FILE_NAME)).c_str(), convert, bgMode)){
                 exit(0);
             }
@@ -44,9 +45,25 @@ void May12th::RenderAll(){
     }
 }
 
-bool May12th::StartForeGround(){
+bool May12th::StartForeGroundSerialized(){
     bgMode = false;
     slMode = true;
+    Init(DEFAULT_FONT_SIZE);
+    return true;
+}
+
+bool May12th::StartForeGroundSerializedNoConv(){
+    bgMode = false;
+    slMode = true;
+    convert= false;
+    Init(DEFAULT_FONT_SIZE);
+    return true;
+}
+
+bool May12th::StartForeGround(){
+    bgMode = false;
+    slMode = false;
+    convert= false;
     Init(DEFAULT_FONT_SIZE);
     return true;
 }
@@ -174,10 +191,10 @@ void* May12th::Display(int page_num){
                         if(true == newPage){
                             ctx->docParse << glyph->UngetSet();
                         }
-                        if (!bgMode)
-                            img = ctx->render.Flush(NULL);
-                        else
+                        if (bgMode || (!bgMode && !convert))
                             img = ctx->render.Flush(&ctx->bufMgr);
+                        else
+                            img = ctx->render.Flush(NULL);
                         ctx->pgMgr.EndPage(page_num, &ctx->render);
                         Char::ClearCache();
                         finished = true;
@@ -185,10 +202,10 @@ void* May12th::Display(int page_num){
                     case Glyph::GY_EOF:
                         ctx->pgMgr.SetMaxPageNum(page_num);
                         ctx->layout.curLine->DrawFlush(&ctx->render);
-                        if (!bgMode)
-                            img = ctx->render.Flush(NULL);
-                        else
+                        if (bgMode || (!bgMode && !convert))
                             img = ctx->render.Flush(&ctx->bufMgr);
+                        else
+                            img = ctx->render.Flush(NULL);
                         ctx->pgMgr.EndPage(page_num, &ctx->render);
                         Char::ClearCache();
                         finished = true;
