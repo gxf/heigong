@@ -94,7 +94,7 @@ bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height,
     }
 
     *img = Display(page_num);
-    if ((int)page_num == ctx->pgMgr.GetMaxPageNum()){
+    if ((int)page_num > ctx->pgMgr.GetMaxPageNum()){
         *width  = 0;
         *height = 0;
         *depth  = 0;

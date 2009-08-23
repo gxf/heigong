@@ -72,6 +72,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         ++page_num;
         HG_FreePage(hHG, pPage);
     }
+    page_num--;     // This is the max page num
     if(!HG_Term(hHG)){
         std::cout << "Fail to term engine" << std::endl;
         return false; 
@@ -111,7 +112,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
 	memset(name, 0, sizeof(name));
 	sprintf(name, "%s-%05d.pgm", p, 0);
 	printf("open file:%s\n",name);
-    while(page_num > 0 && (NULL != (pPage = HG_GetPage(hHG, page_num)))){
+    while(page_num >= 0 && (NULL != (pPage = HG_GetPage(hHG, page_num)))){
 		memset(name, 0, sizeof(name));
 		sprintf(name,"%s_%05d_restart.pgm",p,page_num);
         // Replace me to do whatever you want
@@ -125,8 +126,11 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
 		fwrite(head_data, 1, sizeof(head_data), fd);
 		fwrite((char*)pPage->img, 1, pPage->height*pPage->width, fd);
 		fclose(fd);
-        --page_num;
         HG_FreePage(hHG, pPage);
+        if (page_num == 0)
+            break;
+        else
+            --page_num;
     }
     if(!HG_Term(hHG)){
         std::cout << "Fail to term engine" << std::endl;

@@ -79,7 +79,7 @@ p_page_info HG_GetPage(hHgMaster hHG, uint32 pg_num){
 
     bool ret = engine->GetPage(pg_num, &pg_info->width, &pg_info->height, 
                                &pg_info->depth, &pg_info->img);
-    if (false == ret){
+    if (false == ret && NULL == pg_info->img){
         delete pg_info;
         return NULL;
     }
