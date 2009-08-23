@@ -16,8 +16,8 @@ class DocStream{
             bg_pipe_fd(NULL), bg_file_fd(NULL), bgMode(false),
             file_off(0), bg_off(0), logger(log)
         {
-            tmpFile = new char8(std::strlen(tmpfilen) + 1);
-            std::memcpy((void*)tmpFile, tmpfilen, std::strlen(tmpfilen) + 1); 
+            tmpFile = new char8[std::strlen(tmpfilen) + 1];
+            std::strcpy(tmpFile, tmpfilen); 
         }
         ~DocStream(){
             if (tmpFile){

@@ -11,11 +11,11 @@ class Logger{
         Logger(const char* filename = NULL):
             logfile(filename)
         {
-            if(!logfile)
+            if(logfile)
                 outfile.open(filename);
         }
         ~Logger(){
-            if(!logfile)
+            if(logfile)
                 outfile.close();
         }
 

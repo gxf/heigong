@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static char * work_dir = (char*)("/tmp/");
+static char * work_d = (char*)("/tmp/5/");
 static const uint32 page_w = 600;
 static const uint32 page_h = 800;
 
@@ -20,8 +20,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         render_only = true;
     }
     hHgMaster hHG;
-	char name[100];
-    if(!(hHG = HG_Init(filename, work_dir, async, render_only, serialized, page_w, page_h))){
+    if(!(hHG = HG_Init(filename, work_d, async, render_only, serialized, page_w, page_h))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -51,6 +50,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         p--;
     }
 
+    char name[100];
     memset(name, 0, sizeof(name));
     sprintf(name, "%s-%05d.pgm", p, 0);
     printf("open file:%s\n",name);
@@ -84,7 +84,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
     //
     //
     serialized = true;
-    if(!(hHG = HG_Init(filename, work_dir, async, render_only, serialized, page_w, page_h))){
+    if(!(hHG = HG_Init(filename, work_d, async, render_only, serialized, page_w, page_h))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -170,7 +170,7 @@ int main(int argc, char** argv){
             serialized = true;
         }
         else if (0 == strcmp(argv[i], "-work-dir")){
-            work_dir = argv[i + 1];
+            work_d = argv[i + 1];
         }
         i++;
     }

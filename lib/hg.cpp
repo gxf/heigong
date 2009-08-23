@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 // Global variable
-char* work_dir      = (char*)(DEFAULT_WORK_DIR);
+char8* work_dir     = (char*)(DEFAULT_WORK_DIR);
 uint32 scr_width    = SCREEN_WIDTH;
 uint32 scr_height   = SCREEN_HEIGHT;
 static Logger* logger;
@@ -37,7 +37,7 @@ hHgMaster HG_Init(const char* file, const char* path, bool asynchronize, bool re
     async   = asynchronize;
 
     work_dir = new char8[std::strlen(path) + 1];
-    std::memcpy(work_dir, path, std::strlen(path) + 1);
+    std::strcpy(work_dir, path);
 
     May12th * engine = new May12th(logger, file, !r_only);
     if (!engine){
@@ -109,6 +109,9 @@ bool HG_Term(hHgMaster hHG){
     engine->Term();
     delete logger;
     delete engine;
+    if (0 != strcmp(work_dir, DEFAULT_WORK_DIR)){
+        delete [] work_dir;
+    }
     char cmd[] = "killall -9 lt-wvWare";
     system(cmd);
 
