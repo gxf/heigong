@@ -22,7 +22,7 @@ void May12th::Init(uint32 fontSize){
         ctx->render.Init();
         // If it is serialized mode, choose the tmp file as input
         if (true == slMode && (true == convert)){
-            if (false == ctx->docParse.Init((std::string(work_dir) + std::string(DEFAULT_TMP_FILE_NAME)).c_str(), convert, bgMode)){
+            if (false == ctx->docParse.Init((std::string(work_dir) + std::string(DEFAULT_TMP_FILE_NAME)).c_str(), false, bgMode)){
                 exit(0);
             }
         }
@@ -81,7 +81,9 @@ bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height,
         if (NULL == (*img = SerializedDisplay(page_num))){
             return false;
         }
-        return true;
+        bool ret = ctx->bufMgr.GetAttr(*img, width, height, depth);
+        assert( ret == true);
+        return ret;
     }
     if((int)page_num > ctx->pgMgr.GetMaxPageNum()){
         *width  = 0;
@@ -97,6 +99,11 @@ bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height,
         *height = 0;
         *depth  = 0;
         *img    = NULL;
+        return false;
+    }
+    else if ((int)page_num == ctx->pgMgr.GetMaxPageNum()){
+        bool ret = ctx->bufMgr.GetAttr(*img, width, height, depth);
+        assert( ret == true);
         return false;
     }
     else{

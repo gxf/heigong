@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static char * work_dir = "/tmp/";
+static char * work_dir = (char*)("/tmp/");
 static const uint32 page_w = 600;
 static const uint32 page_h = 800;
 
@@ -52,12 +52,12 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
     }
 
     memset(name, 0, sizeof(name));
-    sprintf(name, "%s-%05d.pgm", p,0);
+    sprintf(name, "%s-%05d.pgm", p, 0);
     printf("open file:%s\n",name);
 
     while(NULL != (pPage = HG_GetPage(hHG, page_num))){
 		memset(name, 0, sizeof(name));
-		sprintf(name,"%s_%05d.pgm",p,page_num);
+		sprintf(name, "%s_%05d.pgm", p, page_num);
         // Replace me to do whatever you want
         std::cout << "***************************************Got page**************************************** " << page_num
             << std::endl;
@@ -77,7 +77,6 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         return false; 
     }
 
-#if 0
     // 
     //
     // This time, use the info generated.
@@ -110,11 +109,11 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
 	}
 	
 	memset(name, 0, sizeof(name));
-	sprintf(name, "%s-%05d.pgm", p,0);
+	sprintf(name, "%s-%05d.pgm", p, 0);
 	printf("open file:%s\n",name);
     while(page_num > 0 && (NULL != (pPage = HG_GetPage(hHG, page_num)))){
 		memset(name, 0, sizeof(name));
-		sprintf(name,"%s_%05d.pgm",p,page_num);
+		sprintf(name,"%s_%05d_restart.pgm",p,page_num);
         // Replace me to do whatever you want
         std::cout << "***************************************Got page**************************************** " << page_num
             << std::endl;
@@ -133,7 +132,6 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         std::cout << "Fail to term engine" << std::endl;
         return false; 
     }
-#endif
     return true;
 }
 

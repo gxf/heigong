@@ -57,7 +57,7 @@ bool DocStream::OpenFile(const char* filename, bool background){
 
     int strlength   = std::strlen(filename) + 1;
     strlength       += std::strlen(tmpFile);
-    strlength       += 12560; 
+    strlength       += 256; 
 
     char cmd[strlength];
     std::memset(cmd, '\0', strlength);

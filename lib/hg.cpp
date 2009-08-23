@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 // Global variable
-char* work_dir      = DEFAULT_WORK_DIR;
+char* work_dir      = (char*)(DEFAULT_WORK_DIR);
 uint32 scr_width    = SCREEN_WIDTH;
 uint32 scr_height   = SCREEN_HEIGHT;
 static Logger* logger;
@@ -39,7 +39,7 @@ hHgMaster HG_Init(const char* file, const char* path, bool asynchronize, bool re
     work_dir = new char8[std::strlen(path) + 1];
     std::memcpy(work_dir, path, std::strlen(path) + 1);
 
-    May12th * engine = new May12th(logger, file, !serialized);
+    May12th * engine = new May12th(logger, file, !r_only);
     if (!engine){
         delete logger;
         return NULL;
