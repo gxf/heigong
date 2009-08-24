@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 static char * work_d = (char*)("/tmp/5/");
+static char * html_d = NULL;
 static const uint32 page_w = 600;
 static const uint32 page_h = 800;
 
@@ -20,7 +21,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         render_only = true;
     }
     hHgMaster hHG;
-    if(!(hHG = HG_Init(filename, work_d, async, render_only, serialized, page_w, page_h))){
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, page_w, page_h))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -84,7 +85,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
     //
     //
     serialized = true;
-    if(!(hHG = HG_Init(filename, work_d, async, render_only, serialized, page_w, page_h))){
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, page_w, page_h))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -145,16 +146,20 @@ int main(int argc, char** argv){
     bool serialized     = false;
 
     // Argument check
-    if (argc > 5 || argc < 2){
+    if (argc > 6 || argc < 2){
         std::cout << std::endl
             << "Usage: " << std::endl
-            << "    hgBin <filename> [-not-doc] [-render-only | -serialized] [-work-dir DIR]" << std::endl
+//            << "    hgBin <filename> [-not-doc] [-render-only | -serialized] [-work-dir DIR]" << std::endl
+            << "    hgBin <filename> [-not-doc] [-work-dir DIR] [-html-dir HDIR]" << std::endl
             << std::endl
             << " <filename> - file to open. DOC, HTML are supported." << std::endl
             << " [-not-doc] - file is not DOC. (it is html) " << std::endl
+#if 0
             << " [-render-only] - Render only. " << std::endl
             << " [-serialized] - serialize information is prepared. " << std::endl
+#endif
             << " [-work-dir DIR] - Set working directory in parameter." << std::endl
+            << " [-html-dir DIR] - Set html root directory in parameter." << std::endl
             << std::endl
             << std::endl;
 
@@ -171,6 +176,9 @@ int main(int argc, char** argv){
         }
         else if (0 == strcmp(argv[i], "-work-dir")){
             work_d = argv[i + 1];
+        }
+        else if (0 == strcmp(argv[i], "-html-dir")){
+            html_d = argv[i + 1];
         }
         i++;
     }

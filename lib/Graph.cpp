@@ -15,8 +15,15 @@ uint32 Graph::magic_num = 'g' + 'r' + 'a' + 'p' + 'h';
 Graph::Graph(Logger* log):
     Glyph(log), file_name(NULL), file_path(NULL)
 {
-    file_path = new int8[std::strlen(work_dir) + 1];
-    std::memcpy(file_path, work_dir, std::strlen(work_dir) + 1);
+    if(NULL == html_dir){
+        file_path = new int8[std::strlen(work_dir) + 1];
+        std::strcpy(file_path, work_dir);
+    }
+    else{
+        file_path = new int8[std::strlen(html_dir) + 1];
+        std::strcpy(file_path, html_dir);
+    }
+    printf("file_path: %s,  work_dir: %s, html_dir: %s\n", file_path, work_dir, html_dir);
 }
 
 Graph::~Graph(){

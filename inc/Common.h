@@ -191,6 +191,7 @@ enum ENCODING_MODE{
 #define TIMES_RETRY 100
 
 extern char* work_dir;
+extern char* html_dir;
 extern uint32 scr_width;
 extern uint32 scr_height;
 

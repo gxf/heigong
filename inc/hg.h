@@ -20,12 +20,19 @@ typedef struct{
 //
 // PARAMS:
 //     file - file name in char string.
+//     path - working directory for *.pg, tmp.hg files
+//     html_path - html root path
+//     asynchronize - async mode on/off
+//     render_only - render with/without serialize information generation
+//     serialized - serialized info is/isnot ready
 //     screen_width - the width of the screen
 //     screen_height - the height of the screen
 // RETURN:
 //     Handler to engine context - if success
 //     NULL - if fails
-hHgMaster HG_Init(const char* file, const char* path, bool asynchronize, bool render_only, bool serialized, uint32 screen_width, uint32 screen_height);
+hHgMaster HG_Init(const char* file, const char* path, const char * html_path, 
+                  bool asynchronize, bool render_only, bool serialized, 
+                  uint32 screen_width, uint32 screen_height);
 
 // BRIEF:
 //     This function start the engineer to parse the DOC file set.

@@ -13,6 +13,7 @@
 
 // Global variable
 char8* work_dir     = (char*)(DEFAULT_WORK_DIR);
+char8* html_dir     = NULL;
 uint32 scr_width    = SCREEN_WIDTH;
 uint32 scr_height   = SCREEN_HEIGHT;
 static Logger* logger;
@@ -21,7 +22,10 @@ static bool r_only  = false;
 static bool serd    = false; // Serialized
 static bool async   = false;
 
-hHgMaster HG_Init(const char* file, const char* path, bool asynchronize, bool render_only, bool serialized, uint32 screen_width, uint32 screen_height){
+hHgMaster HG_Init(const char* file, const char* path, const char* html_path, 
+                  bool asynchronize, bool render_only, bool serialized, 
+                  uint32 screen_width, uint32 screen_height)
+{
     // Negtive number protector
     if (screen_width > 10000 || screen_height > 10000){
         return NULL;
@@ -38,6 +42,14 @@ hHgMaster HG_Init(const char* file, const char* path, bool asynchronize, bool re
 
     work_dir = new char8[std::strlen(path) + 1];
     std::strcpy(work_dir, path);
+    if (NULL != html_path){
+        html_dir = new char8[std::strlen(html_path) + 1];
+        std::strcpy(html_dir, html_path);
+    }
+    else{
+        html_dir = NULL;
+    }
+    printf("Inited, work_dir: %s, html_dir: %s, html_path: %s\n", work_dir, html_dir, html_path);    
 
     May12th * engine = new May12th(logger, file, !r_only);
     if (!engine){
