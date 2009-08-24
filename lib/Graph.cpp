@@ -12,6 +12,23 @@ ImageOptions global_IO;
 
 uint32 Graph::magic_num = 'g' + 'r' + 'a' + 'p' + 'h';
 
+static void ReviseFileName(std::string & fname){
+    int i;
+    int len = fname.length();
+    for (i = 0; i < len; i++){
+        switch(fname[i]){
+            case ' ':
+            case '(':
+            case ')':
+                fname.insert(i, "\\");
+                i++;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 Graph::Graph(Logger* log):
     Glyph(log), file_name(NULL), file_path(NULL)
 {
@@ -23,7 +40,6 @@ Graph::Graph(Logger* log):
         file_path = new int8[std::strlen(html_dir) + 1];
         std::strcpy(file_path, html_dir);
     }
-    printf("file_path: %s,  work_dir: %s, html_dir: %s\n", file_path, work_dir, html_dir);
 }
 
 Graph::~Graph(){
@@ -44,12 +60,13 @@ void Graph::SetSrcFile(const char* src) {
     sprintf(buf, "Graph file: %s", src);
     LOG_EVENT(buf);
     file_name = new char[std::strlen(src) + 1];
-    std::memcpy(file_name, src, std::strlen(src) + 1);
+    std::strcpy(file_name, src);
 }
 
 Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
     std::string file(file_path);
     file += file_name;
+    ReviseFileName(file);
 
     FILE *fp = fopen(file.c_str(), "rb");
     if (!fp) {
@@ -395,7 +412,7 @@ Glyph::GY_ST_RET Graph::SetupGIF(LayoutManager& layout, FILE* fp){
 
     LOG_EVENT("load image.");
     if(loadImage(&global_IO) == ERROR){
-        LOG_ERROR("Loading jpg file fails");
+        LOG_ERROR("Loading gif file fails");
         return GY_ERROR;
     }
 

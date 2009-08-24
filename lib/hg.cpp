@@ -49,7 +49,6 @@ hHgMaster HG_Init(const char* file, const char* path, const char* html_path,
     else{
         html_dir = NULL;
     }
-    printf("Inited, work_dir: %s, html_dir: %s, html_path: %s\n", work_dir, html_dir, html_path);    
 
     May12th * engine = new May12th(logger, file, !r_only);
     if (!engine){
