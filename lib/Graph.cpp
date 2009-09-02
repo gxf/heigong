@@ -56,10 +56,10 @@ Graph::~Graph(){
 }
 
 void Graph::SetSrcFile(const char* src) { 
-    char buf[100];
+    char buf[256 + std::strlen(src)];
     sprintf(buf, "Graph file: %s", src);
     LOG_EVENT(buf);
-    file_name = new char[std::strlen(src) + 1];
+    file_name = new char[std::strlen(src) + 256];
     std::strcpy(file_name, src);
 }
 
@@ -70,7 +70,7 @@ Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
 
     FILE *fp = fopen(file.c_str(), "rb");
     if (!fp) {
-        char info[100];
+        char info[256 + file.size()];
         sprintf(info, "Fail to open file %s", file.c_str());
         LOG_ERROR(info);
         return GY_ERROR;

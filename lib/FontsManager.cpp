@@ -13,7 +13,7 @@ FontsTab::fTabEntry FontsTab::fontsTab[] = {
 const char* FontsManager::dftFontPath = DEFAULT_FONT;
 
 FontsManager::FontsManager(Logger* log):
-    curFont(NULL), dpi(DPI),
+    curFont(NULL), dpi(g_dpi),
     logger(log)
 {
     int error = FT_Init_FreeType(&library); 
@@ -100,7 +100,7 @@ bool FontsManager::OpenFont(const char* path){
 bool FontsManager::SetFontSize(int pt){
     if (curFont == NULL)
         return false;
-    int error = FT_Set_Char_Size(curFont, pt * 64, 0, dpi, 0 ); 
+    int error = FT_Set_Char_Size(curFont, pt * 64, 0, g_dpi, 0 ); 
     if (error){
         LOG_EVENT("Fail to set char size.");
         return false;

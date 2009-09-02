@@ -159,7 +159,7 @@ enum ENCODING_MODE{
 };
 
 
-#define DPI             96
+#define DPI_DFT         96
 #define SCREEN_WIDTH    600
 #define SCREEN_HEIGHT   800
 
@@ -194,6 +194,7 @@ extern char* work_dir;
 extern char* html_dir;
 extern uint32 scr_width;
 extern uint32 scr_height;
+extern uint32 g_dpi;
 
 #endif
 

@@ -27,12 +27,13 @@ typedef struct{
 //     serialized - serialized info is/isnot ready
 //     screen_width - the width of the screen
 //     screen_height - the height of the screen
+//     dpi - as the name suggest
 // RETURN:
 //     Handler to engine context - if success
 //     NULL - if fails
 hHgMaster HG_Init(const char* file, const char* path, const char * html_path, 
                   bool asynchronize, bool render_only, bool serialized, 
-                  uint32 screen_width, uint32 screen_height);
+                  uint32 screen_width, uint32 screen_height, uint32 dpi);
 
 // BRIEF:
 //     This function start the engineer to parse the DOC file set.

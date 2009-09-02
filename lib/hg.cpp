@@ -16,6 +16,8 @@ char8* work_dir     = (char*)(DEFAULT_WORK_DIR);
 char8* html_dir     = NULL;
 uint32 scr_width    = SCREEN_WIDTH;
 uint32 scr_height   = SCREEN_HEIGHT;
+uint32 g_dpi        = DPI_DFT;
+
 static Logger* logger;
 
 static bool r_only  = false;
@@ -24,14 +26,15 @@ static bool async   = false;
 
 hHgMaster HG_Init(const char* file, const char* path, const char* html_path, 
                   bool asynchronize, bool render_only, bool serialized, 
-                  uint32 screen_width, uint32 screen_height)
+                  uint32 screen_width, uint32 screen_height, uint32 dpi)
 {
     // Negtive number protector
-    if (screen_width > 10000 || screen_height > 10000){
+    if (screen_width > 10000 || screen_height > 10000 || dpi > 1000){
         return NULL;
     }
     scr_width  = screen_width;
     scr_height = screen_height;
+    g_dpi      = dpi;
     logger = new Logger;
     if (!logger){
         return NULL;

@@ -10,6 +10,10 @@ static char * html_d = NULL;
 static const uint32 page_w = 600;
 static const uint32 page_h = 800;
 
+#define DPI_L   120
+#define DPI_M   96
+#define DPI_S   80
+
 static unsigned char head_data[15] = {
 	0x50, 0x35, 0x0A, 0x36, 0x30, 0x30, 0x20, 0x38, 0x30, 0x30, 0x0A, 0x32, 0x35, 0x35, 0x0A
 };
@@ -21,7 +25,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         render_only = true;
     }
     hHgMaster hHG;
-    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, page_w, page_h))){
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, page_w, page_h, DPI_L))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -85,7 +89,8 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
     //
     //
     serialized = true;
-    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, page_w, page_h))){
+    render_only = false;
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, page_w, page_h, DPI_S))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -146,7 +151,7 @@ int main(int argc, char** argv){
     bool serialized     = false;
 
     // Argument check
-    if (argc > 6 || argc < 2){
+    if (argc > 7 || argc < 2){
         std::cout << std::endl
             << "Usage: " << std::endl
 //            << "    hgBin <filename> [-not-doc] [-render-only | -serialized] [-work-dir DIR]" << std::endl

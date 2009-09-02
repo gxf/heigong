@@ -412,7 +412,7 @@ void DocParser::getStyle(int &ch, Attrib_Line & lineAttr){
             case 't':
                 if (match("ext-indent:")){
                     if (LM_NONE == listMode){
-                        lineAttr.indent = getFloat('m') * (DPI) / 25.4;
+                        lineAttr.indent = getFloat('m') * (g_dpi) / 25.4;
                     }
                 }
                 else if (match("ext-align:")){
@@ -432,7 +432,7 @@ void DocParser::getStyle(int &ch, Attrib_Line & lineAttr){
                 break;
             case 'l':
                 if(match("ine-height:")){
-                    lineAttr.height = getFloat('m') * (DPI) / 25.4;
+                    lineAttr.height = getFloat('m') * (g_dpi) / 25.4;
                 }
                 break;
             default:
