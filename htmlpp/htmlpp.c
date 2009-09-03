@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <libxml/HTMLparser.h>
 #include <libxml/HTMLtree.h>
+#include <assert.h>
+#include <ctype.h>
+
 
 htmlNodePtr erase(htmlNodePtr node)
 {
@@ -190,6 +193,79 @@ static void output(htmlDocPtr doc)
     htmlDocDump(stdout, doc);
 }
 
+// Skip any label before <HTML>
+static int pre_trim(const char* filename)
+{
+    FILE* fpr, * fpw;
+    if (NULL == (fpr = fopen(filename, "r"))){
+        fprintf(stderr, "Fail to open file %s\n.", filename);
+        return 0;
+    }
+    if (NULL == (fpw = fopen(filename, "r+"))){
+        fprintf(stderr, "Fail to open file %s\n.", filename);
+        return 0;
+    }
+    int ch;
+    long start  = 0;
+    long end    = 0;
+    int term    = 0;
+    do{
+        ch = fgetc(fpr);
+        long pos = ftell(fpr);
+        if (ch == '<'){
+            ch = fgetc(fpr);
+            switch(ch){
+                case '!':
+                    while((ch = fgetc(fpr)) != '>');
+                    break;
+                case 'h':
+                case 'H':
+                    if ((toupper(ch = fgetc(fpr)) == 'T') &&
+                        (toupper(ch = fgetc(fpr)) == 'M') &&
+                        (toupper(ch = fgetc(fpr)) == 'L')
+                       ){
+                        end = pos;
+                        term = 1;
+                    }
+                    break;
+                default:
+                    if (start == 0){
+                        start = pos;
+                    }
+                    break;
+            }
+        }
+    }
+    while(!term);
+
+    if(0 == start)
+        return 1;
+
+    fseek(fpr, end, SEEK_SET);
+    fseek(fpw, start, SEEK_SET);
+
+    size_t sz = 1024;
+    size_t num_read;
+    size_t num_write;
+
+    char buf[sz];
+    term = 0;
+
+    do{
+        num_read = fread(buf, 1, sz, fpr);
+        num_write = fwrite(buf, 1, num_read, fpw); 
+
+        assert(num_write == num_read);
+
+        if (num_read != sz){
+            fputc(EOF, fpw);
+            term = 1;
+        }
+    }while(!term);
+
+    return 1;
+}
+
 int main(int argc, char **argv) 
 {
     char *filename = argv[1];
@@ -203,6 +279,8 @@ int main(int argc, char **argv)
         fprintf(stderr, "Usage: %s in.html\n", argv[0]);
         return(1);
     }
+
+    pre_trim(filename);
 
     doc = htmlReadFile(filename, NULL, parse_flags);
 
