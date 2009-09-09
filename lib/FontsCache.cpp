@@ -2,6 +2,7 @@
 #include "FontsCache.h"
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 
 uint32 FontsCache::cacheSize = DEFAULT_FONTS_CACHE_SIZE;
 
@@ -98,8 +99,9 @@ void FontsCache::ForceEvict(){
 }
 
 void FontsCache::Evict(){
-    elems.erase(std::unique(elems.begin(),elems.end()), elems.end());
+//    elems.erase(std::unique(elems.begin(),elems.end()), elems.end());
     std::vector<Char*>::iterator itr = elems.begin();
+
     while(itr != elems.end()){
         if(false == (*itr)->valid){
             DelChar(*itr);

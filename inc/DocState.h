@@ -13,7 +13,7 @@ class Glyph;
 class DocState : public Serializer{
     public:
         DocState(Logger* log);
-        ~DocState();
+        ~DocState(){}
 
     public:
         void StoreState(const char * filename);

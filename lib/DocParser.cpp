@@ -102,6 +102,19 @@ HDocState DocParser::ShadowDocState(){
     return shadowState;
 }
 
+bool DocParser::PostStoreState(HDocState hState){
+    std::deque<Glyph*>::iterator itr= hState->buffer.begin();
+    while(itr != hState->buffer.end()){
+        Char * ch = dynamic_cast<Char*>(*itr);
+        if (NULL != ch){
+            ch -> valid = false;
+            delete ch;
+        }
+        ++itr;
+    }
+    return true;
+}
+
 bool DocParser::RestoreDocState(HDocState hState){
     // Restore the docStream offset and glyphBuffer
     ClearGlyphStream();
@@ -379,6 +392,9 @@ void DocParser::procWord(int & ch){
     }
     if(!headerMode){
         glyphBuffer.push_back(c);
+    }
+    else{
+        delete c;
     }
 }
 

@@ -169,10 +169,16 @@ Glyph* Char::Dup(){
     ch->bitmap_w    = this->bitmap_w;
     ch->bitmap_h    = this->bitmap_h;
     // Always let the cache assign memory
+#if 0
     if (bitmap != NULL){
-        ftCache.CacheFont(ch, bitmap_w , bitmap_h, bitmap);
+        uint8 *p = new uint8[bitmap_w * bitmap_h];
+        std::memcpy(p, bitmap, bitmap_w * bitmap_h);
+        ftCache.CacheFont2(ch, bitmap_w , bitmap_h, p);
+//        ftCache.CacheFont(ch, bitmap_w , bitmap_h, bitmap);
     }
-    else{
+    else
+#endif
+    {
         ch->bitmap = NULL;
     }
     ch->baseline    = this->baseline;

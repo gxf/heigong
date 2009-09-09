@@ -49,7 +49,9 @@ void PageManager::StartPage(){
     std::string pers_page(dbuf);
     pers_page += ".pg";
     docState->StoreState(pers_page.c_str());
+    docParser.PostStoreState(docState);
     
+    delete docState;
 #if 0
     curPage = new Page(numToRender, docState);
     pages.push_back(curPage);
@@ -84,6 +86,8 @@ bool PageManager::RestorePage(int page_num){
     pers_page +=  ".pg";
     hds ->RecoverState(pers_page.c_str());
     docParser.RestoreDocState(hds);
+    docParser.PostStoreState(hds);
+    delete hds;
     return true;
 #if 0
     // Notice: Can only get the page already exists.

@@ -36,6 +36,7 @@ class DocParser{
         void SetCurParseOffset(long int offset);
 
         HDocState ShadowDocState();
+        bool PostStoreState(HDocState hState);
         bool RestoreDocState(HDocState hState);
 
     public:
