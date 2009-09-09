@@ -366,16 +366,19 @@ void DocParser::procWord(int & ch){
             docStream << ch; 
             docStream >> *c;
         }
-        if(!headerMode){
-            glyphBuffer.push_back(c);
-        }
+    }
+    else if (match("\r")){
+        c->SetVal(' ');
+    }
+    else if (match("\n")){
+        c->SetVal('\n');
     }
     else{
         docStream << ch; 
         docStream >> *c;
-        if(!headerMode){
-            glyphBuffer.push_back(c);
-        }
+    }
+    if(!headerMode){
+        glyphBuffer.push_back(c);
     }
 }
 

@@ -100,7 +100,7 @@ bool FontsManager::OpenFont(const char* path){
 bool FontsManager::SetFontSize(int pt){
     if (curFont == NULL)
         return false;
-    int error = FT_Set_Char_Size(curFont, pt * 64, 0, g_dpi, 0 ); 
+    int error = FT_Set_Char_Size(curFont, pt * 64, pt * 64, g_dpi, g_dpi); 
     if (error){
         LOG_EVENT("Fail to set char size.");
         return false;
