@@ -16,6 +16,7 @@
 DocParser::DocParser(Logger* log):
     listMode(LM_NONE), headerMode(false),
     docStream(log, (std::string(work_dir)+std::string(DEFAULT_TMP_FILE_NAME)).c_str()), 
+    resumeProcWord(false), countProcWord(0),
     logger(log)
 {}
 
@@ -133,6 +134,14 @@ bool DocParser::RestoreDocState(HDocState hState){
 void DocParser::fillGlyphStream(LayoutManager* layout){
     int ch;
     docStream >> ch;
+    PageLayout* pl = dynamic_cast<PageLayout *>(layout);
+    if (NULL == pl){
+        // This should not happen
+        exit(0);
+    }
+    if (true == resumeProcWord){
+        goto proc_word;
+    }
     skipBlanks(ch);
 
     while(ch == '<'){
@@ -142,11 +151,13 @@ void DocParser::fillGlyphStream(LayoutManager* layout){
         docStream >> ch;    // EOF exception may throw
         skipBlanks(ch);
     }
+#if 0
     PageLayout* pl = dynamic_cast<PageLayout *>(layout);
     if (NULL == pl){
         // This should not happen
         exit(0);
     }
+#endif
     pl->curLine->SetAttrib(lineAttrib);
 
     // proc the word content. 
@@ -154,8 +165,14 @@ void DocParser::fillGlyphStream(LayoutManager* layout){
         glyphBuffer.push_back(delayedToken.front());
         delayedToken.pop();
     }
+proc_word:
+    resumeProcWord  = false;
+    countProcWord   = 0;
     while(ch != '<'){
         procWord(ch);
+        if (true == resumeProcWord){
+            return;
+        }
         docStream >> ch;
     }
     if (ch == '<'){
@@ -395,6 +412,9 @@ void DocParser::procWord(int & ch){
     }
     else{
         delete c;
+    }
+    if(++countProcWord > PROC_WORD_MAX){
+        resumeProcWord = true;
     }
 }
 

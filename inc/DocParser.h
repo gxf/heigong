@@ -94,6 +94,11 @@ class DocParser{
         Attrib_Line         lineAttrib;
 
     private:
+        // For large text parse
+        bool                resumeProcWord;
+        uint32              countProcWord;
+
+    private:
         Logger*             logger;
 };
 
