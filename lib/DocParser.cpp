@@ -139,9 +139,11 @@ void DocParser::fillGlyphStream(LayoutManager* layout){
         // This should not happen
         exit(0);
     }
+#if 0
     if (true == resumeProcWord){
         goto proc_word;
     }
+#endif
     skipBlanks(ch);
 
     while(ch == '<'){
@@ -165,7 +167,7 @@ void DocParser::fillGlyphStream(LayoutManager* layout){
         glyphBuffer.push_back(delayedToken.front());
         delayedToken.pop();
     }
-proc_word:
+//proc_word:
     resumeProcWord  = false;
     countProcWord   = 0;
     while(ch != '<'){

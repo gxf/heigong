@@ -190,7 +190,7 @@ enum ENCODING_MODE{
 #define TIME_WAIT   1000
 #define TIMES_RETRY 100
 
-#define PROC_WORD_MAX 30
+#define PROC_WORD_MAX 10
 
 extern char* work_dir;
 extern char* html_dir;
