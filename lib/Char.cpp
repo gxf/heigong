@@ -127,20 +127,49 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
                 glyphSlot->bitmap.buffer);
         }
         ftMgr.SetFontSize(DEFAULT_FONT_SIZE);
-        ret = layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
-                    glyphSlot->bitmap.rows, baseline);
+//        ret = layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
+//                    glyphSlot->bitmap.rows, baseline);
 //        pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
 
+        int width = 0;
+        if (0 == attrib.size){
+            width = DEFAULT_FONT_SIZE * 46 * g_dpi * 100 / (64 * 254 * 20);
+        }
+        else{
+            width = attrib.size * 46 * g_dpi * 100 / (64 * 254 * 20);
+        }
+//        int height = width;
+        int thischar = GetVal(EM_UTF_8);
+        if (false == IS_CHINA_CHAR(&thischar)){
+            width = (width + 1) / 2;
+        }
+        ret = layout.GetCharPos(pos, width, glyphSlot->bitmap.rows, baseline);
+#if 0
+            std::cout << ((glyphSlot->advance.x) >> 6) 
+                << " row " << glyphSlot->bitmap.rows 
+                << " pitch " << glyphSlot->bitmap.pitch 
+                << " baseline " <<  baseline 
+                << " horibearing " << ((glyphSlot->metrics.horiBearingX) >> 6)
+                << " width " << width 
+                << " height " << height 
+                << " " << std::endl;
+#endif
 #ifdef NOGL
         pos.y -= bitmap_h;
 #endif
     }
     else{
-        int width = attrib.size * 46 * g_dpi * 100 / (64 * 254 * 20);
+        int width = 0;
+        if (0 == attrib.size){
+            width = DEFAULT_FONT_SIZE * 46 * g_dpi * 100 / (64 * 254 * 20);
+        }
+        else{
+            width = attrib.size * 46 * g_dpi * 100 / (64 * 254 * 20);
+        }
         int height = width;
         int thischar = GetVal(EM_UTF_8);
         if (false == IS_CHINA_CHAR(&thischar)){
-            width /= 2;
+            width = (width + 1) / 2;
         }
         ret = layout.GetCharPos(pos, width, height, height);
 #ifdef NOGL

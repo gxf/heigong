@@ -168,13 +168,19 @@ void FontsManager::GetGlyphSlot(FT_ULong ch, FT_GlyphSlot* slot){
     }
 
     *slot = curFont->glyph;
-/*    *bitmap     = &(curFont->glyph->bitmap);
-    *metrics    = &(curFont->glyph->metrics);
-    topLeft->x  = curFont->glyph->bitmap_left;
-    topLeft->y  = curFont->glyph->bitmap_top;
-    advance->x  = curFont->glyph->advance.x;
-    advance->y  = curFont->glyph->advance.y;
-    */
+}
+
+void FontsManager::GetGlyphSlotNoRender(FT_ULong ch, FT_GlyphSlot* slot){
+    FT_UInt glyph_index; /* retrieve glyph index from character code */  
+
+    glyph_index = FT_Get_Char_Index(curFont, ch); /* load glyph image into the slot (erase previous one) */  
+    int error = FT_Load_Glyph(curFont, glyph_index, FT_LOAD_DEFAULT ); 
+
+    if (error){
+        LOG_WARNING("Fail to convert glyph image to anti-aliased bitmap.");
+    }
+
+    *slot = curFont->glyph;
 }
 
 FT_Face FontsManager::FindFont(const char* path){

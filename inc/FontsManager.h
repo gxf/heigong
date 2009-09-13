@@ -70,6 +70,7 @@ class FontsManager{
         bool SetFontSize(int pt);
 
         void GetGlyphSlot(FT_ULong c, FT_GlyphSlot* slot); 
+        void GetGlyphSlotNoRender(FT_ULong c, FT_GlyphSlot* slot); 
 
     private:
         void Init();

@@ -28,7 +28,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         render_only = true;
     }
     hHgMaster hHG;
-    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, false, page_w, page_h, DPI_L))){
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, false, page_w, page_h, DPI_M))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -93,7 +93,11 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
     //
     serialized = true;
     render_only = false;
-    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, false, page_w, page_h, DPI_S))){
+    if (true == notdoc){
+        async = false;
+        render_only = true;
+    }
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, false, page_w, page_h, DPI_M))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -155,7 +159,7 @@ static int FastPageRoutine(const char* filename, bool async, bool serialized, bo
         render_only = true;
     }
     hHgMaster hHG;
-    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, true, page_w, page_h, DPI_L))){
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, true, page_w, page_h, DPI_M))){
         std::cout << "Fail to init engine."
             << std::endl;
         return 0;

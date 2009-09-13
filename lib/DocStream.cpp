@@ -40,7 +40,7 @@ bool DocStream::OpenFileDirect(const char* filename){
         retry--;
     }
     if (!fd){
-        LOG_ERROR("fail to open doc file.");
+        LOG_EVENT_STR2("fail to open file:", filename);
         return false;
     }
     fileEnds = false;
