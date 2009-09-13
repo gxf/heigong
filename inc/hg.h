@@ -28,11 +28,12 @@ typedef struct{
 //     screen_width - the width of the screen
 //     screen_height - the height of the screen
 //     dpi - as the name suggest
+//     fps - fast calculate page sum
 // RETURN:
 //     Handler to engine context - if success
 //     NULL - if fails
 hHgMaster HG_Init(const char* file, const char* path, const char * html_path, 
-                  bool asynchronize, bool render_only, bool serialized, 
+                  bool asynchronize, bool render_only, bool serialized, bool fps,
                   uint32 screen_width, uint32 screen_height, uint32 dpi);
 
 // BRIEF:
@@ -69,6 +70,16 @@ p_page_info HG_GetPage(hHgMaster hHG, uint32 pg_num);
 // RETURN:
 //     Total page already processed by engine
 uint32 HG_GetCurMaxPage(hHgMaster hHG);
+
+// BRIEF:
+//     This function get the total page, fast page sum mode 
+//     only. This is a sync function.
+//
+// PARAMS:
+//     hHG - Handler fo engine context
+// RETURN:
+//     Total page number
+uint32 HG_GetMaxPage(hHgMaster hHG);
 
 // BRIEF:
 //     This function free the memory page_info structure holds.

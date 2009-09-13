@@ -16,8 +16,17 @@ class DocStream{
             bg_pipe_fd(NULL), bg_file_fd(NULL), bgMode(false),
             file_off(0), bg_off(0), logger(log)
         {
-            tmpFile = new char8[std::strlen(tmpfilen) + 1];
-            std::strcpy(tmpFile, tmpfilen); 
+            if (false == fast_page_sum){
+                tmpFile = new char8[std::strlen(tmpfilen) + 1];
+                std::strcpy(tmpFile, tmpfilen); 
+            }
+            else{
+                size_t sz = std::strlen(work_dir) + std::strlen(DEFAULT_FAST_PAGE_TMP_FILE) + 1;
+                tmpFile = new char8[sz];
+                std::memset(tmpFile, 0x0, sz);
+                std::strcpy(tmpFile, work_dir);
+                std::strcat(tmpFile, DEFAULT_FAST_PAGE_TMP_FILE);
+            }
         }
         ~DocStream(){
             if (tmpFile){

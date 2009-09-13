@@ -43,30 +43,34 @@ int PageManager::RepeatPage(){
 }
 
 void PageManager::StartPage(){
-    HDocState docState = docParser.ShadowDocState();
-    static char dbuf[100];
-    sprintf(dbuf, "%s%d\0", work_dir, numToRender);
-    std::string pers_page(dbuf);
-    pers_page += ".pg";
-    docState->StoreState(pers_page.c_str());
-    docParser.PostStoreState(docState);
+    if (false == fast_page_sum){
+        HDocState docState = docParser.ShadowDocState();
+        static char dbuf[100];
+        sprintf(dbuf, "%s%d\0", work_dir, numToRender);
+        std::string pers_page(dbuf);
+        pers_page += ".pg";
+        docState->StoreState(pers_page.c_str());
+        docParser.PostStoreState(docState);
     
-    delete docState;
+        delete docState;
 #if 0
-    curPage = new Page(numToRender, docState);
-    pages.push_back(curPage);
+        curPage = new Page(numToRender, docState);
+        pages.push_back(curPage);
 #endif
-    char buf[100];
-    sprintf(buf, "Start page %d. CurPage: %d", numToRender, curPageNum);
-    LOG_EVENT(buf);
+        char buf[100];
+        sprintf(buf, "Start page %d. CurPage: %d", numToRender, curPageNum);
+        LOG_EVENT(buf);
+    }
 }
 
 void PageManager::EndPage(int page_num, RenderMan* render){
     if (page_num == numToRender){
         numLastRendered = numToRender++;
-        char buf[100];
-        sprintf(buf, "End page %d. CurPage: %d", numLastRendered, (uint32)curPageNum);
-        LOG_EVENT(buf);
+        if (false == fast_page_sum){
+            char buf[100];
+            sprintf(buf, "End page %d. CurPage: %d", numLastRendered, (uint32)curPageNum);
+            LOG_EVENT(buf);
+        }
 
 #ifdef PAGE_CACHED_RENDER
         // Put the page into page cache

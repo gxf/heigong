@@ -11,12 +11,13 @@
 #include <iostream>
 #include <unistd.h>
 
-// Global variable
-char8* work_dir     = (char*)(DEFAULT_WORK_DIR);
-char8* html_dir     = NULL;
-uint32 scr_width    = SCREEN_WIDTH;
-uint32 scr_height   = SCREEN_HEIGHT;
-uint32 g_dpi        = DPI_DFT;
+// Thread local variable
+__thread char8* work_dir     = (char*)(DEFAULT_WORK_DIR);
+__thread char8* html_dir     = NULL;
+__thread uint32 scr_width    = SCREEN_WIDTH;
+__thread uint32 scr_height   = SCREEN_HEIGHT;
+__thread uint32 g_dpi        = DPI_DFT;
+__thread bool fast_page_sum  = false;
 
 static Logger* logger;
 
@@ -25,9 +26,11 @@ static bool serd    = false; // Serialized
 static bool async   = false;
 
 hHgMaster HG_Init(const char* file, const char* path, const char* html_path, 
-                  bool asynchronize, bool render_only, bool serialized, 
+                  bool asynchronize, bool render_only, bool serialized, bool fps,
                   uint32 screen_width, uint32 screen_height, uint32 dpi)
 {
+    fast_page_sum = fps;
+
     // Negtive number protector
     if (screen_width > 10000 || screen_height > 10000 || dpi > 1000){
         return NULL;
@@ -108,6 +111,12 @@ uint32 HG_GetCurMaxPage(hHgMaster hHG){
     return engine->GetCurMaxPage();
 }
 
+uint32 HG_GetMaxPage(hHgMaster hHG){
+    May12th * engine = reinterpret_cast<May12th*>(hHG);
+
+    return engine->GetMaxPage();
+}
+
 bool HG_FreePage(hHgMaster hHG, p_page_info hPG){
     May12th * engine = reinterpret_cast<May12th*>(hHG);
     bool ret = engine->FreePage(hPG->img);
@@ -131,3 +140,4 @@ bool HG_Term(hHgMaster hHG){
 
     return true;
 }
+

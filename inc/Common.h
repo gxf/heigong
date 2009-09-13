@@ -185,6 +185,7 @@ enum ENCODING_MODE{
 #define DEFAULT_FONTS_CACHE_SIZE    1024*1024
 
 #define DEFAULT_TMP_FILE_NAME   "tmp.hg"
+#define DEFAULT_FAST_PAGE_TMP_FILE "fast_page.hg"
 #define DEFAULT_WORK_DIR        "./"
 
 #define TIME_WAIT   1000
@@ -192,11 +193,12 @@ enum ENCODING_MODE{
 
 #define PROC_WORD_MAX 10
 
-extern char* work_dir;
-extern char* html_dir;
-extern uint32 scr_width;
-extern uint32 scr_height;
-extern uint32 g_dpi;
+extern __thread char* work_dir;
+extern __thread char* html_dir;
+extern __thread uint32 scr_width;
+extern __thread uint32 scr_height;
+extern __thread uint32 g_dpi;
+extern __thread bool fast_page_sum;
 
 #endif
 

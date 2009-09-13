@@ -64,6 +64,12 @@ void Graph::SetSrcFile(const char* src) {
 }
 
 Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
+    if (true == fast_page_sum){
+        if (req_width > PAGE_WIDTH || req_height > PAGE_HEIGHT){
+            Resize(NULL, req_width, req_height, bitmap_w, bitmap_h);
+        }
+        return GY_OK;
+    }
     std::string file(file_path);
     file += file_name;
     ReviseFileName(file);
@@ -501,33 +507,39 @@ void Graph::ConvertJPG(void* bmap, int w, int h){
 void* Graph::Resize(void* bmap, int32 w_old, int32 h_old, int32 & w_new, int32 & h_new){
     assert(w_old >= 0);
     assert(h_old >= 0);
+
+    int32 newWidth;
+    int32 newHeight;
+
     if (w_old > PAGE_WIDTH){
-        int32 newWidth = PAGE_WIDTH - IMAGE_GUARD_SIZE;
-        int32 newHeight = h_old * newWidth / w_old;
+        newWidth = PAGE_WIDTH - IMAGE_GUARD_SIZE;
+        newHeight = h_old * newWidth / w_old;
         if (newHeight > PAGE_HEIGHT){
             newHeight = PAGE_HEIGHT - IMAGE_GUARD_SIZE;
             newWidth = w_old * newHeight / h_old;
         }
-        w_new = newWidth;
-        h_new = newHeight;
-        return ResizeImpl(bmap, w_old, h_old, newWidth, newHeight);
     }
     else if (h_old > PAGE_HEIGHT){
-        int32 newHeight = PAGE_HEIGHT - IMAGE_GUARD_SIZE;
-        int32 newWidth = w_old * newHeight / h_old;
+        newHeight = PAGE_HEIGHT - IMAGE_GUARD_SIZE;
+        newWidth = w_old * newHeight / h_old;
         if (newWidth > PAGE_WIDTH){
             newWidth = PAGE_WIDTH - IMAGE_GUARD_SIZE;
             newHeight = h_old * newWidth / w_old;
         }
-        w_new = newWidth;
-        h_new = newHeight;
-        return ResizeImpl(bmap, w_old, h_old, newWidth, newHeight);
     }
     // Else, don't change anything
     else{
         w_new = 0;
         h_new = 0;
         return NULL;
+    }
+    w_new = newWidth;
+    h_new = newHeight;
+    if (true == fast_page_sum){
+        return NULL;
+    }
+    else{
+        return ResizeImpl(bmap, w_old, h_old, newWidth, newHeight);
     }
 }
 
@@ -550,6 +562,9 @@ void* Graph::ResizeImpl(void* bmap, int32 w_old, int32 h_old, int32 w_new, int32
 }
 
 bool Graph::Draw(RenderMan& render){
+    if (true == fast_page_sum){
+        return true;
+    }
     if (bitmap != NULL){
         bool ret = render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
         delete [] (uint8*)bitmap;

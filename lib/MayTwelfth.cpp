@@ -124,6 +124,11 @@ uint32 May12th::GetCurMaxPage(){
     return ctx->pgMgr.GetLastPageNum();
 }
 
+uint32 May12th::GetMaxPage(){
+    RenderAll();
+    return ctx->pgMgr.GetMaxPageNum();
+}
+
 bool May12th::Term(){
     return true;
 }

@@ -24,6 +24,9 @@ RenderMan::~RenderMan(){
 }
 
 void RenderMan::Init(){
+    if(true == fast_page_sum){
+        return;
+    }
 #ifndef RENDER2FILE
     /* initialize SDL */
     if (SDL_Init(SDL_INIT_VIDEO) < 0){
@@ -121,15 +124,17 @@ bool RenderMan::RenderHorizLine(int x, int y, uint32 width, uint32 length, Color
     LOG_EVENT(buf);
 #endif
 
-    uint8 line[width * length];
-    memset(line, 0x0, sizeof(line));
+    if(false == fast_page_sum){
+        uint8 line[width * length];
+        memset(line, 0x0, sizeof(line));
 
 #ifndef NOGL
-    Position pos(x, scr_height - y);
+        Position pos(x, scr_height - y);
 #else
-    Position pos(x, y);
+        Position pos(x, y);
 #endif
-    fb.Write(pos, length, width, line);
+        fb.Write(pos, length, width, line);
+    }
     return true;
 }
 
@@ -140,15 +145,17 @@ bool RenderMan::RenderVerticLine(int x, int y, uint32 width, uint32 length, Colo
     LOG_EVENT(buf);
 #endif
 
-    uint8 line[width * length];
-    memset(line, 0x0, sizeof(line));
+    if(false == fast_page_sum){
+        uint8 line[width * length];
+        memset(line, 0x0, sizeof(line));
 
 #ifndef NOGL
-    Position pos(x, scr_height - (y + length));
+        Position pos(x, scr_height - (y + length));
 #else
-    Position pos(x, y + length);
+        Position pos(x, y + length);
 #endif
-    fb.Write(pos, width, length, line);
+        fb.Write(pos, width, length, line);
+    }
 
     return true;
 }
@@ -183,12 +190,14 @@ bool RenderMan::RenderGrayMap(int x, int y, int width, int height, void* pixmap)
     LOG_EVENT(buf);
 #endif
 
+    if (false == fast_page_sum){
 #ifndef NOGL
-    Position pos(x, scr_height - y);
+        Position pos(x, scr_height - y);
 #else
-    Position pos(x, y);
+        Position pos(x, y);
 #endif
-    fb.Write(pos, width, height, pixmap);
+        fb.Write(pos, width, height, pixmap);
+    }
     return true;
 }
 
@@ -219,34 +228,39 @@ static void RenderToFile(void* pFb, uint32 width, uint32 height, const char* fil
 void* RenderMan::Flush(BufferManager * bufMgr){
 //    LOG_EVENT("Flush to buffer");
 
-    uint32 width, height;
-    uint8* pFb;
-    fb.GetFB(&pFb, &width, &height);
+    if (false == fast_page_sum){
+        uint32 width, height;
+        uint8* pFb;
+        fb.GetFB(&pFb, &width, &height);
 
 #ifndef RENDER2FILE
-//    glWindowPos2i(0, 0);
-    glRasterPos2i(-1, -1);
-    glColor3f(1.0f, 1.0f, 0.0f);
+//        glWindowPos2i(0, 0);
+        glRasterPos2i(-1, -1);
+        glColor3f(1.0f, 1.0f, 0.0f);
 
-    char buf[100];
-    sprintf(buf, "render pixmap with left-top @ (%d , %d), width: %d, height: %d", 0, 0, width, height);
-    LOG_EVENT(buf);
+        char buf[100];
+        sprintf(buf, "render pixmap with left-top @ (%d , %d), width: %d, height: %d", 0, 0, width, height);
+        LOG_EVENT(buf);
 
-    glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, (GLubyte*)pFb);
-    glFlush();
-    SDL_GL_SwapBuffers();
+        glDrawPixels(width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, (GLubyte*)pFb);
+        glFlush();
+        SDL_GL_SwapBuffers();
 #else
-//    RenderToFile(pFb, width, height, "framebuffer.pgm");
+//        RenderToFile(pFb, width, height, "framebuffer.pgm");
 #endif
 #ifdef API_BASED
-    if (bufMgr){
-        return bufMgr->Insert(pFb, width, height, 8);
-    }
-    else
-        return NULL;
+        if (bufMgr){
+            return bufMgr->Insert(pFb, width, height, 8);
+        }
+        else
+            return NULL;
 #else
-    return NULL;
+        return NULL;
 #endif
+    }
+    else{
+        return NULL;
+    }
 }
 
 void RenderMan::GetFBSize(Page* pg){

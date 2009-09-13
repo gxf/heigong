@@ -1,6 +1,8 @@
 #include "inc/hg.h"
 #include <iostream>
 #include <unistd.h>
+#include <sys/unistd.h>
+#include <sys/wait.h>
 #include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,6 +11,7 @@ static char * work_d = (char*)("/tmp/5/");
 static char * html_d = NULL;
 static const uint32 page_w = 600;
 static const uint32 page_h = 800;
+static uint32 total_page;
 
 #define DPI_L   120
 #define DPI_M   96
@@ -25,7 +28,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         render_only = true;
     }
     hHgMaster hHG;
-    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, page_w, page_h, DPI_L))){
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, false, page_w, page_h, DPI_L))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -90,7 +93,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
     //
     serialized = true;
     render_only = false;
-    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, page_w, page_h, DPI_S))){
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, false, page_w, page_h, DPI_S))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -145,6 +148,33 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
     return true;
 }
 
+static int FastPageRoutine(const char* filename, bool async, bool serialized, bool notdoc){
+    bool render_only = false;
+    if (true == notdoc){
+        async = false;
+        render_only = true;
+    }
+    hHgMaster hHG;
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, true, page_w, page_h, DPI_L))){
+        std::cout << "Fail to init engine."
+            << std::endl;
+        return 0;
+    }
+    if(!(HG_StartParse(hHG))){
+        std::cout << "Fail to start parsing." << std::endl;
+        HG_Term(hHG);
+        return 0;
+    }
+	
+    total_page = HG_GetMaxPage(hHG);
+
+    if(!HG_Term(hHG)){
+        std::cout << "Fail to term engine" << std::endl;
+        return 0; 
+    }
+
+    return total_page;
+}
 
 int main(int argc, char** argv){
     bool notdoc         = false;
@@ -188,15 +218,32 @@ int main(int argc, char** argv){
         i++;
     }
 
-    std::cout << "=========================" << std::endl;
-    if(false == BasicRoutine(argv[1], true, serialized, notdoc)){
-        std::cout << "Basic Routine fails." << std::endl;
-        return 0;
-    }
-    else{
-        std::cout << "Basic Routine passes." << std::endl;
+    pid_t pid;
+    int status;
+    
+    if ((pid = fork()) < 0){
+        perror("fork failed");
+        return 2;
     }
 
+    else if (0 == pid){ //Child
+        std::cout << "This is child" << std::endl;
+        std::cout << "Total Page: " 
+            << FastPageRoutine(argv[1], true, serialized, notdoc)
+            << std::endl;
+    }
+    else{
+        std::cout << "=========================" << std::endl;
+        if(false == BasicRoutine(argv[1], true, serialized, notdoc)){
+            std::cout << "Basic Routine fails." << std::endl;
+            return 0;
+        }
+        else{
+            std::cout << "Basic Routine passes." << std::endl;
+        }
+    }
+
+    wait(&status);
     return 0;
 }
 

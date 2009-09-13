@@ -94,6 +94,7 @@ bool Char::Draw(RenderMan & render){
     return render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
 }
 
+#define IS_CHINA_CHAR(c) ((*((uchar8*)(c)) > 0x80) && (*((uchar8*)((uchar8*)(c) + 1)) > 0x39))
 Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
     if ('\n' == GetVal()){
         switch(layout.NewLine()){
@@ -107,29 +108,45 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
                 return GY_ERROR;
         }
     }
-    FT_GlyphSlot glyphSlot;
 
-    if (0 == attrib.size || 
-        false == ftMgr.SetFontSize(attrib.size)){
-        ftMgr.SetFontSize(DEFAULT_FONT_SIZE);
-    }
-    ftMgr.GetGlyphSlot((FT_ULong)GetVal(EM_UTF_32), &glyphSlot);
-    baseline = ((glyphSlot->metrics.horiBearingY) >> 6);
-    // Maybe the bitmap is allocated already
-    if (bitmap == NULL){
-        ftCache.CacheFont(this, 
+    LAYOUT_RET ret;
+
+    if (false == fast_page_sum){
+        FT_GlyphSlot glyphSlot;
+
+        if (0 == attrib.size || 
+            false == ftMgr.SetFontSize(attrib.size)){
+            ftMgr.SetFontSize(DEFAULT_FONT_SIZE);
+        }
+        ftMgr.GetGlyphSlot((FT_ULong)GetVal(EM_UTF_32), &glyphSlot);
+        baseline = ((glyphSlot->metrics.horiBearingY) >> 6);
+        // Maybe the bitmap is allocated already
+        if (bitmap == NULL){
+            ftCache.CacheFont(this, 
                 glyphSlot->bitmap.pitch, glyphSlot->bitmap.rows, 
                 glyphSlot->bitmap.buffer);
-    }
-    ftMgr.SetFontSize(DEFAULT_FONT_SIZE);
-    LAYOUT_RET ret = 
-        layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
-                          glyphSlot->bitmap.rows, baseline);
-    pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
+        }
+        ftMgr.SetFontSize(DEFAULT_FONT_SIZE);
+        ret = layout.GetCharPos(pos, (glyphSlot->advance.x) >> 6, 
+                    glyphSlot->bitmap.rows, baseline);
+//        pos.x += ((glyphSlot->metrics.horiBearingX) >> 6);
 
 #ifdef NOGL
-    pos.y -= bitmap_h;
+        pos.y -= bitmap_h;
 #endif
+    }
+    else{
+        int width = attrib.size * 46 * g_dpi * 100 / (64 * 254 * 20);
+        int height = width;
+        int thischar = GetVal(EM_UTF_8);
+        if (false == IS_CHINA_CHAR(&thischar)){
+            width /= 2;
+        }
+        ret = layout.GetCharPos(pos, width, height, height);
+#ifdef NOGL
+        pos.y -= height;
+#endif
+    }
 
     switch(ret){
         case LO_OK:
