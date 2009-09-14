@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "Page.h"
 #include "PageCache.h"
+#include "DocState.h"
 
 class DocParser;
 class RenderMan;
@@ -19,8 +20,8 @@ class PageManager{
         int NextPage();
         int RepeatPage();
         
-        void StartPage();
-        void EndPage(int page_num, RenderMan* render);
+        HDocState StartPage();
+        void EndPage(int page_num, HDocState dState, RenderMan* render);
 
         bool RestorePage(int page_num);
 

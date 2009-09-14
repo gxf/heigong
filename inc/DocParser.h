@@ -37,6 +37,7 @@ class DocParser{
 
         HDocState ShadowDocState();
         bool PostStoreState(HDocState hState);
+        bool FinalStoreState(HDocState hState);
         bool RestoreDocState(HDocState hState);
 
     public:

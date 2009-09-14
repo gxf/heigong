@@ -17,7 +17,8 @@ class DocState : public Serializer{
 
     public:
         void StoreState(const char * filename);
-        void RecoverState(const char * filename);
+        void AppendState(const char * filename);
+        bool RecoverState(const char * filename);
 
     public:
         void Serialize(std::ofstream & ofs);
@@ -29,6 +30,7 @@ class DocState : public Serializer{
     public:
         std::deque<Glyph*>  buffer;
         long int            offset;
+        long int            term_off;
 
     public:
         Attrib_Glyph        glyphAttrib;
@@ -45,3 +47,4 @@ class DocState : public Serializer{
 typedef DocState* HDocState;
 
 #endif
+

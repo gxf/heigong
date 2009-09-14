@@ -135,6 +135,7 @@ bool May12th::Term(){
 
 void* May12th::Display(int page_num){
     bool newPage = false;
+    HDocState docState = NULL;
     if (page_num > ctx->pgMgr.GetToWorkPageNum()){
         // Forward Display
         int i = ctx->pgMgr.GetToWorkPageNum(); 
@@ -152,7 +153,7 @@ void* May12th::Display(int page_num){
         char buf[100];
         sprintf(buf, "Render a new page: %d", page_num);
         LOG_EVENT(buf);
-        ctx->pgMgr.StartPage();
+        docState = ctx->pgMgr.StartPage();
         newPage = true;
     }
     else if (page_num < ctx->pgMgr.GetToWorkPageNum()){
@@ -207,7 +208,7 @@ void* May12th::Display(int page_num){
                             img = ctx->render.Flush(&ctx->bufMgr);
                         else
                             img = ctx->render.Flush(NULL);
-                        ctx->pgMgr.EndPage(page_num, &ctx->render);
+                        ctx->pgMgr.EndPage(page_num, docState, &ctx->render);
                         Char::ClearCache();
                         finished = true;
                         break;
@@ -218,7 +219,7 @@ void* May12th::Display(int page_num){
                             img = ctx->render.Flush(&ctx->bufMgr);
                         else
                             img = ctx->render.Flush(NULL);
-                        ctx->pgMgr.EndPage(page_num, &ctx->render);
+                        ctx->pgMgr.EndPage(page_num, docState, &ctx->render);
                         Char::ClearCache();
                         finished = true;
                         break;

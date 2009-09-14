@@ -116,6 +116,11 @@ bool DocParser::PostStoreState(HDocState hState){
     return true;
 }
 
+bool DocParser::FinalStoreState(HDocState hState){
+    hState->term_off = docStream.GetCurOffset();
+    return true;
+}
+
 bool DocParser::RestoreDocState(HDocState hState){
     // Restore the docStream offset and glyphBuffer
     ClearGlyphStream();
