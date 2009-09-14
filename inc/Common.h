@@ -193,12 +193,13 @@ enum ENCODING_MODE{
 
 #define PROC_WORD_MAX 10
 
-extern __thread char* work_dir;
-extern __thread char* html_dir;
-extern __thread uint32 scr_width;
-extern __thread uint32 scr_height;
-extern __thread uint32 g_dpi;
-extern __thread bool fast_page_sum;
+extern char* work_dir;
+extern char* html_dir;
+extern uint32 scr_width;
+extern uint32 scr_height;
+extern uint32 g_dpi;
+extern bool fast_page_sum;
+extern bool pg_based_render;
 
 #endif
 

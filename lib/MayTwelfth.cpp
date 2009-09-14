@@ -5,6 +5,8 @@
 #include <cstring>
 #include <cassert>
 
+static int pb_cur_page = 0;
+
 May12th::May12th(Logger* log, const char* fn, bool conv):
     inited(false), convert(conv), bgMode(false), slMode(false),
     filename(fn), encoding(EM_UTF_8), ctx(NULL), logger(log)
@@ -208,7 +210,7 @@ void* May12th::Display(int page_num){
                             img = ctx->render.Flush(&ctx->bufMgr);
                         else
                             img = ctx->render.Flush(NULL);
-                        ctx->pgMgr.EndPage(page_num, docState, &ctx->render);
+                        ctx->pgMgr.EndPage(docState, &ctx->render, page_num);
                         Char::ClearCache();
                         finished = true;
                         break;
@@ -219,7 +221,7 @@ void* May12th::Display(int page_num){
                             img = ctx->render.Flush(&ctx->bufMgr);
                         else
                             img = ctx->render.Flush(NULL);
-                        ctx->pgMgr.EndPage(page_num, docState, &ctx->render);
+                        ctx->pgMgr.EndPage(docState, &ctx->render, page_num);
                         Char::ClearCache();
                         finished = true;
                         break;
@@ -315,6 +317,118 @@ void* May12th::SerializedDisplay(int page_num){
             default:
                 LOG_ERROR("Unsupported DocParser return type!");
 //                finished = true;
+                break;
+        }
+    }
+    return img;
+}
+// Note: .pg based render only
+void May12th::PB_Set2Page(int page_num){
+    ctx->layout.Reset();
+    ctx->pgMgr.RestorePage(page_num);
+
+    ctx->render.Clear();
+    pb_cur_page = page_num;
+}
+
+// Note: .pg based render only
+void* May12th::PB_Display(int sub_pg_num){
+    bool newPage = false;
+    HDocState docState = NULL;
+
+    if (sub_pg_num > ctx->pgMgr.GetToWorkPageNum()){
+        // Forward Display
+        int i = ctx->pgMgr.GetToWorkPageNum(); 
+        PB_Display(i);
+        if(i++ >= ctx->pgMgr.GetMaxPageNum())
+            return NULL;
+        while(i < sub_pg_num){
+            PB_Display(ctx->pgMgr.NextPage());
+            if(i++ >= ctx->pgMgr.GetMaxPageNum())
+                return NULL;
+        }
+        return PB_Display(i);
+    }
+    else if (sub_pg_num == ctx->pgMgr.GetToWorkPageNum()){
+        char buf[100];
+        sprintf(buf, "Render a new page: %d-%d", pb_cur_page, sub_pg_num);
+        LOG_EVENT(buf);
+        docState = ctx->pgMgr.StartPage(pb_cur_page);
+        newPage = true;
+    }
+    else if (sub_pg_num < ctx->pgMgr.GetToWorkPageNum()){
+        char buf[100];
+        sprintf(buf,"Render the rendered page: %d-%d", pb_cur_page, sub_pg_num);
+        LOG_EVENT(buf);
+        ctx->layout.Reset();
+        ctx->pgMgr.RestorePage(pb_cur_page, sub_pg_num);
+        newPage = false;
+    }
+
+    ctx->render.Clear();
+
+    Glyph* glyph;
+    DocParser::DP_RET_T dp_ret = DocParser::DP_OK;
+
+    bool finished = false;
+    void* img = NULL;
+    while(!finished){
+        dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->layout);
+        Glyph::GY_ST_RET gy_ret = Glyph::GY_OK; 
+        Table* tab = NULL;
+        switch(dp_ret){
+            case DocParser::DP_OK:
+                gy_ret = glyph->Setup(ctx->layout);
+                tab = dynamic_cast<Table *>(glyph);
+                switch(gy_ret){
+                    case Glyph::GY_OK:
+                        // Table render is trigered here
+                        if (tab){ tab->Draw(ctx->render); }
+                        break;
+                    case Glyph::GY_NEW_PAGE:
+                        // Table render is trigered here
+                        if (tab){ tab->Draw(ctx->render); }
+                        if(true == newPage){
+                            ctx->docParse << glyph->UngetSet();
+                        }
+                        if (bgMode || (!bgMode && !convert))
+                            img = ctx->render.Flush(&ctx->bufMgr);
+                        else
+                            img = ctx->render.Flush(NULL);
+                        ctx->pgMgr.EndPage(docState, &ctx->render, sub_pg_num, pb_cur_page);
+                        Char::ClearCache();
+                        finished = true;
+                        break;
+                    case Glyph::GY_EOF:
+                        ctx->pgMgr.SetMaxPageNum(sub_pg_num);
+                        ctx->layout.curLine->DrawFlush(&ctx->render);
+                        if (bgMode || (!bgMode && !convert))
+                            img = ctx->render.Flush(&ctx->bufMgr);
+                        else
+                            img = ctx->render.Flush(NULL);
+                        ctx->pgMgr.EndPage(docState, &ctx->render, sub_pg_num, pb_cur_page);
+                        Char::ClearCache();
+                        finished = true;
+                        break;
+                    case Glyph::GY_ERROR:
+                        LOG_ERROR("Internal error.");
+//                        finished = true;
+                        break;
+                    default:
+                        LOG_ERROR("Unsupported setting up return value of glyph.");
+                        finished = true;
+                        break;
+                }
+            case DocParser::DP_EOF:
+                break;
+            case DocParser::DP_INVALID:
+                LOG_ERROR("DocParser return invalid stream!");
+                break;
+            case DocParser::DP_ERROR:
+                LOG_ERROR("DocParser return parse error!");
+                break;
+            default:
+                LOG_ERROR("Unsupported DocParser return type!");
                 break;
         }
     }

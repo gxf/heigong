@@ -12,12 +12,13 @@
 #include <unistd.h>
 
 // Thread local variable
-__thread char8* work_dir     = (char*)(DEFAULT_WORK_DIR);
-__thread char8* html_dir     = NULL;
-__thread uint32 scr_width    = SCREEN_WIDTH;
-__thread uint32 scr_height   = SCREEN_HEIGHT;
-__thread uint32 g_dpi        = DPI_DFT;
-__thread bool fast_page_sum  = false;
+char8* work_dir     = (char*)(DEFAULT_WORK_DIR);
+char8* html_dir     = NULL;
+uint32 scr_width    = SCREEN_WIDTH;
+uint32 scr_height   = SCREEN_HEIGHT;
+uint32 g_dpi        = DPI_DFT;
+bool fast_page_sum  = false;
+bool pg_based_render= false;
 
 static Logger* logger;
 
@@ -141,3 +142,58 @@ bool HG_Term(hHgMaster hHG){
     return true;
 }
 
+/*************************************************************************/
+//
+// PAGE_BASED API
+//
+// HG_PB_...
+hHgMaster HG_PB_Init(const char *html_file_name, const char* html_file_path, const char* pg_file_path, 
+                     uint32 screen_width, uint32 screen_height, uint32 dpi)
+{
+    pg_based_render = true;
+
+    // Negtive number protector
+    if (screen_width > 10000 || screen_height > 10000 || dpi > 1000){
+        return NULL;
+    }
+    scr_width  = screen_width;
+    scr_height = screen_height;
+    g_dpi      = dpi;
+    logger = new Logger;
+    if (!logger){
+        return NULL;
+    }
+    work_dir = new char8[std::strlen(html_file_path) + 1];
+    std::strcpy(work_dir, pg_file_path);
+    if (NULL != html_file_path){
+        html_dir = new char8[std::strlen(html_file_path) + 1];
+        std::strcpy(html_dir, html_file_path);
+    }
+    else{
+        html_dir = NULL;
+    }
+
+    May12th * engine = new May12th(logger, html_file_name, false); // No convert
+    if (!engine){
+        delete logger;
+        return NULL;
+    }
+
+    return reinterpret_cast<hHgMaster>(engine);
+}
+
+bool HG_PB_StartParse(hHgMaster hHG){
+    May12th * engine = reinterpret_cast<May12th*>(hHG);
+    // Only one mode get involved.
+    return engine->StartForeGroundSerializedNoConv();
+}
+
+bool HG_PB_SetPage(hHgMaster hHG, uint32 pg_num){
+    return true;
+}
+
+p_page_info HG_PB_GetReRenderedPage(hHgMaster hHG, uint32 pg_num){
+    return NULL;
+}
+
+bool HG_PB_Term(hHgMaster hHG);

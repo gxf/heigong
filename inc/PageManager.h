@@ -20,10 +20,10 @@ class PageManager{
         int NextPage();
         int RepeatPage();
         
-        HDocState StartPage();
-        void EndPage(int page_num, HDocState dState, RenderMan* render);
+        HDocState StartPage(int pg_num = -1);
+        void EndPage(HDocState dState, RenderMan* render, int page_num, int sub_pg_num = -1);
 
-        bool RestorePage(int page_num);
+        bool RestorePage(int page_num, int sub_pg_num = -1);
 
         bool CachedRender(int page_num, RenderMan* render);
 

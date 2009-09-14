@@ -56,7 +56,7 @@ bool DocState::RecoverState(const char * filename){
     uint32 fComplete = 0x0;
     DESER_OBJ(fComplete);
     if (fComplete != ~0){
-        LOG_EVENT("Recover state fails.");
+        LOG_EVENT("Recover state fails!!!!");
         ifs.close();
         return false;
     }

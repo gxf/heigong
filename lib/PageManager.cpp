@@ -42,13 +42,18 @@ int PageManager::RepeatPage(){
     return curPageNum;
 }
 
-HDocState PageManager::StartPage(){
+HDocState PageManager::StartPage(int pg_num ){
 //    if (false == fast_page_sum){
     // Always Gen .pg
     if(true){
         HDocState docState = docParser.ShadowDocState();
         static char dbuf[100];
-        sprintf(dbuf, "%s%d\0", work_dir, numToRender);
+        if (-1 == pg_num){
+            sprintf(dbuf, "%s%d\0", work_dir, numToRender);
+        }
+        else{
+            sprintf(dbuf, "%s%d-%d\0", work_dir, pg_num, numToRender);
+        }
         std::string pers_page(dbuf);
         pers_page += ".pg";
         docState->StoreState(pers_page.c_str());
@@ -65,7 +70,7 @@ HDocState PageManager::StartPage(){
     }
 }
 
-void PageManager::EndPage(int page_num, HDocState hdoc, RenderMan* render){
+void PageManager::EndPage(HDocState hdoc, RenderMan* render, int page_num, int pg_num){
     if (page_num == numToRender){
         numLastRendered = numToRender++;
 //        if (false == fast_page_sum){
@@ -77,7 +82,12 @@ void PageManager::EndPage(int page_num, HDocState hdoc, RenderMan* render){
 
         docParser.FinalStoreState(hdoc);
         static char dbuf[100];
-        sprintf(dbuf, "%s%d\0", work_dir, numLastRendered);
+        if(-1 == pg_num){
+            sprintf(dbuf, "%s%d\0", work_dir, numLastRendered);
+        }
+        else{ 
+            sprintf(dbuf, "%s%d-%d\0", work_dir, pg_num, numLastRendered);
+        }
         std::string pers_page(dbuf);
         pers_page += ".pg";
         hdoc->AppendState(pers_page.c_str());
@@ -92,10 +102,15 @@ void PageManager::EndPage(int page_num, HDocState hdoc, RenderMan* render){
     }
 }
 
-bool PageManager::RestorePage(int page_num){
+bool PageManager::RestorePage(int page_num, int sub_pg_num){
     HDocState hds = new DocState(logger);
     static char dbuf[100];
-    sprintf(dbuf, "%s%d\0", work_dir, page_num);
+    if(-1 == sub_pg_num){
+        sprintf(dbuf, "%s%d\0", work_dir, page_num);
+    }
+    else{ 
+        sprintf(dbuf, "%s%d-%d\0", work_dir, page_num, sub_pg_num);
+    }
     std::string pers_page(dbuf);
     pers_page +=  ".pg";
     hds ->RecoverState(pers_page.c_str());

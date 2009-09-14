@@ -37,6 +37,9 @@ class May12th{
         bool Term();
         inline Logger* GetLogger(){ return logger; }
 
+        void PB_Set2Page(int page_num);
+        void* PB_Display(int page_num);
+
     private:
         void Init(uint32 fontSize = DEFAULT_FONT_SIZE);
 //        bool RenderChar(Char &);
