@@ -180,6 +180,74 @@ static int FastPageRoutine(const char* filename, bool async, bool serialized, bo
     return total_page;
 }
 
+static bool PgBasedRoutine(const char* filename, uint32 pg_num){
+    hHgMaster hHG;
+    if(!(hHG = HG_PB_Init(filename, work_d, work_d, page_w, page_h, DPI_L))){
+        std::cout << "Fail to init engine."
+            << std::endl;
+        return false;
+    }
+    if(!(HG_PB_StartParse(hHG))){
+        std::cout << "Fail to start parsing." << std::endl;
+        HG_Term(hHG);
+        return false;
+    }
+	
+    if(!(HG_PB_SetPage(hHG, pg_num))){
+        std::cout << "Fail to set page for parsing." << std::endl;
+        HG_Term(hHG);
+        return false;
+    }
+	
+    p_page_info pPage;
+    uint32 page_num = 0;
+
+    char tmp[strlen(filename) + 1];
+    memcpy(tmp, filename, strlen(filename) + 1);
+    char* p = (char*)tmp + strlen(tmp);
+    int i = strlen(tmp);
+    FILE* fd;
+    while(i--){
+        if( *p == '/' ){
+            p++;
+            break;
+        }
+        if( *p == '.' ){
+            *p = 0;
+        }
+        p--;
+    }
+
+    char name[100];
+    memset(name, 0, sizeof(name));
+    sprintf(name, "%s-%05d.pgm", p, 0);
+    printf("open file:%s\n",name);
+
+    while(NULL != (pPage = HG_PB_GetReRenderedPage(hHG, page_num))){
+		memset(name, 0, sizeof(name));
+		sprintf(name, "%s_%u_%05d.pgm", p, pg_num, page_num);
+        // Replace me to do whatever you want
+        std::cout << "***************************************Got page**************************************** " << page_num
+            << std::endl;
+		fd = fopen(name, "wb");
+		if( fd == NULL ){
+			printf("file open error:%s\n",name);
+			break;
+		}
+		fwrite(head_data, 1, sizeof(head_data), fd);
+		fwrite((char*)pPage->img, 1, pPage->height*pPage->width, fd);
+		fclose(fd);
+        ++page_num;
+        HG_PB_FreePage(hHG, pPage);
+    }
+    page_num--;     // This is the max page num
+    if(!HG_PB_Term(hHG)){
+        std::cout << "Fail to term engine" << std::endl;
+        return false; 
+    }
+    return true;
+}
+
 int main(int argc, char** argv){
     bool notdoc         = false;
     bool serialized     = false;
@@ -225,11 +293,13 @@ int main(int argc, char** argv){
     pid_t pid;
     int status;
     
+    char * filen = new char[strlen(argv[1]) + 1];
+    std::strcpy(filen, argv[1]);
+
     if ((pid = fork()) < 0){
         perror("fork failed");
         return 2;
     }
-
     else if (0 == pid){ //Child
         std::cout << "This is child" << std::endl;
         std::cout << "Total Page: " 
@@ -248,6 +318,8 @@ int main(int argc, char** argv){
     }
 
     wait(&status);
+    PgBasedRoutine(filen, 1);
+    delete [] filen;
     return 0;
 }
 

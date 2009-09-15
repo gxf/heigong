@@ -111,7 +111,7 @@ bool HG_Term(hHgMaster hHG);
 // PAGE_BASED API
 //
 // HG_PB_...
-hHgMaster HG_PB_Init(const char *html_file_path, const char *html_file_name, const char* pg_file_path, 
+hHgMaster HG_PB_Init(const char *html_file_name, const char *html_file_path, const char* pg_file_path, 
                      uint32 screen_width, uint32 screen_height, uint32 dpi);
 
 bool HG_PB_StartParse(hHgMaster hHG);
@@ -119,6 +119,8 @@ bool HG_PB_StartParse(hHgMaster hHG);
 bool HG_PB_SetPage(hHgMaster hHG, uint32 pg_num);
 
 p_page_info HG_PB_GetReRenderedPage(hHgMaster hHG, uint32 pgre_render_num);
+
+bool HG_PB_FreePage(hHgMaster hHG, p_page_info hPG);
 
 bool HG_PB_Term(hHgMaster hHG);
 #endif

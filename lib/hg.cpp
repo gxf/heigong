@@ -189,11 +189,50 @@ bool HG_PB_StartParse(hHgMaster hHG){
 }
 
 bool HG_PB_SetPage(hHgMaster hHG, uint32 pg_num){
+    May12th * engine = reinterpret_cast<May12th*>(hHG);
+
+    engine->PB_Set2Page(pg_num);
     return true;
 }
 
 p_page_info HG_PB_GetReRenderedPage(hHgMaster hHG, uint32 pg_num){
+    May12th * engine = reinterpret_cast<May12th*>(hHG);
+
+    p_page_info pg_info = new page_info;
+    pg_info->width   = 0;
+    pg_info->height  = 0;
+    pg_info->depth   = 0;
+    pg_info->img     = NULL;
+
+    bool ret = engine->PB_GetPage(pg_num, &pg_info->width, &pg_info->height, 
+                               &pg_info->depth, &pg_info->img);
+    if (false == ret && NULL == pg_info->img){
+        delete pg_info;
+        return NULL;
+    }
+    else{
+        return pg_info;
+    }
     return NULL;
 }
 
-bool HG_PB_Term(hHgMaster hHG);
+bool HG_PB_FreePage(hHgMaster hHG, p_page_info hPG){
+    May12th * engine = reinterpret_cast<May12th*>(hHG);
+    bool ret = engine->FreePage(hPG->img);
+    delete hPG;
+    return ret;
+}
+
+bool HG_PB_Term(hHgMaster hHG){
+    May12th * engine = reinterpret_cast<May12th*>(hHG);
+    if (NULL == engine){
+        return false;
+    }
+    engine->Term();
+    delete logger;
+    delete engine;
+    if (0 != strcmp(work_dir, DEFAULT_WORK_DIR)){
+        delete [] work_dir;
+    }
+    return true;
+}

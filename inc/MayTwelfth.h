@@ -31,6 +31,8 @@ class May12th{
         bool StartBackGround();
         bool GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                      uint32 * depth, void** img);
+        bool PB_GetPage(uint32 page_num, uint32 * width, uint32 * height, 
+                     uint32 * depth, void** img);
         uint32 GetCurMaxPage();
         uint32 GetMaxPage();
         bool FreePage(void* img);

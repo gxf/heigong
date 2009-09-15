@@ -77,6 +77,17 @@ bool May12th::StartBackGround(){
     return true;
 }
 
+bool May12th::PB_GetPage(uint32 page_num, uint32 * width, uint32 * height, 
+                      uint32 * depth, void** img)
+{
+    if (NULL == (*img = PB_Display(page_num))){
+        return false;
+    }
+    bool ret = ctx->bufMgr.GetAttr(*img, width, height, depth);
+    assert( ret == true);
+    return ret;
+}
+
 bool May12th::GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                       uint32 * depth, void** img){
     if (true == slMode){
