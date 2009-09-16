@@ -80,6 +80,14 @@ bool May12th::StartBackGround(){
 bool May12th::PB_GetPage(uint32 page_num, uint32 * width, uint32 * height, 
                       uint32 * depth, void** img)
 {
+    if((int)page_num > ctx->pgMgr.GetMaxPageNum()){
+        *width  = 0;
+        *height = 0;
+        *depth  = 0;
+        *img    = NULL;
+        return false;
+    }
+
     if (NULL == (*img = PB_Display(page_num))){
         return false;
     }

@@ -220,7 +220,7 @@ static bool PgBasedRoutine(const char* filename, uint32 pg_num){
 
     char name[100];
     memset(name, 0, sizeof(name));
-    sprintf(name, "%s-%05d.pgm", p, 0);
+    sprintf(name, "%s-%d-%05d.pgm", p, pg_num, 0);
     printf("open file:%s\n",name);
 
     while(NULL != (pPage = HG_PB_GetReRenderedPage(hHG, page_num))){
@@ -318,7 +318,7 @@ int main(int argc, char** argv){
     }
 
     wait(&status);
-    PgBasedRoutine(filen, 1);
+    PgBasedRoutine("/tmp/5/tmp.hg", 0);
     delete [] filen;
     return 0;
 }

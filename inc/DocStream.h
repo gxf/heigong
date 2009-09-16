@@ -56,6 +56,7 @@ class DocStream{
     public:
         long int GetCurOffset();
         void SetOffset(long int offset);
+        void SetTermOff(long int offset){ term_off = offset;}
 
     private:
         uint8 GetChar();
@@ -79,6 +80,7 @@ class DocStream{
 
     private:
         long int            file_off;   // Current file offset
+        long int            term_off;   // Terminate pos, pg based render only
         long int            bg_off;     // Current background parsing offset
 
     private:

@@ -130,6 +130,7 @@ bool DocParser::RestoreDocState(HDocState hState){
         ++itr;
     }
     docStream.SetOffset(hState->offset);
+    docStream.SetTermOff(hState->term_off);
     glyphAttrib = hState->glyphAttrib;
     lineAttrib  = hState->lineAttrib;
 

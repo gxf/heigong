@@ -342,7 +342,10 @@ long int DocStream::GetCurOffset(){
 
 uint8 DocStream::GetChar(){
     uint8 ret;
-    if (false == ch_buf.empty()){
+    if (true == pg_based_render && file_off >= term_off){
+        throw Except_EOF();
+    }
+    else if (false == ch_buf.empty()){
         ret = ch_buf.top();
         ch_buf.pop();
         return ret;
