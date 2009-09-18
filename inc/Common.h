@@ -185,7 +185,7 @@ enum ENCODING_MODE{
 #define DEFAULT_FONTS_CACHE_SIZE    1024*1024
 
 #define DEFAULT_TMP_FILE_NAME   "tmp.hg"
-#define DEFAULT_FAST_PAGE_TMP_FILE "fast_page.hg"
+#define DEFAULT_FAST_PAGE_TMP_FILE "tmp.hg"
 #define DEFAULT_WORK_DIR        "./"
 
 #define TIME_WAIT   1000

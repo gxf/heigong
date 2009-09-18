@@ -182,7 +182,7 @@ static int FastPageRoutine(const char* filename, bool async, bool serialized, bo
 
 static bool PgBasedRoutine(const char* filename, uint32 pg_num){
     hHgMaster hHG;
-    if(!(hHG = HG_PB_Init(filename, work_d, work_d, page_w, page_h, DPI_L))){
+    if(!(hHG = HG_PB_Init(filename, html_d, work_d, page_w, page_h, DPI_L))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -319,6 +319,17 @@ int main(int argc, char** argv){
 
     wait(&status);
     PgBasedRoutine("/tmp/5/tmp.hg", 0);
+#if 0
+    PgBasedRoutine("/tmp/5/tmp.hg", 1);
+    PgBasedRoutine("/tmp/5/tmp.hg", 2);
+    PgBasedRoutine("/tmp/5/tmp.hg", 3);
+    PgBasedRoutine("/tmp/5/tmp.hg", 4);
+    PgBasedRoutine("/tmp/5/tmp.hg", 5);
+    PgBasedRoutine("/tmp/5/tmp.hg", 6);
+    PgBasedRoutine("/tmp/5/tmp.hg", 7);
+    PgBasedRoutine("/tmp/5/tmp.hg", 9);
+    PgBasedRoutine("/tmp/5/tmp.hg", 10);
+#endif
     delete [] filen;
     return 0;
 }

@@ -99,7 +99,6 @@ bool DocStream::OpenFile(const char* filename, bool background){
         operator>>(data);
         operator<<(data);
         
-
         fileEnds = false;
 
         return true;

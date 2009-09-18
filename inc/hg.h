@@ -123,4 +123,5 @@ p_page_info HG_PB_GetReRenderedPage(hHgMaster hHG, uint32 pgre_render_num);
 bool HG_PB_FreePage(hHgMaster hHG, p_page_info hPG);
 
 bool HG_PB_Term(hHgMaster hHG);
+
 #endif
