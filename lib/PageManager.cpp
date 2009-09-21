@@ -45,7 +45,7 @@ int PageManager::RepeatPage(){
 HDocState PageManager::StartPage(int pg_num ){
 //    if (false == fast_page_sum){
     // Always Gen .pg
-    if(true){
+//    if(true){
         HDocState docState = docParser.ShadowDocState();
         static char dbuf[100];
         if (-1 == pg_num){
@@ -67,7 +67,8 @@ HDocState PageManager::StartPage(int pg_num ){
         char buf[100];
         sprintf(buf, "Start page %d. CurPage: %d", numToRender, curPageNum);
         LOG_EVENT(buf);
-    }
+        return docState;
+//    }
 }
 
 void PageManager::EndPage(HDocState hdoc, RenderMan* render, int page_num, int pg_num){

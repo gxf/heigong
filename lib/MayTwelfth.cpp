@@ -344,6 +344,7 @@ void* May12th::SerializedDisplay(int page_num){
 // Note: .pg based render only
 void May12th::PB_Set2Page(int page_num){
     ctx->layout.Reset();
+    ctx->pgMgr.Reset();
     ctx->pgMgr.RestorePage(page_num);
 
     ctx->render.Clear();

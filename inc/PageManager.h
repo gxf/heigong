@@ -32,7 +32,12 @@ class PageManager{
         inline int GetMaxPageNum(){ return maxPageNum; }
         inline int GetToWorkPageNum(){ return numToRender; }
         inline int GetLastPageNum(){ return numLastRendered; }
-
+        inline void Reset(){
+            curPageNum = 0;
+            maxPageNum = MAX_INT32;
+            numToRender = 0;
+            numLastRendered = 0;
+        }
 
     private:
         int     curPageNum;
