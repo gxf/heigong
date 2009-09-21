@@ -147,7 +147,7 @@ bool HG_Term(hHgMaster hHG){
 // PAGE_BASED API
 //
 // HG_PB_...
-hHgMaster HG_PB_Init(const char *html_file_name, const char* html_file_path, const char* pg_file_path, 
+hHgMaster HG_PB_Init(const char *html_file_name, const char* pg_file_path, const char * html_file_path, 
                      uint32 screen_width, uint32 screen_height, uint32 dpi)
 {
     pg_based_render = true;
@@ -163,7 +163,7 @@ hHgMaster HG_PB_Init(const char *html_file_name, const char* html_file_path, con
     if (!logger){
         return NULL;
     }
-    work_dir = new char8[std::strlen(html_file_path) + 1];
+    work_dir = new char8[std::strlen(pg_file_path) + 1];
     std::strcpy(work_dir, pg_file_path);
     if (NULL != html_file_path){
         html_dir = new char8[std::strlen(html_file_path) + 1];
