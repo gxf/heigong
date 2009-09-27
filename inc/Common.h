@@ -193,6 +193,11 @@ enum ENCODING_MODE{
 
 #define PROC_WORD_MAX 10
 
+// Threshold for dropping
+#define EXP_RATIO   1000
+#define DROP_THRES  300
+
+
 extern char* work_dir;
 extern char* html_dir;
 extern uint32 scr_width;

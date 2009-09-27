@@ -138,13 +138,33 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
         else{
             width = attrib.size * 46 * g_dpi * 100 / (64 * 254 * 20);
         }
-//        int height = width;
+        int height = width;
         int thischar = GetVal(EM_UTF_8);
         if (false == IS_CHINA_CHAR(&thischar)){
-            width = (width + 1) / 2;
+            if (thischar >= 0 && thischar < 256){
+//                width = glyphSlot->bitmap.rows * ftMgr.GetWidRatio(thischar) / EXP_RATIO;
+                width = attrib.size * ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+                if (width % EXP_RATIO >= DROP_THRES){
+                    width = width / EXP_RATIO + 1;
+                }
+                else{
+                    width /= EXP_RATIO;
+                }
+            }
+            else{
+                width = (width + 1) / 2;
+            }
         }
         ret = layout.GetCharPos(pos, width, glyphSlot->bitmap.rows, baseline);
-#if 0
+        int horibearing = attrib.size * ftMgr.GetHoriBearing(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+        if (horibearing % EXP_RATIO >= DROP_THRES){
+            horibearing = horibearing / EXP_RATIO + 1;
+        }
+        else{
+            horibearing /= EXP_RATIO;
+        }
+        pos.x += horibearing;
+//#if 0
             std::cout << ((glyphSlot->advance.x) >> 6) 
                 << " row " << glyphSlot->bitmap.rows 
                 << " pitch " << glyphSlot->bitmap.pitch 
@@ -153,7 +173,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
                 << " width " << width 
                 << " height " << height 
                 << " " << std::endl;
-#endif
+//#endif
 #ifdef NOGL
         pos.y -= bitmap_h;
 #endif
@@ -169,9 +189,30 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
         int height = width;
         int thischar = GetVal(EM_UTF_8);
         if (false == IS_CHINA_CHAR(&thischar)){
-            width = (width + 1) / 2;
+            if (thischar >= 0 && thischar < 256){
+//                width = attrib.size * ftMgr.GetWidRatio(thischar) / DEFAULT_FONT_SIZE;
+//                width = height * ftMgr.GetWidRatio(thischar) / EXP_RATIO;
+                width = attrib.size * ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+                if ( width % EXP_RATIO >= DROP_THRES){
+                    width = width / EXP_RATIO + 1;
+                }
+                else{
+                    width /= EXP_RATIO;
+                }
+            }
+            else{
+                width = (width + 1) / 2;
+            }
         }
         ret = layout.GetCharPos(pos, width, height, height);
+        int horibearing = attrib.size * ftMgr.GetHoriBearing(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+        if (horibearing % EXP_RATIO >= DROP_THRES){
+            horibearing = horibearing / EXP_RATIO + 1;
+        }
+        else{
+            horibearing /= EXP_RATIO;
+        }
+        pos.x += horibearing;
 #ifdef NOGL
         pos.y -= height;
 #endif

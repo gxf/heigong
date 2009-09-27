@@ -14,6 +14,7 @@ const char* FontsManager::dftFontPath = DEFAULT_FONT;
 
 FontsManager::FontsManager(Logger* log):
     curFont(NULL), dpi(g_dpi),
+    widTab(NULL), horiBearingTab(NULL), 
     logger(log)
 {
     int error = FT_Init_FreeType(&library); 
@@ -27,10 +28,17 @@ FontsManager::FontsManager(Logger* log):
 }
 
 FontsManager::~FontsManager(){
+    if (widTab == NULL){
+        delete [] widTab;
+    }
+    if (horiBearingTab == NULL){
+        delete [] horiBearingTab;
+    }
 }
 
 void FontsManager::Init(){
     OpenFont(dftFontPath);
+    PreBuildWidTab();
 }
 
 bool FontsManager::OpenFont(const char* path){
@@ -95,6 +103,21 @@ bool FontsManager::OpenFont(const char* path){
 
     SetFontSize(DEFAULT_FONT_SIZE);
     return true;
+}
+
+void FontsManager::PreBuildWidTab(){
+    SetFontSize(DEFAULT_FONT_SIZE);
+    FT_GlyphSlot glyphSlot;
+
+    widTab = new int[256];
+    horiBearingTab = new int[256];
+
+    int i;
+    for (i = 0; i < 256; i++){
+        GetGlyphSlot((FT_ULong)i, &glyphSlot);
+        widTab[i] = ((glyphSlot->advance.x) >> 6);//* EXP_RATIO / glyphSlot->bitmap.rows; // width * EXP_RATIO / height
+        horiBearingTab[i] = ((glyphSlot->metrics.horiBearingX) >> 6);
+    }
 }
 
 bool FontsManager::SetFontSize(int pt){

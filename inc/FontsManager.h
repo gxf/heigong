@@ -65,12 +65,21 @@ class FontsManager{
     public:
         // Interfaces
         bool OpenFont(const char* path);
+        void PreBuildWidTab();
+
         bool DelFont(FT_Face face);
 
         bool SetFontSize(int pt);
 
         void GetGlyphSlot(FT_ULong c, FT_GlyphSlot* slot); 
         void GetGlyphSlotNoRender(FT_ULong c, FT_GlyphSlot* slot); 
+
+        inline int32 GetWidRatio(int32 idx){ 
+            return (widTab && idx >=0 && idx < 256) ? widTab[idx]: 1; }
+
+        inline int32 GetHoriBearing(int32 idx){ 
+            return (horiBearingTab && idx >=0 && idx < 256) ?  horiBearingTab[idx] : 0; 
+        }
 
     private:
         void Init();
@@ -88,7 +97,9 @@ class FontsManager{
         int     dpi;
 
     private:
-        FontsTab fontsTab;
+        FontsTab    fontsTab;
+        int32*      widTab;
+        int32*      horiBearingTab; 
 
     private:
         Logger* logger;
