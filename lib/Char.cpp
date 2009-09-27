@@ -138,7 +138,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
         else{
             width = attrib.size * 46 * g_dpi * 100 / (64 * 254 * 20);
         }
-        int height = width;
+//        int height = width;
         int thischar = GetVal(EM_UTF_8);
         if (false == IS_CHINA_CHAR(&thischar)){
             if (thischar >= 0 && thischar < 256){
@@ -164,7 +164,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
             horibearing /= EXP_RATIO;
         }
         pos.x += horibearing;
-//#if 0
+#if 0
             std::cout << ((glyphSlot->advance.x) >> 6) 
                 << " row " << glyphSlot->bitmap.rows 
                 << " pitch " << glyphSlot->bitmap.pitch 
@@ -173,7 +173,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
                 << " width " << width 
                 << " height " << height 
                 << " " << std::endl;
-//#endif
+#endif
 #ifdef NOGL
         pos.y -= bitmap_h;
 #endif
