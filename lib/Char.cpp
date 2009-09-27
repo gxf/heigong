@@ -143,7 +143,8 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
         if (false == IS_CHINA_CHAR(&thischar)){
             if (thischar >= 0 && thischar < 256){
 //                width = glyphSlot->bitmap.rows * ftMgr.GetWidRatio(thischar) / EXP_RATIO;
-                width = attrib.size * ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+                width = ((attrib.size) ?  attrib.size : DEFAULT_FONT_SIZE) * 
+                    ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
                 if (width % EXP_RATIO >= DROP_THRES){
                     width = width / EXP_RATIO + 1;
                 }
@@ -192,6 +193,8 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
             if (thischar >= 0 && thischar < 256){
 //                width = attrib.size * ftMgr.GetWidRatio(thischar) / DEFAULT_FONT_SIZE;
 //                width = height * ftMgr.GetWidRatio(thischar) / EXP_RATIO;
+                width = ((attrib.size) ?  attrib.size : DEFAULT_FONT_SIZE) * 
+                    ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
                 width = attrib.size * ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
                 if ( width % EXP_RATIO >= DROP_THRES){
                     width = width / EXP_RATIO + 1;
@@ -200,9 +203,11 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
                     width /= EXP_RATIO;
                 }
             }
+#if 0
             else{
                 width = (width + 1) / 2;
             }
+#endif
         }
         ret = layout.GetCharPos(pos, width, height, height);
         int horibearing = attrib.size * ftMgr.GetHoriBearing(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;

@@ -195,7 +195,7 @@ enum ENCODING_MODE{
 
 // Threshold for dropping
 #define EXP_RATIO   1000
-#define DROP_THRES  300
+#define DROP_THRES  250 
 
 
 extern char* work_dir;
