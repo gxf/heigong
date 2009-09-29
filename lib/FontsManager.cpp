@@ -25,6 +25,7 @@ FontsManager::FontsManager(Logger* log):
         LOG_EVENT("Font library initialization succeeds.");
         Init();
     }
+    inited = false;
 }
 
 FontsManager::~FontsManager(){
@@ -34,6 +35,7 @@ FontsManager::~FontsManager(){
     if (horiBearingTab == NULL){
         delete [] horiBearingTab;
     }
+    inited = false;
 }
 
 void FontsManager::Init(){
@@ -105,43 +107,42 @@ bool FontsManager::OpenFont(const char* path){
 }
 
 void FontsManager::PreBuildWidTab(){
-    if (curFont == NULL){
-        LOG_EVENT("Font is not opened.");
-        exit(0);
-    }
-//    int error = FT_Set_Char_Size(curFont, pt * 64, pt * 64, g_dpi, g_dpi); 
-    // 2.3 * (pt * dpi / 2.54), 2.3 is got by experiment
-    int width = 46 * DEFAULT_FONT_SIZE * g_dpi * 100 / (64 * 254 * 20);
-    int error = FT_Set_Pixel_Sizes(curFont, 0, width);
-    if (error){
-        LOG_EVENT("Fail to set char size.");
-        exit(0);
-    }
+    if(false == inited){
+        if (curFont == NULL){
+            LOG_EVENT("Font is not opened.");
+            exit(0);
+        }
+        int width = 46 * DEFAULT_FONT_SIZE * g_dpi * 100 / (64 * 254 * 20);
+        std::cout << "***********************************"
+            << "g_dpi = " << g_dpi << std::endl;
+        int error = FT_Set_Pixel_Sizes(curFont, width, width);
+        if (error){
+            LOG_EVENT("Fail to set char size.");
+            exit(0);
+        }
 
-    FT_GlyphSlot glyphSlot;
+        FT_GlyphSlot glyphSlot;
 
-    widTab = new int[256];
-    horiBearingTab = new int[256];
+        widTab = new int[256];
+        horiBearingTab = new int[256];
 
-    int i;
-    for (i = 0; i < 256; i++){
-        GetGlyphSlot((FT_ULong)i, &glyphSlot);
-        widTab[i] = ((glyphSlot->advance.x) >> 6);//* EXP_RATIO / glyphSlot->bitmap.rows; // width * EXP_RATIO / height
-        horiBearingTab[i] = ((glyphSlot->metrics.horiBearingX) >> 6);
+        int i;
+        for (i = 0; i < 256; i++){
+            GetGlyphSlot((FT_ULong)i, &glyphSlot);
+            widTab[i] = ((glyphSlot->advance.x) >> 6);//* EXP_RATIO / glyphSlot->bitmap.rows; // width * EXP_RATIO / height
+            horiBearingTab[i] = ((glyphSlot->metrics.horiBearingX) >> 6);
+        }
+        inited = true;
     }
 }
 
 bool FontsManager::SetFontSize(int pt){
-    if(false == inited){
-        PreBuildWidTab();
-        inited = true;
-    }
     if (curFont == NULL)
         return false;
 //    int error = FT_Set_Char_Size(curFont, pt * 64, pt * 64, g_dpi, g_dpi); 
     // 2.3 * (pt * dpi / 2.54), 2.3 is got by experiment
     int width = 46 * pt * g_dpi * 100 / (64 * 254 * 20);
-    int error = FT_Set_Pixel_Sizes(curFont, 0, width);
+    int error = FT_Set_Pixel_Sizes(curFont, width, width);
     if (error){
         LOG_EVENT("Fail to set char size.");
         return false;

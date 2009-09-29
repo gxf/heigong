@@ -13,7 +13,7 @@ static const uint32 page_w = 600;
 static const uint32 page_h = 800;
 static uint32 total_page;
 
-#define DPI_L   120
+#define DPI_L   200
 #define DPI_M   96
 #define DPI_S   80
 

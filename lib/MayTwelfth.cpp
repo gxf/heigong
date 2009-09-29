@@ -20,6 +20,7 @@ May12th::~May12th(){
 }
 
 void May12th::Init(uint32 fontSize){
+    Char::ftMgr.inited = false;
     if (false == inited){
         ctx->render.Init();
         // If it is serialized mode, choose the tmp file as input
@@ -199,6 +200,7 @@ void* May12th::Display(int page_num){
         newPage = false;
     }
 
+    Char::ftMgr.PreBuildWidTab();
     ctx->render.Clear();
 
     Glyph* glyph;
@@ -279,6 +281,7 @@ void* May12th::SerializedDisplay(int page_num){
     ctx->layout.Reset();
     ctx->pgMgr.RestorePage(page_num);
 
+    Char::ftMgr.PreBuildWidTab();
     ctx->render.Clear();
 
     Glyph* glyph;
@@ -360,6 +363,7 @@ void* May12th::PB_Display(int sub_pg_num){
     bool newPage = false;
     HDocState docState = NULL;
 
+    Char::ftMgr.PreBuildWidTab();
     if (sub_pg_num > ctx->pgMgr.GetToWorkPageNum()){
         // Forward Display
         int i = ctx->pgMgr.GetToWorkPageNum(); 

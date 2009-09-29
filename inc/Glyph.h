@@ -177,6 +177,7 @@ class Char: public Glyph{
 
     private:
         static FontsCache ftCache;
+    public:
         static FontsManager ftMgr;
 
     private:
