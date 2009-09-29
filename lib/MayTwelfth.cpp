@@ -211,19 +211,19 @@ void* May12th::Display(int page_num){
     while(!finished){
         dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->layout);
         Glyph::GY_ST_RET gy_ret = Glyph::GY_OK; 
-        Table* tab = NULL;
+//        Table* tab = NULL;
         switch(dp_ret){
             case DocParser::DP_OK:
                 gy_ret = glyph->Setup(ctx->layout);
-                tab = dynamic_cast<Table *>(glyph);
+//                tab = dynamic_cast<Table *>(glyph);
                 switch(gy_ret){
                     case Glyph::GY_OK:
                         // Table render is trigered here
-                        if (tab){ tab->Draw(ctx->render); }
+//                        if (tab){ tab->Draw(ctx->render); }
                         break;
                     case Glyph::GY_NEW_PAGE:
                         // Table render is trigered here
-                        if (tab){ tab->Draw(ctx->render); }
+//                        if (tab){ tab->Draw(ctx->render); }
                         if(true == newPage){
                             ctx->docParse << glyph->UngetSet();
                         }
@@ -292,19 +292,19 @@ void* May12th::SerializedDisplay(int page_num){
     while(!finished){
         dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->layout);
         Glyph::GY_ST_RET gy_ret = Glyph::GY_OK; 
-        Table* tab = NULL;
+//        Table* tab = NULL;
         switch(dp_ret){
             case DocParser::DP_OK:
                 gy_ret = glyph->Setup(ctx->layout);
-                tab = dynamic_cast<Table *>(glyph);
+//                tab = dynamic_cast<Table *>(glyph);
                 switch(gy_ret){
                     case Glyph::GY_OK:
                         // Table render is trigered here
-                        if (tab){ tab->Draw(ctx->render); }
+//                        if (tab){ tab->Draw(ctx->render); }
                         break;
                     case Glyph::GY_NEW_PAGE:
                         // Table render is trigered here
-                        if (tab){ tab->Draw(ctx->render); }
+//                        if (tab){ tab->Draw(ctx->render); }
                         img = ctx->render.Flush(&ctx->bufMgr);
     //                    ctx->pgMgr.EndPage(page_num, &ctx->render);
 //                        Char::ClearCache();
@@ -403,19 +403,19 @@ void* May12th::PB_Display(int sub_pg_num){
     while(!finished){
         dp_ret = ctx->docParse.GetNextGlyph(&glyph, &ctx->layout);
         Glyph::GY_ST_RET gy_ret = Glyph::GY_OK; 
-        Table* tab = NULL;
+//        Table* tab = NULL;
         switch(dp_ret){
             case DocParser::DP_OK:
                 gy_ret = glyph->Setup(ctx->layout);
-                tab = dynamic_cast<Table *>(glyph);
+//                tab = dynamic_cast<Table *>(glyph);
                 switch(gy_ret){
                     case Glyph::GY_OK:
                         // Table render is trigered here
-                        if (tab){ tab->Draw(ctx->render); }
+//                        if (tab){ tab->Draw(ctx->render); }
                         break;
                     case Glyph::GY_NEW_PAGE:
                         // Table render is trigered here
-                        if (tab){ tab->Draw(ctx->render); }
+//                        if (tab){ tab->Draw(ctx->render); }
                         if(true == newPage){
                             ctx->docParse << glyph->UngetSet();
                         }

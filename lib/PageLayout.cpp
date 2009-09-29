@@ -21,6 +21,7 @@ void PageLayout::AddGlyph(Glyph* g){
     Char* pchr;
     Graph* pg;
 
+#if 0
     if (pchr = dynamic_cast<Char *>(g)){
         if('\n' != pchr->val){
             curLine->AddGlyph(pchr); 
@@ -31,6 +32,14 @@ void PageLayout::AddGlyph(Glyph* g){
     }
     else if (pg = dynamic_cast<Graph *>(g)){
         curLine->AddGlyph(pg); 
+    }
+#endif
+    if ((pchr = dynamic_cast<Char *>(g)) && 
+            ('\n' == pchr->val)){
+        glyphs.push_back(pchr);
+    }
+    else{ 
+        curLine->AddGlyph(g); 
     }
 }
 
