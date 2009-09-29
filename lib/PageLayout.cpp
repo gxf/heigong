@@ -18,17 +18,19 @@ PageLayout::~PageLayout(){
 }
 
 void PageLayout::AddGlyph(Glyph* g){
-    Char* pchr = dynamic_cast<Char *>(g);
-    Table* pt = dynamic_cast<Table *>(g);
+    Char* pchr;
+    Graph* pg;
 
-    if (pchr && ('\n' != pchr->val)){
-        curLine->AddGlyph(pchr); 
+    if (pchr = dynamic_cast<Char *>(g)){
+        if('\n' != pchr->val){
+            curLine->AddGlyph(pchr); 
+        }
+        else{
+            glyphs.push_back(pchr);
+        }
     }
-    else if(pt){
-        return;
-    }
-    else{
-        glyphs.push_back(g);
+    else if (pg = dynamic_cast<Graph *>(g)){
+        curLine->AddGlyph(pg); 
     }
 }
 
