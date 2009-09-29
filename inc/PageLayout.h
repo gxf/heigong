@@ -3,6 +3,7 @@
 
 #include "LayoutManager.h"
 #include "Line.h"
+#include <vector>
 
 class PageLayout : public LayoutManager{
     public:
@@ -16,7 +17,7 @@ class PageLayout : public LayoutManager{
         void NewPage();
 
     public:
-        void AddGlyph(Glyph* g){ curLine->AddGlyph(g); }
+        void AddGlyph(Glyph* g);
 
     public:
         LAYOUT_RET GetCharPos(Position & pos, int width, int height, int bearingY);
@@ -25,12 +26,18 @@ class PageLayout : public LayoutManager{
             
         void Reset();
 
+        void DeleteGlyph();
+
     public:
         int      imageConp;
 
     public:
         RenderMan*  render;
         Line *      curLine;
+
+    public:
+        // Store objects
+        std::vector<Glyph*> glyphs;
 };
 
 #endif

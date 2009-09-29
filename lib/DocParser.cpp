@@ -355,8 +355,9 @@ bool DocParser::procLabel(int & ch){
 }
 
 void DocParser::procWord(int & ch){ 
-    Char* c = new Char(logger);
-    c->SetAttrib(glyphAttrib);
+//    Char* c = new Char(logger);
+    Char* c;
+//    c->SetAttrib(glyphAttrib);
     // But translate special tokens
     // <    == &lt
     // >    == &gt  
@@ -369,6 +370,8 @@ void DocParser::procWord(int & ch){
     // .    == &hellip
 #define FourBytes(a, b, c, d) (d << 24 | c << 16 | b << 8 | a)
     if (ch == '&'){
+        c = new Char(logger);
+    c->SetAttrib(glyphAttrib);
         if (match("lt;")){ 
             c->SetVal('<'); 
         }
@@ -406,12 +409,18 @@ void DocParser::procWord(int & ch){
         }
     }
     else if (match("\r")){
+        c = new Char(logger);
+    c->SetAttrib(glyphAttrib);
         c->SetVal(' ');
     }
     else if (match("\n")){
+        c = new Char(logger);
+    c->SetAttrib(glyphAttrib);
         c->SetVal('\n');
     }
     else{
+        c = new Char(logger);
+    c->SetAttrib(glyphAttrib);
         docStream << ch; 
         docStream >> *c;
     }

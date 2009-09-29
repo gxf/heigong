@@ -16,6 +16,16 @@ PageLayout::~PageLayout(){
     delete curLine;
 }
 
+void PageLayout::AddGlyph(Glyph* g){
+    Char* pchr = dynamic_cast<Char *>(g);
+    if (pchr && ('\n' != pchr->val)){
+        curLine->AddGlyph(pchr); 
+    }
+    else{
+        glyphs.push_back(g);
+    }
+}
+
 LAYOUT_RET PageLayout::GetCharPos(Position & pos, int width, int height, int bearingY){
     // Setting up baseline and maxheight
     curBaseline =  (curBaseline > bearingY) ? curBaseline : bearingY;
@@ -297,4 +307,13 @@ void PageLayout::Reset(){
     lastMaxHeight= 0;
     curBaseline  = 0;
     lastBaseline = 0;
+}
+
+void PageLayout::DeleteGlyph(){
+    std::vector<Glyph*>::iterator itr = glyphs.begin();
+    while(itr != glyphs.end()){
+        delete *itr;
+        ++itr;
+    }
+    glyphs.clear();
 }

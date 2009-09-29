@@ -26,6 +26,11 @@ Table_Row::Table_Row(Logger * log, uint32 w, uint32 o):
 }
 
 Table_Row::~Table_Row(){
+    std::vector<Table_DC*>::iterator itr = dataCells.begin();
+    while(itr != dataCells.end()){
+        delete (*itr);
+        ++itr;
+    }
 }
 
 Table::Table(Logger* log):
@@ -35,6 +40,12 @@ Table::Table(Logger* log):
 {}
 
 Table::~Table(){
+    std::vector<Table_Row *>::iterator itr = rows.begin();
+    while(itr != rows.end()){
+        delete (*itr);
+        ++itr;
+    }
+    rows.clear();
 }
 
 /*************************************/
@@ -396,6 +407,7 @@ Glyph::GY_ST_RET Table::Setup(LayoutManager& lo){
         ++itr;
         ++rowSplit;
     }
+    lo.AddGlyph(this);
     return GY_OK;
 }
 
