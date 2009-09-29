@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Line.h"
 #include "Logger.h"
+#include "Table.h"
 #include "PageLayout.h"
 #include "FontsManager.h"
 #include "RenderMan.h"
@@ -18,8 +19,13 @@ PageLayout::~PageLayout(){
 
 void PageLayout::AddGlyph(Glyph* g){
     Char* pchr = dynamic_cast<Char *>(g);
+    Table* pt = dynamic_cast<Table *>(g);
+
     if (pchr && ('\n' != pchr->val)){
         curLine->AddGlyph(pchr); 
+    }
+    else if(pt){
+        return;
     }
     else{
         glyphs.push_back(g);

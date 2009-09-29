@@ -28,7 +28,7 @@ Table_Row::Table_Row(Logger * log, uint32 w, uint32 o):
 Table_Row::~Table_Row(){
     std::vector<Table_DC*>::iterator itr = dataCells.begin();
     while(itr != dataCells.end()){
-        delete (*itr);
+//        delete (*itr);
         ++itr;
     }
 }
