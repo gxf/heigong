@@ -505,8 +505,8 @@ void Graph::ConvertJPG(void* bmap, int w, int h){
 }
 
 void* Graph::Resize(void* bmap, int32 w_old, int32 h_old, int32 & w_new, int32 & h_new){
-    assert(w_old >= 0);
-    assert(h_old >= 0);
+//    assert(w_old >= 0);
+//    assert(h_old >= 0);
 
     int32 newWidth;
     int32 newHeight;

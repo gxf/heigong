@@ -97,6 +97,9 @@ bool Char::Draw(RenderMan & render){
 #define IS_CHINA_CHAR(c) ((*((uchar8*)(c)) > 0x80) && (*((uchar8*)((uchar8*)(c) + 1)) > 0x39))
 Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
     if ('\n' == GetVal()){
+//        valid = false;
+//        ftCache.CacheFont(this, 0, 0, NULL);
+        layout.AddGlyph(this);
         switch(layout.NewLine()){
             case LO_OK:
                 return GY_OK;

@@ -58,12 +58,14 @@ void FontsCache::AdjustBitmap(int width, int height, void* bitmap){
 }
 
 void FontsCache::CacheFont(Char* ch, int width, int height, void* bitmap){
-    // Cache & convert bitmap for local storage
-    char* p = (char*)AquireMem(width * height);
-    std::memcpy(p, bitmap, width * height);
-    AdjustBitmap(width, height, p);
+    if (0 != width && 0 != height){
+        // Cache & convert bitmap for local storage
+        char* p = (char*)AquireMem(width * height);
+        std::memcpy(p, bitmap, width * height);
+        AdjustBitmap(width, height, p);
 
-    ch->SetBitmap(width, height,p);
+        ch->SetBitmap(width, height,p);
+    }
 
     // TODO: Manage memory
     elems.push_back(ch);
