@@ -14,7 +14,7 @@ const char* FontsManager::dftFontPath = DEFAULT_FONT;
 
 FontsManager::FontsManager(Logger* log):
     curFont(NULL), dpi(g_dpi),
-    widTab(NULL), horiBearingTab(NULL), 
+    widTab(NULL), horiBearingTab(NULL), inited(false),
     logger(log)
 {
     int error = FT_Init_FreeType(&library); 
@@ -38,7 +38,6 @@ FontsManager::~FontsManager(){
 
 void FontsManager::Init(){
     OpenFont(dftFontPath);
-    PreBuildWidTab();
 }
 
 bool FontsManager::OpenFont(const char* path){
@@ -106,7 +105,19 @@ bool FontsManager::OpenFont(const char* path){
 }
 
 void FontsManager::PreBuildWidTab(){
-    SetFontSize(DEFAULT_FONT_SIZE);
+    if (curFont == NULL){
+        LOG_EVENT("Font is not opened.");
+        exit(0);
+    }
+//    int error = FT_Set_Char_Size(curFont, pt * 64, pt * 64, g_dpi, g_dpi); 
+    // 2.3 * (pt * dpi / 2.54), 2.3 is got by experiment
+    int width = 46 * DEFAULT_FONT_SIZE * g_dpi * 100 / (64 * 254 * 20);
+    int error = FT_Set_Pixel_Sizes(curFont, 0, width);
+    if (error){
+        LOG_EVENT("Fail to set char size.");
+        exit(0);
+    }
+
     FT_GlyphSlot glyphSlot;
 
     widTab = new int[256];
@@ -121,6 +132,10 @@ void FontsManager::PreBuildWidTab(){
 }
 
 bool FontsManager::SetFontSize(int pt){
+    if(false == inited){
+        PreBuildWidTab();
+        inited = true;
+    }
     if (curFont == NULL)
         return false;
 //    int error = FT_Set_Char_Size(curFont, pt * 64, pt * 64, g_dpi, g_dpi); 

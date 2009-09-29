@@ -100,6 +100,7 @@ class FontsManager{
         FontsTab    fontsTab;
         int32*      widTab;
         int32*      horiBearingTab; 
+        bool        inited;
 
     private:
         Logger* logger;
