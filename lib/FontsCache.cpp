@@ -11,7 +11,7 @@ FontsCache::FontsCache():
 {}
 
 FontsCache::~FontsCache(){
-    ForceEvict();
+//    ForceEvict();
 }
 
 void FontsCache::AdjustBitmap(int width, int height, void* bitmap){
