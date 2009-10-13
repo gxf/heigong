@@ -68,6 +68,27 @@ Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
         if (req_width > PAGE_WIDTH || req_height > PAGE_HEIGHT){
             Resize(NULL, req_width, req_height, bitmap_w, bitmap_h);
         }
+        LAYOUT_RET ret = layout.GetGraphPos(pos, bitmap_w, bitmap_h);
+
+#ifdef NOGL
+        pos.y -= bitmap_h;
+#endif
+
+        LOG_EVENT_STR3("JPG position", pos.x, pos.y);
+        switch(ret){
+            case LO_OK:
+                layout.AddGlyph(this);
+                break;
+            case LO_NEW_LINE:
+                layout.AddGlyph(this);
+                break;
+            case LO_NEW_PAGE:
+                layout.Reset();
+                return GY_NEW_PAGE;
+            default:
+                LOG_ERROR("Unsupported Layout return.");
+                break;
+        } 
         return GY_OK;
     }
     std::string file(file_path);

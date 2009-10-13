@@ -10,7 +10,8 @@
 static char * work_d = (char*)("/tmp/");
 static char * html_d = NULL;
 static const uint32 page_w = 600;
-static const uint32 page_h = 800;
+//static const uint32 page_h = 800;
+static const uint32 page_h = 770;
 static uint32 total_page;
 static bool g_start = false;
 static int pipefd[2];

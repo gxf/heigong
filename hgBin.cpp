@@ -14,7 +14,8 @@ static const uint32 page_h = 800;
 static uint32 total_page;
 
 #define DPI_L   200
-#define DPI_M   96
+//#define DPI_M   96
+#define DPI_M   120
 #define DPI_S   80
 
 static unsigned char head_data[15] = {
@@ -299,17 +300,21 @@ int main(int argc, char** argv){
     char * filen = new char[strlen(argv[1]) + 1];
     std::strcpy(filen, argv[1]);
 
+#if 0
     if ((pid = fork()) < 0){
         perror("fork failed");
         return 2;
     }
     else if (0 == pid){ //Child
+#endif
         std::cout << "This is child" << std::endl;
         std::cout << "Total Page: " 
             << FastPageRoutine(argv[1], true, serialized, notdoc)
             << std::endl;
+#if 0
     }
     else{
+#endif
         std::cout << "=========================" << std::endl;
         if(false == BasicRoutine(argv[1], true, serialized, notdoc)){
             std::cout << "Basic Routine fails." << std::endl;
@@ -318,9 +323,9 @@ int main(int argc, char** argv){
         else{
             std::cout << "Basic Routine passes." << std::endl;
         }
-    }
+//    }
 
-    wait(&status);
+//    wait(&status);
     if (notdoc == false){
         PgBasedRoutine("/tmp/5/tmp.hg", 0, 5);
     }

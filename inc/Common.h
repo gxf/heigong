@@ -160,9 +160,11 @@ enum ENCODING_MODE{
 
 
 //#define DPI_DFT         96
-#define DPI_DFT         160
+#define DPI_DFT         120
+//#define DPI_DFT         160
 #define SCREEN_WIDTH    600
-#define SCREEN_HEIGHT   800
+//#define SCREEN_HEIGHT   800
+#define SCREEN_HEIGHT   770
 
 #define MARGIN_VERTICAL     30
 #define MARGIN_HORIZONTAL   30
