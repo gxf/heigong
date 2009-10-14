@@ -630,12 +630,21 @@ void Graph::Serialize(std::ofstream & ofs){
     SER_OBJ(magic_num);
     SER_OBJ(req_width);
     SER_OBJ(req_height);
-    SER_OBJ(file_name);
+    uint32 len = std::strlen(file_name) + 1;
+    SER_OBJ(len);
+    ofs.write((char*)file_name, len);
 }
 
 void Graph::Deserialize(std::ifstream & ifs){
     DESER_OBJ(req_width);
     DESER_OBJ(req_height);
-    DESER_OBJ(file_name);
+    uint32 len;
+    DESER_OBJ(len);
+    if (file_name){
+        delete [] file_name;
+        file_name = NULL;
+    }
+    file_name = new char[len];
+    ifs.read((char*)file_name, len);
 }
 

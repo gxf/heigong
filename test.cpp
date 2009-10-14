@@ -10,11 +10,8 @@
 static char * work_d = (char*)("/tmp/");
 static char * html_d = NULL;
 static const uint32 page_w = 600;
-//static const uint32 page_h = 800;
-static const uint32 page_h = 770;
+static const uint32 page_h = 800;
 static uint32 total_page;
-static bool g_start = false;
-static int pipefd[2];
 
 #define DPI_L   120
 #define DPI_M   96
@@ -63,7 +60,7 @@ static bool BasicRoutine(const char* filename, bool async, bool serialized, bool
         async = false;
         render_only = true;
     }
-    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, false, page_w, page_h, DPI_L))){
+    if(!(hHG = HG_Init(filename, work_d, html_d, async, render_only, serialized, false, page_w, page_h, DPI_M))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -267,8 +264,6 @@ static int FastPageRoutine(const char* filename, bool async, bool serialized, bo
         return 0;
     }
 	
-    write(pipefd[1], "0", 1);
-
     total_page = HG_GetMaxPage(hHG);
 
     if(!HG_Term(hHG)){
@@ -281,7 +276,7 @@ static int FastPageRoutine(const char* filename, bool async, bool serialized, bo
 
 static bool PgBasedRoutine(const char* filename, uint32 pg_num){
     hHgMaster hHG;
-    if(!(hHG = HG_PB_Init(filename, html_d, work_d, page_w, page_h, DPI_L))){
+    if(!(hHG = HG_PB_Init(filename, work_d, work_d, page_w, page_h, DPI_L))){
         std::cout << "Fail to init engine."
             << std::endl;
         return false;
@@ -402,10 +397,21 @@ int main(int argc, char** argv){
             std::cout << "Basic Routine passes." << std::endl;
         }
 #endif
-//	printf("|||||||||||||||||||||||||||||||||\\\\\\\\\\\\\\\\\%d\n", FastPageRoutine(argv[1], true, serialized, notdoc) );
-    
+
     char * filen = new char[strlen(argv[1]) + 1];
     std::strcpy(filen, argv[1]);
+
+	printf("|||||||||||||||||||||||||||||||||\\\\\\\\\\\\\\\\\%d\n", FastPageRoutine(filen, true, serialized, notdoc) );
+
+//#if 0
+        if(false == BasicRoutine(argv[1], true, true, notdoc)){
+            std::cout << "Basic Routine fails." << std::endl;
+            return 0;
+        }
+//#endif
+
+//    char * filen = new char[strlen(argv[1]) + 1];
+//    std::strcpy(filen, argv[1]);
 
 #if 0
     if ((pid = fork()) < 0){
@@ -428,69 +434,38 @@ int main(int argc, char** argv){
             std::cout << "Basic Routine passes." << std::endl;
         }
     }
-#else
-//#if 0
-    if (pipe(pipefd) < 0){
-        perror("pipe fails.");
-        return 7;
-    }
+//#else
     if ((pid = fork()) < 0){
         perror("fork failed");
         return 2;
     }
     else if (0 == pid){ //Child
-        close(pipefd[0]);
-        std::cout << "This is child" << std::endl;
-        std::cout << "Total Page: " 
-            << FastPageRoutine(argv[1], true, serialized, notdoc) << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-            << std::endl;
-    }
-    else{
-        close(pipefd[1]);
-        FILE* fd;
-        char cmd[200];
-        int buf;
-        int page_num = 0;
-        while(page_num < 5){
-            memset(cmd,0,200);
-            sprintf(cmd,"%s%d.pg",work_d, page_num);
-            printf("try to get:%s----------------------------------------------------------------\n",cmd);
-            if(( fd = fopen(cmd, "rb"))){
-                fread(&buf,1,4,fd);
-                if(buf!=(~0)){
-                    fclose(fd);
-                    usleep(1000*10);
-                    continue;
-                }
-                printf("get a pg file ok:%d\n",page_num);
-                char buf[10];
-
-                read(pipefd[0], buf, 1);
-                if (notdoc == false){
-                    html_d = work_d;
-                    PgBasedRoutine("tmp.hg", page_num);
-                }
-                else{
-                    PgBasedRoutine(filen, page_num);
-                }
-                page_num++;
-            }
-            usleep(1000*10);
-        }
-    }
-#endif
-//#endif
-    wait(&status);
-//    PgBasedRoutine("/tmp/tmp.hg", 0);
-#if 0
-        if(false == BasicRoutine(filen, true, serialized, notdoc)){
+        std::cout << "=========================" << std::endl;
+        if(false == BasicRoutine(argv[1], true, true, notdoc)){
             std::cout << "Basic Routine fails." << std::endl;
             return 0;
         }
         else{
             std::cout << "Basic Routine passes." << std::endl;
         }
+    }
+    else{
+	FILE* fd;
+	char cmd[200];
+	int page_num = 0;
+	memset(cmd,0,200);
+	while(page_num < 5){
+		sprintf(cmd,"%s%d.pg",work_d, page_num);
+		printf("try to get:%s\n",cmd);
+		if(( fd = fopen(cmd, "rb"))){
+			printf("get a pg file ok:%d\n",page_num);
+		    PgBasedRoutine("/tmp/tmp.hg", page_num);
+		}
+	}
+    }
 #endif
+//    wait(&status);
+//    PgBasedRoutine("/tmp/tmp.hg", 0);
     delete [] filen;
     return 0;
 }
