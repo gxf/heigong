@@ -191,6 +191,8 @@ enum ENCODING_MODE{
 #define DEFAULT_FAST_PAGE_TMP_FILE "tmp.hg"
 #define DEFAULT_WORK_DIR        "./"
 
+#define FAIL_IMG "./fail_img.jpeg"
+
 #define TIME_WAIT   1000
 #define TIMES_RETRY 100
 

@@ -100,15 +100,14 @@ Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
         char info[256 + file.size()];
         sprintf(info, "Fail to open file %s", file.c_str());
         LOG_ERROR(info);
-        return GY_ERROR;
+        strcpy((char*)global_IO.fullname, FAIL_IMG);
+        FILE* fail_img = fopen(FAIL_IMG, "r");
+        return SetupJPG(layout, fail_img, true);
     }
 
     IF_T type = DetectFormat(file.c_str(), fp);
 
     switch(type){
-        case IF_NONE:
-            LOG_WARNING("Unknow image format.");
-            break;
         case IF_PNG:
             LOG_EVENT("Png file is detected.");
             return SetupPNG(layout, fp);
@@ -121,9 +120,13 @@ Glyph::GY_ST_RET Graph::Setup(LayoutManager& layout){
             LOG_EVENT("GIF file is detected.");
             return SetupGIF(layout, fp);
             break;
+        case IF_NONE:
+            LOG_WARNING("Unknow image format.");
         case IF_EMF:
-            break;
         default:
+            strcpy((char*)global_IO.fullname, FAIL_IMG);
+            FILE* fail_img = fopen(FAIL_IMG, "r");
+            return SetupJPG(layout, fail_img, true);
             LOG_ERROR("Unsupported image file type.");
             break;
     }
@@ -347,13 +350,14 @@ void Graph::Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 bit_depth, i
     }
 }
 
-Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
-    fclose(fp);
+Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp, bool direct){
+    if (direct == false){
+        fclose(fp);
 
-    std::string file(file_path);
-    file += file_name;
-
-    strcpy((char*)global_IO.fullname, file.c_str());
+        std::string file(file_path);
+        file += file_name; 
+        strcpy((char*)global_IO.fullname, file.c_str());
+    }
 
     global_IO.exactly =FALSE;
     global_IO.zoom    = 1;
@@ -369,6 +373,7 @@ Glyph::GY_ST_RET Graph::SetupJPG(LayoutManager& layout, FILE* fp){
     LOG_EVENT("load image.");
     if(loadImage(&global_IO) == ERROR){
         LOG_ERROR("Loading jpg file fails");
+        std::cout << global_IO.fullname << std::endl;
         return GY_ERROR;
     }
 

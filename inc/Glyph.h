@@ -218,7 +218,7 @@ class Graph: public Glyph{
 
     protected:
         GY_ST_RET SetupPNG(LayoutManager& lo, FILE* fp);
-        GY_ST_RET SetupJPG(LayoutManager& lo, FILE* fp);
+        GY_ST_RET SetupJPG(LayoutManager& lo, FILE* fp, bool direct = false);
         GY_ST_RET SetupGIF(LayoutManager& lo, FILE* fp);
         IF_T DetectFormat(const char*, FILE * fp);
         void Convert(void** bmap, int w, int h, uchar8 col_t, uchar8 b_depth, int channel);
