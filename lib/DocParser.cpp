@@ -14,7 +14,7 @@
 #include <fcntl.h>
 
 DocParser::DocParser(Logger* log):
-    listMode(LM_NONE), headerMode(false),
+    listMode(LM_NONE), olType(OL_NUM), headerMode(false),
     docStream(log, (std::string(work_dir)+std::string(DEFAULT_TMP_FILE_NAME)).c_str()), 
     resumeProcWord(false), countProcWord(0),
     logger(log)
@@ -232,16 +232,37 @@ bool DocParser::procLabel(int & ch){
                 Char* label;
                 switch(listMode){
                     case LM_ORDER:
-                        if(match_b("value=")){
-                            label = new Char(logger);
-                            label->SetVal('0' + getInteger());
-                            delayedToken.push(label);
-                            label = new Char(logger);
-                            label->SetVal('.');
-                            delayedToken.push(label);
-                            label = new Char(logger);
-                            label->SetVal(' ');
-                            delayedToken.push(label);
+                        if (olType == OL_NUM){
+                            if(match_b("value=")){
+                                int32 val = getInteger();
+                                char8 number[32];
+                                snprintf(number, 31, "%d\0", val);
+                                uint32 cnt;
+                                for (cnt = 0; cnt < std::strlen(number); cnt++){
+                                    label = new Char(logger);
+                                    label->SetVal(number[cnt]);
+                                    delayedToken.push(label);
+                                }
+                                label = new Char(logger);
+                                label->SetVal('.');
+                                delayedToken.push(label);
+                                label = new Char(logger);
+                                label->SetVal(' ');
+                                delayedToken.push(label);
+                            }
+                        }
+                        else if (olType == OL_LETTER){
+                            if(match_b("value=")){
+                                label = new Char(logger);
+                                label->SetVal('a' + getInteger() - 1);
+                                delayedToken.push(label);
+                                label = new Char(logger);
+                                label->SetVal(')');
+                                delayedToken.push(label);
+                                label = new Char(logger);
+                                label->SetVal(' ');
+                                delayedToken.push(label);
+                            }
                         }
                         break;
                     case LM_UNORDER:
@@ -261,17 +282,34 @@ bool DocParser::procLabel(int & ch){
             }
             while('>' != ch){ docStream >> ch; }
             break;
-	case 'm':
-	    if (match("yfont")){
+        case 'm':
+            if (match("yfont")){
                 getMyFont(ch, glyphAttrib);
                 break;
-	    }
+            }
             while('>' != ch){ docStream >> ch; }
-	    break;
+            break;
         case 'o':
-            if(match("l") && match_b(">")){
-                listMode = LM_ORDER;
-                break;
+            if(match("l")){
+                if(match(" ")){
+                    listMode = LM_ORDER;
+                    if(match_b("type=")){
+                        char8* tp = getString('\"');
+                        if ((*tp >= 'a' && *tp <= 'z') ||
+                            (*tp >= 'A' && *tp <= 'Z')){
+                            olType = OL_LETTER;
+                        }
+                        delete [] tp;
+                    }
+                    else{
+                        olType = OL_NUM;
+                    }
+                }
+                else if(match_b(">")){
+                    listMode = LM_ORDER;
+                    olType = OL_NUM;
+                    break;
+                }
             }
             while('>' != ch){ docStream >> ch; }
             break;
@@ -290,9 +328,14 @@ bool DocParser::procLabel(int & ch){
             while('>' != ch){ docStream >> ch; }
             break;
         case 'u':
-            if(match("l") && match_b(">")){
-                listMode = LM_UNORDER;
-                break;
+            if(match("l")){
+                if (match(" ")){
+                    listMode = LM_UNORDER;
+                }
+                else if(match_b(">")){
+                    listMode = LM_UNORDER;
+                    break;
+                }
             }
             while('>' != ch){ docStream >> ch; }
             break;
@@ -687,7 +730,13 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
                     case LM_ORDER:
                         if(match_b("value=")){
                             // Notice: not larger than 10
-                            tdc->AddDelayedChar(new Char(logger, '0' + getInteger()));
+                            int32 val = getInteger();
+                            char8 number[32];
+                            snprintf(number, 31, "%d\0", val);
+                            uint32 cnt;
+                            for (cnt = 0; cnt < std::strlen(number); cnt++){
+                                tdc->AddDelayedChar(new Char(logger, number[cnt]));
+                            }
                             tdc->AddDelayedChar(new Char(logger, '.'));
                             tdc->AddDelayedChar(new Char(logger, ' '));
                         }
@@ -711,9 +760,14 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
             while('>' != ch){ docStream >> ch; }
             break;
         case 'o':
-            if(match("l") && match_b(">")){
-                listMode = LM_ORDER;
-                break;
+            if(match("l")){
+                if (match(" ")){
+                    listMode = LM_ORDER;
+                }
+                else if (match_b(">")){
+                    listMode = LM_ORDER;
+                    break;
+                }
             }
             while('>' != ch){ docStream >> ch; }
             break;
@@ -730,9 +784,14 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
             while('>' != ch){ docStream >> ch; }
             break;
         case 'u':
-            if(match("l") && match_b(">")){
-                listMode = LM_UNORDER;
-                break;
+            if(match("l")){
+                if (match(" ")){
+                    listMode = LM_UNORDER;
+                }
+                else if (match_b(">")){
+                    listMode = LM_UNORDER;
+                    break;
+                }
             }
             while('>' != ch){ docStream >> ch; }
             break;
@@ -749,8 +808,18 @@ bool DocParser::procTableLabel(int & ch, Table_DC* tdc){
                 listMode = LM_NONE;
                 break;
             }
+            else if(match("ol ")){
+                listMode = LM_NONE;
+                while('>' != ch){ docStream >> ch; }
+                break;
+            }
             else if(match("ul>")){
                 listMode = LM_NONE;
+                break;
+            }
+            else if(match("ul ")){
+                listMode = LM_NONE;
+                while('>' != ch){ docStream >> ch; }
                 break;
             }
             else if(match("myfont>")){

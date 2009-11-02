@@ -83,6 +83,13 @@ class DocParser{
             LM_DEFIN,    // <dl>, definition list
         };
         LIST_MODE listMode;  
+
+        enum ORDER_LIST_TYPE{
+            OL_NUM,
+            OL_LETTER,
+        };
+        ORDER_LIST_TYPE olType;
+
         bool      headerMode;
 
     private:
