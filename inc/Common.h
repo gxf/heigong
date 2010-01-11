@@ -159,8 +159,8 @@ enum ENCODING_MODE{
 };
 
 
-//#define DPI_DFT         96
-#define DPI_DFT         120
+#define DPI_DFT         96
+//#define DPI_DFT         120
 //#define DPI_DFT         160
 #define SCREEN_WIDTH    600
 //#define SCREEN_HEIGHT   800
@@ -196,7 +196,7 @@ enum ENCODING_MODE{
 #define TIME_WAIT   1000
 #define TIMES_RETRY 100
 
-#define PROC_WORD_MAX 10
+#define PROC_WORD_MAX 100
 
 // Threshold for dropping
 #define EXP_RATIO   1000

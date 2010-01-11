@@ -3,6 +3,7 @@
 #define FONTS_MANAGER_H
 
 #include <vector>
+#include <map>
 #include <cstring>
 
 #include <ft2build.h>  
@@ -74,12 +75,8 @@ class FontsManager{
         void GetGlyphSlot(FT_ULong c, FT_GlyphSlot* slot); 
         void GetGlyphSlotNoRender(FT_ULong c, FT_GlyphSlot* slot); 
 
-        inline int32 GetWidRatio(int32 idx){ 
-            return (widTab && idx >=0 && idx < 256) ? widTab[idx]: 1; }
-
-        inline int32 GetHoriBearing(int32 idx){ 
-            return (horiBearingTab && idx >=0 && idx < 256) ?  horiBearingTab[idx] : 0; 
-        }
+        int32 GetWidRatio(int dpi, int32 idx); 
+        int32 GetHoriBearing(int dpi, int32 idx); 
 
     private:
         void Init();
@@ -94,12 +91,12 @@ class FontsManager{
 
         FT_Face curFont;
 
-        int     dpi;
+//        int     dpi;
 
     private:
         FontsTab    fontsTab;
-        int32*      widTab;
-        int32*      horiBearingTab; 
+        std::map<int32, int32*> widTab;
+        std::map<int32, int32*> horiBearingTab; 
     public:
         bool        inited;
 

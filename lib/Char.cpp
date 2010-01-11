@@ -114,6 +114,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
 
     LAYOUT_RET ret;
 
+//    std::cout << "Char = " << (char)val << std::endl;
     if (false == fast_page_sum){
         FT_GlyphSlot glyphSlot;
 
@@ -146,27 +147,34 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
         if (false == IS_CHINA_CHAR(&thischar)){
             if (thischar >= 0 && thischar < 256){
 //                width = glyphSlot->bitmap.rows * ftMgr.GetWidRatio(thischar) / EXP_RATIO;
+#if 0                
                 width = ((attrib.size) ?  attrib.size : DEFAULT_FONT_SIZE) * 
-                    ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+                    ftMgr.GetWidRatio(attrib.size, thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+                std::cout << attrib.size << ftMgr.GetWidRatio(attrib.size, thischar) << std::endl;
                 if (width % EXP_RATIO >= DROP_THRES){
                     width = width / EXP_RATIO + 1;
                 }
                 else{
                     width /= EXP_RATIO;
                 }
+#endif
+                width = ftMgr.GetWidRatio(attrib.size, thischar);
             }
             else{
                 width = (width + 1) / 2;
             }
         }
         ret = layout.GetCharPos(pos, width, glyphSlot->bitmap.rows, baseline);
-        int horibearing = attrib.size * ftMgr.GetHoriBearing(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+#if 0
+        int horibearing = attrib.size * ftMgr.GetHoriBearing(attrib.size, thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
         if (horibearing % EXP_RATIO >= DROP_THRES){
             horibearing = horibearing / EXP_RATIO + 1;
         }
         else{
             horibearing /= EXP_RATIO;
         }
+#endif
+        int horibearing = ftMgr.GetHoriBearing(attrib.size, thischar);
         pos.x += horibearing;
 #if 0
             std::cout << ((glyphSlot->advance.x) >> 6) 
@@ -194,32 +202,38 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
         int thischar = GetVal(EM_UTF_8);
         if (false == IS_CHINA_CHAR(&thischar)){
             if (thischar >= 0 && thischar < 256){
+#if 0
 //                width = attrib.size * ftMgr.GetWidRatio(thischar) / DEFAULT_FONT_SIZE;
 //                width = height * ftMgr.GetWidRatio(thischar) / EXP_RATIO;
                 width = ((attrib.size) ?  attrib.size : DEFAULT_FONT_SIZE) * 
-                    ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
-                width = attrib.size * ftMgr.GetWidRatio(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+                    ftMgr.GetWidRatio(attrib.size, thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+                width = attrib.size * ftMgr.GetWidRatio(attrib.size, thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
                 if ( width % EXP_RATIO >= DROP_THRES){
                     width = width / EXP_RATIO + 1;
                 }
                 else{
                     width /= EXP_RATIO;
                 }
+#endif
+                width = ftMgr.GetWidRatio(attrib.size, thischar);
             }
-#if 0
             else{
                 width = (width + 1) / 2;
             }
-#endif
         }
         ret = layout.GetCharPos(pos, width, height, height);
-        int horibearing = attrib.size * ftMgr.GetHoriBearing(thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
+
+#if 0
+        int horibearing = 
+            attrib.size * ftMgr.GetHoriBearing(attrib.size, thischar) * EXP_RATIO / DEFAULT_FONT_SIZE;
         if (horibearing % EXP_RATIO >= DROP_THRES){
             horibearing = horibearing / EXP_RATIO + 1;
         }
         else{
             horibearing /= EXP_RATIO;
         }
+#endif
+        int horibearing = ftMgr.GetHoriBearing(attrib.size, thischar);
         pos.x += horibearing;
 #ifdef NOGL
         pos.y -= height;

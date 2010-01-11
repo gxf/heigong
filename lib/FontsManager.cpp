@@ -2,6 +2,13 @@
 #include "Logger.h"
 #include "FontsManager.h"
 
+static int PreBuildFontPt[] ={
+    4, 5, 6, 7, 8, 9, 10, 11, 12,
+    13, 14, 15, 16, 17, 18, 19, 20,
+    22, 24, 26, 28, 30, 32, 36, 40,
+    44, 48, 56, 64, 72, 80, 96, 120
+};
+
 FontsTab::fTabEntry FontsTab::fontsTab[] = {
     { "宋体", "./fonts/simsun.ttc"},
     { "仿宋", "./fonts/simfang.ttf"},
@@ -13,9 +20,9 @@ FontsTab::fTabEntry FontsTab::fontsTab[] = {
 const char* FontsManager::dftFontPath = DEFAULT_FONT;
 
 FontsManager::FontsManager(Logger* log):
-    curFont(NULL), dpi(g_dpi),
-    widTab(NULL), horiBearingTab(NULL), inited(false),
-    logger(log)
+    curFont(NULL), 
+//    dpi(g_dpi), 
+    inited(false), logger(log)
 {
     int error = FT_Init_FreeType(&library); 
     if (error){
@@ -29,11 +36,15 @@ FontsManager::FontsManager(Logger* log):
 }
 
 FontsManager::~FontsManager(){
-    if (widTab == NULL){
-        delete [] widTab;
+    std::map<int32, int32*>::iterator itr = widTab.begin();
+    while(itr != widTab.end()){
+        delete [] (itr->second);
+        ++itr;
     }
-    if (horiBearingTab == NULL){
-        delete [] horiBearingTab;
+    itr = horiBearingTab.begin();
+    while(itr != horiBearingTab.end()){
+        delete [] (itr->second);
+        ++itr;
     }
     inited = false;
 }
@@ -112,25 +123,36 @@ void FontsManager::PreBuildWidTab(){
             LOG_EVENT("Font is not opened.");
             exit(0);
         }
-        int width = 46 * DEFAULT_FONT_SIZE * g_dpi * 100 / (64 * 254 * 20);
-        std::cout << "***********************************"
-            << "g_dpi = " << g_dpi << std::endl;
-        int error = FT_Set_Pixel_Sizes(curFont, width, width);
-        if (error){
-            LOG_EVENT("Fail to set char size.");
-            exit(0);
-        }
 
-        FT_GlyphSlot glyphSlot;
+        int w_num = sizeof(PreBuildFontPt) / sizeof(PreBuildFontPt[0]);
+        int cnt;
+//        std::cout << "w_num = " << w_num << std::endl;
+        for(cnt = 0; cnt < w_num; cnt++){ 
+//            int width = 46 * DEFAULT_FONT_SIZE * PreBuildFontPt[cnt] * 100 / (64 * 254 * 20);
+            int width = 46 * PreBuildFontPt[cnt] * g_dpi * 100 / (64 * 254 * 20);
+//    int width = 46 * pt * g_dpi * 100 / (64 * 254 * 20);
+//                << "g_dpi = " << g_dpi << std::endl;
+//            std::cout << "Width = " << width << std::endl;
+            int error = FT_Set_Pixel_Sizes(curFont, width, width);
+            if (error){
+                LOG_EVENT("Fail to set char size.");
+                exit(0);
+            }
 
-        widTab = new int[256];
-        horiBearingTab = new int[256];
+            FT_GlyphSlot glyphSlot;
 
-        int i;
-        for (i = 0; i < 256; i++){
-            GetGlyphSlot((FT_ULong)i, &glyphSlot);
-            widTab[i] = ((glyphSlot->advance.x) >> 6);//* EXP_RATIO / glyphSlot->bitmap.rows; // width * EXP_RATIO / height
-            horiBearingTab[i] = ((glyphSlot->metrics.horiBearingX) >> 6);
+            int32 *curwidTab = new int32[256];
+            int32 *curhBTab = new int32[256];
+
+            int i;
+            for (i = 0; i < 256; i++){
+                GetGlyphSlot((FT_ULong)i, &glyphSlot);
+                curwidTab[i] = ((glyphSlot->advance.x) >> 6);//* EXP_RATIO / glyphSlot->bitmap.rows; // width * EXP_RATIO / height
+                curhBTab[i] = ((glyphSlot->metrics.horiBearingX) >> 6);
+//                std::cout << "width = " << curwidTab[i] << ", hb = " << curhBTab[i] << std::endl;
+            }
+            widTab.insert(std::make_pair(PreBuildFontPt[cnt], curwidTab));
+            horiBearingTab.insert(std::make_pair(PreBuildFontPt[cnt], curhBTab));
         }
         inited = true;
     }
@@ -233,3 +255,89 @@ FT_Face FontsManager::FindFont(const char* path){
     return NULL;
 }
 
+int32 FontsManager::GetWidRatio(int sz, int32 idx){ 
+    if (idx < 0 || idx > 256){
+        return 0;
+    }
+    if (sz < 4) {
+        return widTab[4][idx];
+    }
+    else if (sz > 120) {
+        return widTab[120][idx];
+    }
+    else if (sz > 33 && sz < 35) {
+        return widTab[32][idx];
+    }
+    else if (sz > 36 && sz < 40) {
+        return widTab[36][idx];
+    }
+    else if (sz > 40 && sz < 44) {
+        return widTab[40][idx];
+    }
+    else if (sz > 44 && sz < 48) {
+        return widTab[44][idx];
+    }
+    else if (sz > 48 && sz < 56) {
+        return widTab[48][idx];
+    }
+    else if (sz > 56 && sz < 64) {
+        return widTab[56][idx];
+    }
+    else if (sz > 64 && sz < 72) {
+        return widTab[64][idx];
+    }
+    else if (sz > 72 && sz < 80) {
+        return widTab[72][idx];
+    }
+    else if (sz > 80 && sz < 96) {
+        return widTab[80][idx];
+    }
+    else if (sz > 96 && sz < 120) {
+        return widTab[96][idx];
+    }
+    return widTab[sz][idx];
+}
+
+int32 FontsManager::GetHoriBearing(int sz, int32 idx){ 
+    if (idx < 0 || idx > 256){
+        return 0;
+    }
+    if (sz < 4) {
+        return horiBearingTab[4][idx];
+    }
+    else if (sz > 120) {
+        return horiBearingTab[120][idx];
+    }
+    else if (sz > 33 && sz < 35) {
+        return horiBearingTab[32][idx];
+    }
+    else if (sz > 36 && sz < 40) {
+        return horiBearingTab[36][idx];
+    }
+    else if (sz > 40 && sz < 44) {
+        return horiBearingTab[40][idx];
+    }
+    else if (sz > 44 && sz < 48) {
+        return horiBearingTab[44][idx];
+    }
+    else if (sz > 48 && sz < 56) {
+        return horiBearingTab[48][idx];
+    }
+    else if (sz > 56 && sz < 64) {
+        return horiBearingTab[56][idx];
+    }
+    else if (sz > 64 && sz < 72) {
+        return horiBearingTab[64][idx];
+    }
+    else if (sz > 72 && sz < 80) {
+        return horiBearingTab[72][idx];
+    }
+    else if (sz > 80 && sz < 96) {
+        return horiBearingTab[80][idx];
+    }
+    else if (sz > 96 && sz < 120) {
+        return horiBearingTab[96][idx];
+    }
+    return horiBearingTab[sz][idx];
+
+}
