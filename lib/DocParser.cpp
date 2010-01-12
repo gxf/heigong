@@ -145,35 +145,32 @@ void DocParser::fillGlyphStream(LayoutManager* layout){
         // This should not happen
         exit(0);
     }
-#if 0
-    if (true == resumeProcWord){
-        goto proc_word;
-    }
-#endif
-    skipBlanks(ch);
-
-    while(ch == '<'){
-        if(false == procLabel(ch)){
-            return;
-        }
-        docStream >> ch;    // EOF exception may throw
+    if (false == resumeProcWord){
         skipBlanks(ch);
-    }
-#if 0
-    PageLayout* pl = dynamic_cast<PageLayout *>(layout);
-    if (NULL == pl){
-        // This should not happen
-        exit(0);
-    }
-#endif
-    pl->curLine->SetAttrib(lineAttrib);
 
-    // proc the word content. 
-    while(!delayedToken.empty()){
-        glyphBuffer.push_back(delayedToken.front());
-        delayedToken.pop();
+        while(ch == '<'){
+            if(false == procLabel(ch)){
+                return;
+            }
+            docStream >> ch;    // EOF exception may throw
+            skipBlanks(ch);
+        }
+#if 0
+        PageLayout* pl = dynamic_cast<PageLayout *>(layout);
+        if (NULL == pl){
+            // This should not happen
+            exit(0);
+        }
+#endif
+        pl->curLine->SetAttrib(lineAttrib);
+
+        // proc the word content. 
+        while(!delayedToken.empty()){
+            glyphBuffer.push_back(delayedToken.front());
+            delayedToken.pop();
+        }
     }
-//proc_word:
+
     resumeProcWord  = false;
     countProcWord   = 0;
     while(ch != '<'){
