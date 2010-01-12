@@ -196,7 +196,7 @@ enum ENCODING_MODE{
 #define TIME_WAIT   1000
 #define TIMES_RETRY 100
 
-#define PROC_WORD_MAX 6
+#define PROC_WORD_MAX 20
 
 // Threshold for dropping
 #define EXP_RATIO   1000
