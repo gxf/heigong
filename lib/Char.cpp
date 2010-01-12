@@ -158,7 +158,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
                     width /= EXP_RATIO;
                 }
 #endif
-                width = ftMgr.GetWidRatio(attrib.size, thischar);
+                width = ftMgr.GetWidRatio((attrib.size) ? attrib.size : DEFAULT_FONT_SIZE, thischar);
             }
             else{
                 width = (width + 1) / 2;
@@ -174,7 +174,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
             horibearing /= EXP_RATIO;
         }
 #endif
-        int horibearing = ftMgr.GetHoriBearing(attrib.size, thischar);
+        int horibearing = ftMgr.GetHoriBearing((attrib.size) ? attrib.size : DEFAULT_FONT_SIZE, thischar);
         pos.x += horibearing;
 #if 0
             std::cout << ((glyphSlot->advance.x) >> 6) 
@@ -215,7 +215,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
                     width /= EXP_RATIO;
                 }
 #endif
-                width = ftMgr.GetWidRatio(attrib.size, thischar);
+                width = ftMgr.GetWidRatio((attrib.size) ? attrib.size : DEFAULT_FONT_SIZE, thischar);
             }
             else{
                 width = (width + 1) / 2;
@@ -233,7 +233,7 @@ Glyph::GY_ST_RET Char::Setup(LayoutManager& layout){
             horibearing /= EXP_RATIO;
         }
 #endif
-        int horibearing = ftMgr.GetHoriBearing(attrib.size, thischar);
+        int horibearing = ftMgr.GetHoriBearing((attrib.size) ? attrib.size : DEFAULT_FONT_SIZE, thischar);
         pos.x += horibearing;
 #ifdef NOGL
         pos.y -= height;

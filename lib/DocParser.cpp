@@ -411,7 +411,7 @@ void DocParser::procWord(int & ch){
 #define FourBytes(a, b, c, d) (d << 24 | c << 16 | b << 8 | a)
     if (ch == '&'){
         c = new Char(logger);
-    c->SetAttrib(glyphAttrib);
+        c->SetAttrib(glyphAttrib);
         if (match("lt;")){ 
             c->SetVal('<'); 
         }
@@ -448,19 +448,19 @@ void DocParser::procWord(int & ch){
             docStream >> *c;
         }
     }
-    else if (match("\r")){
+    else if (ch == '\r'){
         c = new Char(logger);
-    c->SetAttrib(glyphAttrib);
+        c->SetAttrib(glyphAttrib);
         c->SetVal(' ');
     }
-    else if (match("\n")){
+    else if (ch == '\n'){
         c = new Char(logger);
-    c->SetAttrib(glyphAttrib);
+        c->SetAttrib(glyphAttrib);
         c->SetVal('\n');
     }
     else{
         c = new Char(logger);
-    c->SetAttrib(glyphAttrib);
+        c->SetAttrib(glyphAttrib);
         docStream << ch; 
         docStream >> *c;
     }

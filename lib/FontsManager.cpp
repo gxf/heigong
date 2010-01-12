@@ -20,9 +20,7 @@ FontsTab::fTabEntry FontsTab::fontsTab[] = {
 const char* FontsManager::dftFontPath = DEFAULT_FONT;
 
 FontsManager::FontsManager(Logger* log):
-    curFont(NULL), 
-//    dpi(g_dpi), 
-    inited(false), logger(log)
+    curFont(NULL), inited(false), logger(log)
 {
     int error = FT_Init_FreeType(&library); 
     if (error){
@@ -266,34 +264,34 @@ int32 FontsManager::GetWidRatio(int sz, int32 idx){
         return widTab[120][idx];
     }
     else if (sz > 33 && sz < 35) {
-        return widTab[32][idx];
-    }
-    else if (sz > 36 && sz < 40) {
         return widTab[36][idx];
     }
-    else if (sz > 40 && sz < 44) {
+    else if (sz > 36 && sz < 40) {
         return widTab[40][idx];
     }
-    else if (sz > 44 && sz < 48) {
+    else if (sz > 40 && sz < 44) {
         return widTab[44][idx];
     }
-    else if (sz > 48 && sz < 56) {
+    else if (sz > 44 && sz < 48) {
         return widTab[48][idx];
     }
-    else if (sz > 56 && sz < 64) {
+    else if (sz > 48 && sz < 56) {
         return widTab[56][idx];
     }
-    else if (sz > 64 && sz < 72) {
+    else if (sz > 56 && sz < 64) {
         return widTab[64][idx];
     }
-    else if (sz > 72 && sz < 80) {
+    else if (sz > 64 && sz < 72) {
         return widTab[72][idx];
     }
-    else if (sz > 80 && sz < 96) {
+    else if (sz > 72 && sz < 80) {
         return widTab[80][idx];
     }
-    else if (sz > 96 && sz < 120) {
+    else if (sz > 80 && sz < 96) {
         return widTab[96][idx];
+    }
+    else if (sz > 96 && sz < 120) {
+        return widTab[120][idx];
     }
     return widTab[sz][idx];
 }
