@@ -40,4 +40,5 @@ $(TARGET): $(CONFIG_H) $(OBJECTS)
 #	cp $(CONFIG_H).default $(CONFIG_H)
 
 clean:
-	rm -f $(TARGET) $(OBJECTS)
+	#rm -f $(TARGET) $(OBJECTS)
+	rm -f $(OBJECTS)
