@@ -34,7 +34,9 @@
 
 struct SDL_PrivateVideoData {
     int w, h;
+    int bpp;
     void *buffer;
+    unsigned char *palette;
 };
 
 #endif /* _SDL_pgmvideo_h */

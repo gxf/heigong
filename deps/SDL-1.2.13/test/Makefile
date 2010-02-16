@@ -2,7 +2,7 @@
 
 srcdir  = .
 
-CFLAGS  = -I../include
+CFLAGS  = -I../include -g
 LIBS	= -L. -lSDL -pthread
 
 TARGETS = testwin testsprite
@@ -18,13 +18,13 @@ libSDL.a:../libSDL.a
 	(cd ..; make)
 
 testsprite: $(srcdir)/testsprite.c
-	$(CC) -o $@ $? $(CFLAGS) $(LIBS) -lm
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS) -lm
 
 testwin: $(srcdir)/testwin.c
-	$(CC) -o $@ $? $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) libSDL.a
 
 distclean: clean
 	rm -f Makefile

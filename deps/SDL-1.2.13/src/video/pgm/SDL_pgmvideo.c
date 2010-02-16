@@ -144,8 +144,12 @@ SDL_Rect **PGM_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags)
 SDL_Surface *PGM_SetVideoMode(_THIS, SDL_Surface *current,
 				int width, int height, int bpp, Uint32 flags)
 {
+	printf("set video mode: %dx%dx%d\n", width, height, bpp);
 	if ( this->hidden->buffer ) {
 		SDL_free( this->hidden->buffer );
+	}
+	if ( this->hidden->palette ) {
+		SDL_free( this->hidden->palette );
 	}
 
 	this->hidden->buffer = SDL_malloc(width * height * (bpp / 8));
@@ -154,9 +158,16 @@ SDL_Surface *PGM_SetVideoMode(_THIS, SDL_Surface *current,
 		return(NULL);
 	}
 
+	this->hidden->palette = SDL_malloc(1 << bpp);
+	if ( ! this->hidden->palette ) {
+		SDL_SetError("Couldn't allocate buffer for requested mode");
+		return(NULL);
+	}
+
 /* 	printf("Setting mode %dx%d\n", width, height); */
 
 	SDL_memset(this->hidden->buffer, 0, width * height * (bpp / 8));
+	SDL_memset(this->hidden->palette, 0, 1 << bpp);
 
 	/* Allocate the new pixel format for the screen */
 	if ( ! SDL_ReallocFormat(current, bpp, 0, 0, 0, 0) ) {
@@ -170,6 +181,7 @@ SDL_Surface *PGM_SetVideoMode(_THIS, SDL_Surface *current,
 	current->flags = flags & SDL_FULLSCREEN;
 	this->hidden->w = current->w = width;
 	this->hidden->h = current->h = height;
+	this->hidden->bpp = bpp;
 	current->pitch = current->w * (bpp / 8);
 	current->pixels = this->hidden->buffer;
 
@@ -200,12 +212,58 @@ static void PGM_UnlockHWSurface(_THIS, SDL_Surface *surface)
 
 static void PGM_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 {
-	/* do nothing. */
+	static int n = 0;
+	char filename[32];
+	FILE *fp;
+	int x, y, w, h, bpp;
+	unsigned char Y;
+	unsigned char *pal;
+	unsigned char *p;
+
+	w = this->hidden->w;
+	h = this->hidden->h;
+	bpp = this->hidden->bpp;
+	pal = this->hidden->palette;
+	p = this->hidden->buffer;
+
+	if (bpp != 8) {
+		printf("unsupported bpp %d\n", bpp);
+		return;
+	}
+
+	sprintf(filename, "%03d.pgm", ++n);
+	fp = fopen(filename, "wb");
+	fprintf(fp, "P5\n%d %d\n255\n", w, h);
+
+	for (y = 0; y < this->hidden->h; ++y) {
+		for (x = 0; x < this->hidden->w; ++x) {
+			int color = *p++;
+			Y = pal[color];
+			fwrite(&Y, 1, 1, fp);
+		}
+	}
+	fclose(fp);
 }
 
 int PGM_SetColors(_THIS, int firstcolor, int ncolors, SDL_Color *colors)
 {
-	/* do nothing of note. */
+	unsigned char * pal;
+	int i;
+
+	if (firstcolor < 0 || ncolors < 0 || firstcolor + ncolors > (1 << this->hidden->bpp)) {
+		return -1;
+	}
+
+	pal = this->hidden->palette;
+
+	for (i = firstcolor; i < firstcolor + ncolors; ++i) {
+		SDL_Color color = colors[i];
+		int Y = color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
+		if (Y < 0) Y = 0;
+		if (Y > 255) Y = 255;
+		pal[i] = Y;
+	}
+
 	return(1);
 }
 

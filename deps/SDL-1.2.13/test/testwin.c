@@ -125,6 +125,7 @@ NOTICE("testwin: moving image\n");
 		if ( flip ) {
 			SDL_Flip(screen);
 		} else {
+			printf("Update (%d,%d) %dx%d\n", update.x, update.y, update.w, update.h);
 			SDL_UpdateRects(screen, 1, &update);
 		}
 	}
