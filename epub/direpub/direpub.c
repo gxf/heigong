@@ -102,7 +102,7 @@ char *find_rootfile(xmlNode * a_node)
 
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
 	if (cur_node->type == XML_ELEMENT_NODE) {
-	    if (strcasecmp(cur_node->name, "rootfile") ==0 ) {
+	    if (strcasecmp(cur_node->name, "rootfile") == 0) {
 		rootfile = xmlGetProp(cur_node, "full-path");
 		if (rootfile != NULL) return rootfile;
 	    }
@@ -115,6 +115,28 @@ char *find_rootfile(xmlNode * a_node)
     return NULL;
 }
 
+char *find_ncxfile(xmlNode * a_node)
+{
+    xmlNode *cur_node = NULL;
+    char *id, *ncx;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+	if (cur_node->type == XML_ELEMENT_NODE) {
+	    if (strcasecmp(cur_node->name, "item") == 0) {
+		id = xmlGetProp(cur_node, "id");
+		if (strcmp("ncx", id) != 0) continue;
+		ncx = xmlGetProp(cur_node, "href");
+		if (ncx != NULL) return ncx;
+	    }
+	}
+
+	ncx = find_ncxfile(cur_node->children);
+	if (ncx != NULL) return ncx;
+    }
+
+    return NULL;
+}
+
 int print_guide_references(xmlNode * a_node, const char parent_dir[])
 {
     xmlNode *cur_node = NULL;
@@ -122,7 +144,7 @@ int print_guide_references(xmlNode * a_node, const char parent_dir[])
 
     for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
 	if (cur_node->type == XML_ELEMENT_NODE) {
-	    if (strcasecmp(cur_node->name, "reference") ==0 ) {
+	    if (strcasecmp(cur_node->name, "reference") == 0) {
 		char *title = xmlGetProp(cur_node, "title");
 		char *href = xmlGetProp(cur_node, "href");
 		if (title != NULL && href != NULL) {
@@ -138,19 +160,107 @@ int print_guide_references(xmlNode * a_node, const char parent_dir[])
     return r;
 }
 
+char *find_navlabel(xmlNode * a_node)
+{
+    xmlNode *cur_node = NULL;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+	if (cur_node->type == XML_ELEMENT_NODE) {
+	    if (strcasecmp(cur_node->name, "text") == 0) {
+		if (cur_node->children != NULL)
+		return cur_node->children->content;
+	    }
+	}
+    }
+
+    return NULL;
+}
+
+char *level_to_tabs(int level)
+{
+    static char buf[64];
+    int i;
+
+    if (level >= 64) {
+	return "TOO MANY LEVELS";
+    }
+
+    for (i = 0; i < level; ++i) {
+	buf[i] = '\t';
+    }
+
+    buf[level] = '\0';
+
+    return buf;
+}
+
+int print_navpoints(xmlNode * a_node, const char parent_dir[], int level)
+{
+    xmlNode *cur_node = NULL;
+    char *label = NULL, *src = NULL;
+    int r = 0;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+	if (cur_node->type == XML_ELEMENT_NODE) {
+	    if (strcasecmp(cur_node->name, "navLabel") == 0) {
+		label = find_navlabel(cur_node->children);
+	    } else if (strcasecmp(cur_node->name, "content") == 0){
+		src = xmlGetProp(cur_node, "src");
+	    } else if (strcasecmp(cur_node->name, "navPoint") == 0){
+		r += print_navpoints(cur_node->children, parent_dir, level + 1);
+	    }
+
+	    if (label != NULL && src != NULL) {
+		printf("%s%s\n", level_to_tabs(level), label);
+		printf("%s%s%s\n", level_to_tabs(level), parent_dir, src);
+		label = NULL;
+		src = NULL;
+		++r;
+	    }
+	}
+    }
+
+    return r;
+}
+
+int print_navmap(xmlNode * a_node, const char parent_dir[])
+{
+    xmlNode *cur_node = NULL;
+    int r = 0;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
+	if (cur_node->type == XML_ELEMENT_NODE) {
+	    if (strcasecmp(cur_node->name, "navPoint") == 0) {
+		r += print_navpoints(cur_node->children, parent_dir, 0);
+		continue;
+	    }
+	}
+
+	r += print_navmap(cur_node->children, parent_dir);
+    }
+
+    return r;
+}
+
 int main(int argc, const char *argv[])
 {
+    int force_opf = 0, n = 0;
     struct zip *z;
     const char metafile[] = "META-INF/container.xml";
-    char *rootfile, *p;
+    char *rootfile, *ncxfile, *p;
     char buf[1024];
-    xmlDocPtr meta_doc, root_doc;
+    xmlDocPtr meta_doc, root_doc, ncx_doc;
 
     LIBXML_TEST_VERSION
 
-    if (argc < 2) {
+    if (argc < 2 || argc > 3) {
         fprintf(stderr, "Usage: %s epubfile\n", argv[0]);
         exit(1);
+    }
+
+    if (argc == 3) {
+	if (strcmp("opf", argv[2]) == 0)
+	    force_opf = 0;
     }
 
     z = zipopen(argv[1]);
@@ -161,10 +271,33 @@ int main(int argc, const char *argv[])
     xmlFreeDoc(meta_doc);
 
     root_doc = zread_xml(z, rootfile);
+
     p = strrchr(buf, '/');
-    if (p == NULL) buf[0] = '\0';
-    else p[1] = '\0';
-    print_guide_references(xmlDocGetRootElement(root_doc), buf);
+    if (p == NULL) {
+	buf[0] = '\0';
+	p = buf;
+    } else {
+	*(++p) = '\0';
+    }
+
+    ncxfile = find_ncxfile(xmlDocGetRootElement(root_doc));
+
+    if (force_opf || ncxfile == NULL) {
+	n = print_guide_references(xmlDocGetRootElement(root_doc), buf);
+    }
+
+    if (n == 0 && ncxfile != NULL) {
+	strcat(buf, ncxfile);
+	ncx_doc = zread_xml(z, buf);
+	*p = '\0';
+	n = print_navmap(xmlDocGetRootElement(ncx_doc), buf);
+	xmlFreeDoc(ncx_doc);
+    }
+
+    if (n == 0 && !force_opf) {
+	n = print_guide_references(xmlDocGetRootElement(root_doc), buf);
+    }
+
     xmlFreeDoc(root_doc);
 
     zip_close(z);
