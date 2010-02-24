@@ -10,6 +10,8 @@
 #include <errno.h>
 #include "zip.h"
 
+static struct zip *zz;
+
 struct zip *zipopen(const char filename[])
 {
     struct zip *z;
@@ -56,6 +58,18 @@ int zread(struct zip *z, const char filename[], char *buf, int size)
     }
 
     return nread;
+}
+
+int zsize(struct zip *z, const char filename[])
+{
+    struct zip_stat st;
+
+    if (zip_stat(z, filename, ZIP_FL_UNCHANGED, &st) != 0) {
+        fprintf(stderr, "path %s not found\n", filename);
+	return -1;
+    }
+
+    return st.size;
 }
 
 xmlDocPtr zread_xml(struct zip *z, const char filename[])
@@ -124,6 +138,10 @@ char *find_ncxfile(xmlNode * a_node)
 	if (cur_node->type == XML_ELEMENT_NODE) {
 	    if (strcasecmp(cur_node->name, "item") == 0) {
 		id = xmlGetProp(cur_node, "id");
+		if (strcmp("toc", id) == 0) {
+		    ncx = xmlGetProp(cur_node, "href");
+		    if (ncx != NULL && strstr(ncx, "ncx") != NULL) return ncx;
+		}
 		if (strcmp("ncx", id) != 0) continue;
 		ncx = xmlGetProp(cur_node, "href");
 		if (ncx != NULL) return ncx;
@@ -137,6 +155,82 @@ char *find_ncxfile(xmlNode * a_node)
     return NULL;
 }
 
+char *unescape(char xmltext[])
+{
+    static char buffer[4096];
+    char *p, *q;
+
+    if (strlen(xmltext) >= 4096) return xmltext;
+    
+    for (p = xmltext, q = buffer; *p != '\0'; ++p, ++q) {
+	if (*p == '&') {
+	    if (strncmp("&#x", p, 3) == 0) {
+		int c = 0;
+		for (p += 3; *p != ';'; ++p) {
+		    int h = *p;
+
+		    if (h >= '0' && h <= '9') h -= '0';
+		    else if (h >= 'a' && h <= 'f') h = h + 10 - 'a';
+		    else if (h >= 'A' && h <= 'F') h = h + 10 - 'A';
+		    else h = 0;
+
+		    c = c * 16 + h;
+		}
+
+		if (c <= 0x7F) {
+		    *q = c;
+		} else if (c < 0x7FF) {
+		    *q++ = 0xc0 | ((c >> 6) & 0x1f);
+		    *q = 0x80 | (c & 0x3f);
+		} else {
+		    *q++ = 0xe0 | ((c >> 12) & 0x0f);
+		    *q++ = 0x80 | ((c >> 6) & 0x3f);
+		    *q = 0x80 | (c & 0x3f);
+		}
+	    } else if (strncmp("&#", p, 2) == 0) {
+		int c = 0;
+		for (p += 2; *p != ';'; ++p) {
+		    int h = (*p) - '0';
+		    if (h < 0 || h > 9) h = 0;
+		    c = c * 10 + h;
+		}
+
+		if (c <= 0x7F) {
+		    *q = c;
+		} else if (c < 0x7FF) {
+		    *q++ = 0xc0 | ((c >> 6) & 0x1f);
+		    *q = 0x80 | (c & 0x3f);
+		} else {
+		    *q++ = 0xe0 | ((c >> 12) & 0x0f);
+		    *q++ = 0x80 | ((c >> 6) & 0x3f);
+		    *q = 0x80 | (c & 0x3f);
+		}
+	    } else if (strncmp("&lt;", p, 4) == 0) {
+		p += 3;
+		*q = '<';
+	    } else if (strncmp("&gt;", p, 4) == 0) {
+		p += 3;
+		*q = '>';
+	    } else if (strncmp("&apos;", p, 6) == 0) {
+		p += 5;
+		*q = '\'';
+	    } else if (strncmp("&quot;", p, 6) == 0) {
+		p += 5;
+		*q = '\"';
+	    } else if (strncmp("&amp;", p, 5) == 0) {
+		p += 4;
+		*q = '&';
+	    } else {
+		*q = *p;
+	    }
+	} else {
+	    *q = *p;
+	}
+    }
+    *q = '\0';
+    return buffer;
+}
+
 int print_guide_references(xmlNode * a_node, const char parent_dir[])
 {
     xmlNode *cur_node = NULL;
@@ -148,7 +242,17 @@ int print_guide_references(xmlNode * a_node, const char parent_dir[])
 		char *title = xmlGetProp(cur_node, "title");
 		char *href = xmlGetProp(cur_node, "href");
 		if (title != NULL && href != NULL) {
-		    printf("%s\n%s%s\n", title, parent_dir, href);
+		    char filename[4096], *p;
+		    int size;
+
+		    sprintf(filename, "%s%s", parent_dir, href);
+		    p = strrchr(filename, '#');
+		    if (p != NULL) *p = '\0';
+
+		    size = zsize(zz, filename);
+		    if (size > 0) {
+			printf("%s\n%s%s\n%d\n", unescape(title), parent_dir, href, size);
+		    }
 		    ++r;
 		}
 	    }
@@ -211,10 +315,22 @@ int print_navpoints(xmlNode * a_node, const char parent_dir[], int level)
 	    }
 
 	    if (label != NULL && src != NULL) {
-		printf("%s%s\n", level_to_tabs(level), label);
-		printf("%s%s%s\n", level_to_tabs(level), parent_dir, src);
-		label = NULL;
-		src = NULL;
+		char filename[4096], *p;
+		int size;
+
+		sprintf(filename, "%s%s", parent_dir, src);
+		p = strrchr(filename, '#');
+		if (p != NULL) *p = '\0';
+		
+		size = zsize(zz, filename);
+		if (size > 0) {
+		    char *tabs = level_to_tabs(level);
+		    printf("%s%s\n", tabs, unescape(label));
+		    printf("%s%s%s\n", tabs, parent_dir, src);
+		    printf("%s%d\n", tabs, size);
+		    label = NULL;
+		    src = NULL;
+		}
 		++r;
 	    }
 	}
@@ -245,10 +361,10 @@ int print_navmap(xmlNode * a_node, const char parent_dir[])
 int main(int argc, const char *argv[])
 {
     int force_opf = 0, n = 0;
-    struct zip *z;
     const char metafile[] = "META-INF/container.xml";
     char *rootfile, *ncxfile, *p;
     char buf[1024];
+    struct zip *z;
     xmlDocPtr meta_doc, root_doc, ncx_doc;
 
     LIBXML_TEST_VERSION
@@ -263,7 +379,7 @@ int main(int argc, const char *argv[])
 	    force_opf = 0;
     }
 
-    z = zipopen(argv[1]);
+    zz = z = zipopen(argv[1]);
 
     meta_doc = zread_xml(z, metafile);
     rootfile = find_rootfile(xmlDocGetRootElement(meta_doc));
