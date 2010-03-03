@@ -259,6 +259,7 @@ static void PGM_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 	Uint32 now = SDL_GetTicks();
 
 	if (now - lastupdate > 1000) {
+		lastupdate = now;
 		PGM_flush(this);
 	}
 }
