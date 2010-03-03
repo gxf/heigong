@@ -125,9 +125,10 @@ NOTICE("testwin: moving image\n");
 		if ( flip ) {
 			SDL_Flip(screen);
 		} else {
-			printf("Update (%d,%d) %dx%d\n", update.x, update.y, update.w, update.h);
 			SDL_UpdateRects(screen, 1, &update);
 		}
+
+		SDL_Delay(5);
 	}
 
 #ifdef SCREENSHOT
@@ -372,6 +373,7 @@ int main(int argc, char *argv[])
 #else
 	DrawPict(screen, argv[1], speedy, flip, nofade);
 #endif
+	SDL_flush(screen);
 	SDL_Delay(delay*1000);
 	SDL_Quit();
 	return(0);

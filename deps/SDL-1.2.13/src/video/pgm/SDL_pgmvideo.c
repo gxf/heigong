@@ -36,7 +36,7 @@
 #define PGMVID_DRIVER_NAME "pgm"
 
 /* Initialization/Query functions */
-static int PGM_VideoInit(_THIS, SDL_PixelFormat *vformat);
+int PGM_VideoInit(_THIS, SDL_PixelFormat *vformat);
 static SDL_Rect **PGM_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags);
 static SDL_Surface *PGM_SetVideoMode(_THIS, SDL_Surface *current, int width, int height, int bpp, Uint32 flags);
 static int PGM_SetColors(_THIS, int firstcolor, int ncolors, SDL_Color *colors);
@@ -210,13 +210,32 @@ static void PGM_UnlockHWSurface(_THIS, SDL_Surface *surface)
 	return;
 }
 
-static void PGM_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
+static void PGM_write(int w, int h, unsigned char *buffer, unsigned char *pal)
 {
 	static int n = 0;
 	char filename[32];
 	FILE *fp;
-	int x, y, w, h, bpp;
+	unsigned char *p = buffer;
 	unsigned char Y;
+	int x, y;
+
+	sprintf(filename, "%03d.pgm", ++n);
+	fp = fopen(filename, "wb");
+	fprintf(fp, "P5\n%d %d\n255\n", w, h);
+
+	for (y = 0; y < h; ++y) {
+		for (x = 0; x < w; ++x) {
+			int color = *p++;
+			Y = pal[color];
+			fwrite(&Y, 1, 1, fp);
+		}
+	}
+	fclose(fp);
+}
+
+void PGM_flush(_THIS)
+{
+	int w, h, bpp;
 	unsigned char *pal;
 	unsigned char *p;
 
@@ -231,18 +250,17 @@ static void PGM_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 		return;
 	}
 
-	sprintf(filename, "%03d.pgm", ++n);
-	fp = fopen(filename, "wb");
-	fprintf(fp, "P5\n%d %d\n255\n", w, h);
+	PGM_write(w, h, p, pal);
+}
 
-	for (y = 0; y < this->hidden->h; ++y) {
-		for (x = 0; x < this->hidden->w; ++x) {
-			int color = *p++;
-			Y = pal[color];
-			fwrite(&Y, 1, 1, fp);
-		}
+static void PGM_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
+{
+	static Uint32 lastupdate = 0;
+	Uint32 now = SDL_GetTicks();
+
+	if (now - lastupdate > 1000) {
+		PGM_flush(this);
 	}
-	fclose(fp);
 }
 
 int PGM_SetColors(_THIS, int firstcolor, int ncolors, SDL_Color *colors)

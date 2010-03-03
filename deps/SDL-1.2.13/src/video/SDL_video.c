@@ -1080,6 +1080,18 @@ void SDL_UpdateRects (SDL_Surface *screen, int numrects, SDL_Rect *rects)
 	}
 }
 
+#if SDL_VIDEO_DRIVER_PGM
+extern void PGM_flush(SDL_VideoDevice *this);
+extern int PGM_VideoInit(SDL_VideoDevice *this, SDL_PixelFormat *vformat);
+#endif
+void SDL_flush(void)
+{
+#if SDL_VIDEO_DRIVER_PGM
+	if (current_video->VideoInit == PGM_VideoInit)
+		PGM_flush(current_video);
+#endif
+}
+
 /*
  * Performs hardware double buffering, if possible, or a full update if not.
  */
