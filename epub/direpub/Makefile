@@ -8,7 +8,7 @@ INCLUDES=$(shell echo *.h)
 all:$(TARGET)
 
 $(TARGET):$(OBJECTS)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $^ $(LDFLAGS) -o $@
 
 %.o:%.c $(INCLUDES) Makefile
 	$(CC) $(CFLAGS) -c $<
