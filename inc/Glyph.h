@@ -27,9 +27,10 @@ class Glyph : public Serializer{
             GY_ERROR,
         };
     public:
-        Glyph(Logger* log): 
+        Glyph(Logger* log, bool v = true): 
             pos(0, 0), 
             bitmap_w(0), bitmap_h(0), bitmap(NULL),
+            valid(v),
             logger(log)
         {};
         virtual ~Glyph(){
@@ -45,6 +46,9 @@ class Glyph : public Serializer{
         virtual GY_ST_RET Setup(LayoutManager& lo) = 0;
         virtual Glyph * Dup() = 0;
         virtual Glyph * UngetSet() = 0;
+        virtual void Invalidate() {}
+        virtual bool CheckAdd2Layout() { return false; }
+        virtual bool CheckAdd2Line() { return true; }
 
     public:
         virtual uint32 GetMagic() = 0;
@@ -56,6 +60,7 @@ class Glyph : public Serializer{
         int32       bitmap_w;   // Bitmap width
         int32       bitmap_h;   // Bitmap height
         void *      bitmap;
+        bool        valid;      // If the glyph still need to exist in mem
 
     protected:
         Logger* logger;
@@ -73,6 +78,8 @@ class Eof : public Glyph{
         GY_ST_RET Setup(LayoutManager& lo) { return GY_EOF; }
         Glyph * Dup() { return this; }
         Glyph * UngetSet() { return this; }
+        virtual bool CheckAdd2Layout() { return true; }
+        virtual bool CheckAdd2Line() { return true; }
 
     public:
         // Serialize support only involves the magic number
@@ -124,7 +131,7 @@ class Char: public Glyph{
 
     public:
         Char(Logger* log);
-        Char(Logger* log, uint32 v);
+        Char(Logger* log, uint32 v, bool vld = true);
         ~Char();
 
     public:
@@ -145,8 +152,8 @@ class Char: public Glyph{
         inline void* GetBitmap() { return bitmap; }
         inline Attrib_Glyph GetAttrib(Attrib_Glyph & attr){ return attrib; }
         inline ENCODING_MODE GetEncoding(){ return encodeMode; }
-        inline bool operator==(char ch){ return (char)val == ch; }
-        inline bool operator!=(char ch){ return (char)val != ch; }
+        inline bool operator==(char ch){ return (char)val != ch; }
+        inline bool operator!=(char ch){ return (char)val == ch; }
         inline bool operator==(Char& ch){ return val == ch.val; }
 
     public:
@@ -157,7 +164,9 @@ class Char: public Glyph{
         GY_ST_RET Setup(LayoutManager& lo);
         Glyph* UngetSet();
         Glyph* Dup();
-
+        bool CheckAdd2Layout() { return true; }
+        bool CheckAdd2Line() { return (val != '\n'); }
+        void Invalidate();
     public:
         void Serialize(std::ofstream & ofs);
         void Deserialize(std::ifstream & ifs);
@@ -169,7 +178,6 @@ class Char: public Glyph{
         uint32          val;
         uint32          charLen;
         ID              id;
-        bool            valid;      // If the char still need to exist in mem
         Attrib_Glyph    attrib;
 
     public:
@@ -186,7 +194,7 @@ class Char: public Glyph{
 
 class Graph: public Glyph{
     public:
-        Graph(Logger* log);
+        Graph(Logger* log, bool v = true);
         ~Graph();
 
     public:
@@ -205,6 +213,9 @@ class Graph: public Glyph{
         GY_ST_RET Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
+        bool CheckAdd2Layout() { return true; }
+        bool CheckAdd2Line() { return true; }
+        void Invalidate() { if (false == valid) {delete [] (uint8*)bitmap; bitmap = NULL;}}
 
     public:
         inline void SetReqWidth(uint32 w) { req_width = w; }

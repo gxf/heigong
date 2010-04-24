@@ -18,27 +18,10 @@ PageLayout::~PageLayout(){
 }
 
 void PageLayout::AddGlyph(Glyph* g){
-    Char* pchr;
-
-#if 0
-    if (pchr = dynamic_cast<Char *>(g)){
-        if('\n' != pchr->val){
-            curLine->AddGlyph(pchr); 
-        }
-        else{
-            glyphs.push_back(pchr);
-        }
-    }
-    else{
-        curLine->AddGlyph(g); 
+    if (true == g->CheckAdd2Layout()){
         glyphs.push_back(g);
     }
-#endif
-    if ((pchr = dynamic_cast<Char *>(g)) && 
-            ('\n' == pchr->val)){
-        glyphs.push_back(pchr);
-    }
-    else{ 
+    if (true == g->CheckAdd2Line()){
         curLine->AddGlyph(g); 
     }
 }
@@ -328,7 +311,11 @@ void PageLayout::Reset(){
 
 void PageLayout::DeleteGlyph(){
     std::vector<Glyph*>::iterator itr = glyphs.begin();
+//    printf("Totally size: %d\n", glyphs.size());
     while(itr != glyphs.end()){
+//        printf("%s\n",(NULL == dynamic_cast<Char*>(*itr))?"Graph":"Char");
+//        fflush(stdout);
+        (*itr)->Invalidate();
         delete *itr;
         ++itr;
     }

@@ -10,31 +10,8 @@ void Line::AddGlyph(Glyph* glyph){
 
 void Line::Clear(){
     std::vector<Glyph*>::iterator itr = glyphs.begin();
-#if 0
-    while (itr != glyphs.end()){
-        Char* pchr = dynamic_cast<Char*>(*itr);
-        if(pchr && '\n' == pchr->GetVal()){
-            // Characters except '\n' is handled by FontCache Manager
-            delete pchr;
-        }
-        else{
-            delete *itr;
-        }
-        ++itr;
-    }
-#endif
-#if 0
-    while (itr != glyphs.end()){
-        Char* pchr = dynamic_cast<Char*>(*itr);
-        if(pchr){ 
-            pchr->valid = false; 
-        }
-        ++itr;
-    }
-    glyphs.clear();
-#endif
 //    attrib.Reset();
-//    Char::ClearCache();
+    
     curWidth = margin;
 }
 

@@ -106,10 +106,17 @@ HDocState DocParser::ShadowDocState(){
 bool DocParser::PostStoreState(HDocState hState){
     std::deque<Glyph*>::iterator itr= hState->buffer.begin();
     while(itr != hState->buffer.end()){
+#if 0
         Char * ch = dynamic_cast<Char*>(*itr);
         if (NULL != ch){
             ch -> valid = false;
             delete ch;
+        }
+#endif
+        if (NULL != (*itr))
+        {
+            (*itr)->Invalidate();
+            delete (*itr);
         }
         ++itr;
     }
@@ -118,6 +125,7 @@ bool DocParser::PostStoreState(HDocState hState){
 
 bool DocParser::FinalStoreState(HDocState hState){
     hState->term_off = docStream.GetCurOffset();
+    delete (DocState*)hState;
     return true;
 }
 

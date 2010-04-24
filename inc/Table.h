@@ -21,6 +21,9 @@ typedef class Table_Data_Cell: public Glyph{
         GY_ST_RET Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
+        void Invalidate();
+        bool CheckAdd2Layout() { return true; }
+        bool CheckAdd2Line() { return true; }
 
     public:
         void Serialize(std::ofstream & ofs);
@@ -83,6 +86,9 @@ typedef class Table_Row: public Glyph{
         GY_ST_RET Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
+        void Invalidate();
+        bool CheckAdd2Layout() { return true; }
+        bool CheckAdd2Line() { return true; }
 
     public:
         void Serialize(std::ofstream & ofs);
@@ -124,6 +130,9 @@ class Table: public Glyph{
         GY_ST_RET Setup(LayoutManager& lo);
         Glyph* Dup();
         Glyph* UngetSet();
+        void Invalidate();
+        bool CheckAdd2Layout() { return true; }
+        bool CheckAdd2Line() { return true; }
 
     public:
         void Serialize(std::ofstream & ofs);

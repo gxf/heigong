@@ -29,8 +29,8 @@ static void ReviseFileName(std::string & fname){
     }
 }
 
-Graph::Graph(Logger* log):
-    Glyph(log), file_name(NULL), file_path(NULL)
+Graph::Graph(Logger* log, bool v):
+    Glyph(log, v), file_name(NULL), file_path(NULL)
 {
     if(NULL == html_dir){
         file_path = new int8[std::strlen(work_dir) + 1];
@@ -278,11 +278,14 @@ Glyph::GY_ST_RET Graph::SetupPNG(LayoutManager& layout, FILE* fp){
     switch(ret){
         case LO_OK:
             layout.AddGlyph(this);
+            valid = false;
             break;
         case LO_NEW_LINE:
             layout.AddGlyph(this);
+            valid = false;
             break;
         case LO_NEW_PAGE:
+            valid = true;
             layout.Reset();
             return GY_NEW_PAGE;
         default:
@@ -593,7 +596,6 @@ bool Graph::Draw(RenderMan& render){
     }
     if (bitmap != NULL){
         bool ret = render.RenderGrayMap(pos.x, pos.y, bitmap_w, bitmap_h, bitmap);
-        delete [] (uint8*)bitmap;
         return ret;
     }
     else
@@ -625,7 +627,8 @@ Glyph* Graph::Dup(){
 
     img->file_name  = new char[std::strlen(file_name) + 1];
     std::memcpy(img->file_name, file_name, std::strlen(file_name) + 1);
-    img->file_path  = this->file_path;
+    img->file_path  = new char[std::strlen(file_path) + 1];
+    std::memcpy(img->file_path, file_path, std::strlen(file_path) + 1);
 
     return img;
 }

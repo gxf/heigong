@@ -106,6 +106,9 @@ Glyph* Table_Data_Cell::UngetSet(){
     return this;
 }
 
+void Table_Data_Cell::Invalidate(){
+}
+
 Glyph* Table_Data_Cell::Dup(){
 #if 0
     Table_DC * tdc = new Table_DC(logger, width, xoff);
@@ -300,6 +303,14 @@ Glyph* Table_Row::UngetSet(){
     return this;
 }
 
+void Table_Row::Invalidate(){
+    std::vector<Table_Data_Cell*>::iterator itr = dataCells.begin();
+    while(itr != dataCells.end()){
+        (*itr)->Invalidate();
+        ++itr;
+    }
+}
+
 Glyph* Table_Row::Dup(){
     Table_R * tr = new Table_R(logger, xoff, width);
 //    tr->height   = this -> height;
@@ -428,6 +439,14 @@ Glyph* Table::UngetSet(){
     rows.erase(itra, rows.end());
 
     return t;
+}
+
+void Table::Invalidate(){
+    std::vector<Table_Row *>::iterator itr = rows.begin();
+    while(itr != rows.end()){
+        (*itr)->Invalidate();
+        ++itr;
+    }
 }
 
 Glyph* Table::Dup(){

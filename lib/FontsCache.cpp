@@ -84,8 +84,6 @@ void FontsCache::DelChar(Char * ch){
     if (NULL == ch)
         return;
     ReleaseMem((char*)ch->GetBitmap());
-    delete ch;
-    ch = NULL;
 }
 
 void * FontsCache::AquireMem(int size){

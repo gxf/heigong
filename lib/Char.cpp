@@ -32,17 +32,15 @@ std::ofstream & operator<<(std::ofstream &ofs, Char::ID & id){
 }
 
 Char::Char(Logger* log):
-    Glyph(log), baseline(0), 
+    Glyph(log, true), baseline(0), 
     encodeMode(EM_UTF_8), val(0), charLen(1),
-    id(NULL, 0), 
-    valid(true)
+    id(NULL, 0) 
 {}
 
-Char::Char(Logger* log, uint32 v):
-    Glyph(log), baseline(0), 
+Char::Char(Logger* log, uint32 v, bool vld):
+    Glyph(log, v), baseline(0), 
     encodeMode(EM_UTF_8), val(v), charLen(1),
-    id(NULL, 0), 
-    valid(true)
+    id(NULL, 0)
 {}
 
 Char::~Char(){
@@ -86,6 +84,10 @@ bool Char::Relocate(int x, int y){
     pos.x += x;
     pos.y += y;
     return true;
+}
+
+void Char::Invalidate(){
+    ftCache.DelChar(this);
 }
 
 bool Char::Draw(RenderMan & render){
